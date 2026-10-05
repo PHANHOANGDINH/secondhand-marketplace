@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+!.env.production.example
+**/vendor/
+**/node_modules/
+frontend/dist/
+*.log
+.runtime/
+**/auth.json
+
+!**/.env.testing.example

@@ -1,0 +1,186 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { createAuthGuard } from './authGuard'
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/payment/result',
+      name: 'payment-result',
+      component: () => import('../views/PaymentResultView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin/dashboard',
+      name: 'admin-dashboard',
+      component: () => import('../views/AdminDashboardView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/AdminUsersView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/reviews',
+      name: 'admin-reviews',
+      component: () => import('../views/AdminReviewsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/orders',
+      name: 'admin-orders',
+      component: () => import('../views/AdminOrdersView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/seller/dashboard',
+      name: 'seller-dashboard',
+      component: () => import('../views/SellerDashboardView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/checkout',
+      name: 'checkout',
+      component: () => import('../views/CheckoutView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/orders',
+      name: 'orders',
+      component: () => import('../views/OrdersView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/orders/:id',
+      name: 'order',
+      component: () => import('../views/OrderView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/seller/orders',
+      name: 'seller-orders',
+      component: () => import('../views/OrdersView.vue'),
+      props: { seller: true },
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/seller/orders/:id',
+      name: 'seller-order',
+      component: () => import('../views/OrderView.vue'),
+      props: { seller: true },
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/cart',
+      name: 'cart',
+      component: () => import('../views/CartView.vue'),
+      meta: { requiresAuth: true },
+    },
+    { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      meta: { guestOnly: true },
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+      meta: { guestOnly: true },
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: () => import('../views/AccountView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/account/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/account/addresses',
+      name: 'addresses',
+      component: () => import('../views/AddressesView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/seller/shop',
+      name: 'seller-shop',
+      component: () => import('../views/SellerShopView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/shops',
+      name: 'shops',
+      component: () => import('../views/ShopsView.vue'),
+      meta: { requiresAuth: false, requiresAdmin: false },
+    },
+    {
+      path: '/shops/:slug',
+      name: 'shop',
+      component: () => import('../views/ShopView.vue'),
+      meta: { requiresAuth: false, requiresAdmin: false },
+    },
+    {
+      path: '/admin/categories',
+      name: 'admin-categories',
+      component: () => import('../views/AdminCategoriesView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/shops',
+      name: 'admin-shops',
+      component: () => import('../views/AdminShopsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/products',
+      name: 'products',
+      component: () => import('../views/ProductsView.vue'),
+      meta: { requiresAuth: false, requiresAdmin: false },
+    },
+    {
+      path: '/products/:slug',
+      name: 'product',
+      component: () => import('../views/ProductView.vue'),
+      meta: { requiresAuth: false, requiresAdmin: false },
+    },
+    {
+      path: '/seller/products',
+      name: 'seller-products',
+      component: () => import('../views/SellerProductsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/seller/products/create',
+      name: 'seller-product-create',
+      component: () => import('../views/SellerProductEditView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/seller/products/:id/edit',
+      name: 'seller-product-edit',
+      component: () => import('../views/SellerProductEditView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: false },
+    },
+    {
+      path: '/admin/products',
+      name: 'admin-products',
+      component: () => import('../views/AdminProductsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+    },
+  ],
+})
+router.beforeEach((to) => createAuthGuard(useAuthStore())(to))
+export default router

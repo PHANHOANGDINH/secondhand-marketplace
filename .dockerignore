@@ -1,0 +1,16 @@
+.git
+.runtime
+.env
+.env.*
+**/.env
+**/.env.*
+**/node_modules
+**/vendor
+frontend/dist
+backend/storage
+backend/bootstrap/cache
+backend/public/storage
+backend/database/*.sqlite*
+**/auth.json
+**/*.log
+docs

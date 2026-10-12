@@ -1,50 +1,19 @@
-# frontend
+# Vue frontend — local development
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3/Vite, Bootstrap, Pinia, Chart.js and homepage GSAP. See the [root README](../README.md#local-development-with-xampp) for the full Windows/XAMPP setup.
 
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```powershell
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
+# Fresh checkout only: copy .env.example to .env.
 npm run dev
 ```
 
-### Compile and Minify for Production
+Open **http://localhost:5173** after Laravel starts at **http://127.0.0.1:8000**. Keep `VITE_API_BASE_URL=/` and `VITE_BACKEND_PROXY_TARGET=http://127.0.0.1:8000`. Vite proxies API/CSRF/storage/placeholder requests so existing cookie authentication works without cross-host SameSite changes. Restart Vite after env changes.
 
-```sh
+```powershell
+npm run test:unit -- --run
+npm run lint
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Production output is frontend/dist. Development proxy configuration is not bundled into static output; production hosting requires its own API routing. No application routes, Pinia state or API contracts were changed for local setup.

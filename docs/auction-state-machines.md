@@ -1,0 +1,71 @@
+# Auction lifecycle and settlement
+
+Sources: [AuctionService](../backend/app/Services/AuctionService.php), [Auction model](../backend/app/Models/Auction.php), [AuctionCheckoutService](../backend/app/Services/AuctionCheckoutService.php), [FixedPriceEligibility](../backend/app/Services/FixedPriceEligibility.php), [sync command](../backend/app/Console/Commands/SyncAuctions.php). These are distinct state dimensions.
+
+## Persisted lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> SCHEDULED: create with future start
+    [*] --> LIVE: create with start at or before now
+    SCHEDULED --> LIVE: due start and eligible context
+    SCHEDULED --> ENDED: already elapsed at synchronization
+    LIVE --> ENDED: ends_at reached and finalize locks row
+    SCHEDULED --> CANCELLED: eligible owner cancel
+    LIVE --> CANCELLED
+    ENDED --> [*]
+    CANCELLED --> [*]
+```
+
+Creation requires active/available owned Product/Shop, positive supported decimal start/increment and future end after start. Scheduled activation rechecks visibility/ownership; unavailable activations defer. An elapsed SCHEDULED auction can finalize directly without admitting a late bid. Cancel is idempotent if already CANCELLED; accepted bids or elapsed end forbid cancellation. Finalization is idempotent for terminal lifecycle states and picks the highest accepted bid, earliest ID on ties; accepted increasing bids already serialize.
+
+Server now must satisfy `starts_at <= now < ends_at` and status LIVE for a bid. First bid ≥ start_price, subsequent ≥ current_price + bid_increment, always recalculated after row lock. Browser countdown/animation cannot activate/finalize authoritatively.
+
+## Derived settlement, not a column
+
+The requested conceptual labels map to actual `Auction::settlementState()` / Resource values:
+
+| Conceptual label | Actual API value | Derivation |
+| --- | --- | --- |
+| NONE, not ended | `null` | Lifecycle is not ENDED |
+| NONE, ended without winner | `NO_WINNER` | ENDED and winner_user_id is null |
+| PENDING_CHECKOUT | `AWAITING_CHECKOUT` | ENDED winner, no winner_order_id, future winner_checkout_expires_at |
+| ORDER_CREATED | `ORDER_CREATED` | ENDED winner and winner_order_id set |
+| EXPIRED | `CHECKOUT_EXPIRED` | ENDED winner, no Order, deadline not future |
+
+```mermaid
+stateDiagram-v2
+    state "null (not ENDED)" as NONE
+    [*] --> NONE
+    NONE --> NO_WINNER: finalize without accepted bids
+    NONE --> AWAITING_CHECKOUT: finalize with winner and deadline
+    AWAITING_CHECKOUT --> ORDER_CREATED: winner checkout transaction commits
+    AWAITING_CHECKOUT --> CHECKOUT_EXPIRED: deadline reached without Order
+    NO_WINNER --> [*]
+    ORDER_CREATED --> [*]
+    CHECKOUT_EXPIRED --> [*]
+```
+
+Diagram displays actual settlement API labels; NONE is only the diagram alias for null before ENDED. The conceptual-to-API mapping remains above. Expiry is time-derived, not a scheduler update to a stored enum. Default claim window is `AUCTION_WINNER_CHECKOUT_HOURS=24`, starting at actual finalization. The one reminder threshold is `AUCTION_CHECKOUT_REMINDER_MINUTES=60`; reminder locks/rechecks no Order and unexpired deadline and persists its sent timestamp. No reminder after checkout.
+
+Only ACTIVE winner, not Seller, may checkout. Service revalidates ENDED/result/product/shop/bid/address/stock under locks, uses **winning bid price**, reserves **one unit**, and creates ordinary Order/ShopOrder/OrderItem plus COD or ZaloPay attempt. Unique auction-linked item and winner Order references plus payload checks make retries return the existing Order. Conflicting retry payload gets 409. Once Order exists, its cancellation/payment outcome does not reopen settlement or grant another winner attempt.
+
+No winner fallback, penalties/deposits or forced payment. Expiry releases fixed-price claim; creating a new auction requires normal availability checks.
+
+## Product interaction
+
+```mermaid
+stateDiagram-v2
+    [*] --> Available: ACTIVE and public eligibility
+    Available --> AuctionClaim
+    AuctionClaim --> WinnerClaim: ended winner with future deadline and no Order
+    AuctionClaim --> Available: cancel or no bids
+    WinnerClaim --> Available: expiry
+    WinnerClaim --> RemainingStock: Order reserves one unit
+    WinnerClaim --> SOLD: Order reserves last unit
+    Available --> RemainingStock: fixed purchase leaves stock
+    Available --> SOLD: fixed purchase reserves last unit
+    RemainingStock --> Available: eligible again
+```
+
+Available/AuctionClaim/WinnerClaim/RemainingStock are conceptual eligibility states, not Product enum values. Auction ending alone does **not** change Product to SOLD. Fixed-price Cart/Checkout and new Auction creation reject SCHEDULED/LIVE and unexpired unconsumed winner claims; current public cards/details link to Arena. After Order creation, remaining ACTIVE stock can sell normally. Moderation/deletion/owner/category activity independently overrides public/purchase eligibility. Valid Order cancellation restores stock once under existing rules; it does not erase Auction history.

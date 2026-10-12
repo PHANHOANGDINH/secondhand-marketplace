@@ -42,6 +42,17 @@ it.each([null, 'USER', 'ADMIN'])(
     expect(links.includes('/seller/shop')).toBe(Boolean(role))
     expect(links.includes('/login')).toBe(!role)
     for (const path of links) expect(router.resolve(path).name).not.toBe('not-found')
+    const menuClosed = []
+    if (role) {
+      const menu = wrapper.get('details')
+      menu.element.open = true
+      await menu.trigger('keydown', { key: 'Escape' })
+      menuClosed.push(menu.element.open)
+      menu.element.open = true
+      await wrapper.get('a[href="/orders"]').trigger('click')
+      menuClosed.push(menu.element.open)
+    }
+    expect(menuClosed).toEqual(role ? [false, false] : [])
     wrapper.unmount()
   },
 )

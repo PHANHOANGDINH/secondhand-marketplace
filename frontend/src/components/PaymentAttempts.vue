@@ -1,4 +1,5 @@
 <script setup>
+import { getStatusLabel } from '../utils/labels'
 import { computed, ref } from 'vue'
 import * as api from '../api/payment.api'
 import { useFeedback } from '../composables/useFeedback'
@@ -8,13 +9,6 @@ const props = defineProps({ order: { type: Object, required: true } })
 const emit = defineEmits(['changed'])
 const { busy, error, run } = useFeedback()
 const retryKey = ref(null)
-const labels = {
-  PENDING: 'Đang chờ thanh toán',
-  PAID: 'Đã thanh toán',
-  FAILED: 'Không thành công',
-  CANCELLED: 'Đã hủy',
-  REFUNDED: 'Đã hoàn tiền',
-}
 const latest = computed(() => props.order.payments?.at(-1))
 const url = computed(
   () =>
@@ -38,13 +32,13 @@ async function retry() {
 <template>
   <section v-if="order.payment_method === 'ZALOPAY'" class="card my-3" data-payments>
     <div class="card-body">
-      <h2 class="h5">ZaloPay Online</h2>
+      <h2 class="h5">Thanh toán trực tuyến qua ZaloPay</h2>
       <DomainFeedback :busy="busy" :error="error" />
       <p v-if="order.reconciliation_required" class="alert alert-warning">
         Giao dịch cần đối soát. Không thanh toán thêm; vui lòng liên hệ hỗ trợ.
       </p>
       <p v-for="payment in order.payments" :key="payment.id" data-payment-attempt>
-        Lần {{ payment.attempt_number }}: {{ labels[payment.status] }} —
+        Lần {{ payment.attempt_number }}: {{ getStatusLabel(payment.status, 'payment') }} —
         {{ formatPrice(payment.amount) }}
       </p>
       <p v-if="latest?.status === 'PENDING'" class="text-secondary">

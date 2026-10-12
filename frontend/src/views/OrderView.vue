@@ -1,4 +1,6 @@
 <script setup>
+import { getPaymentMethodLabel } from '../utils/labels'
+import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import * as api from '../api/order.api'
@@ -9,6 +11,8 @@ import DomainFeedback from '../components/DomainFeedback.vue'
 import OrderItems from '../components/OrderItems.vue'
 import PaymentAttempts from '../components/PaymentAttempts.vue'
 import OrderShipping from '../components/OrderShipping.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
 const props = defineProps({ seller: Boolean }),
   route = useRoute()
 const order = ref(null),
@@ -80,10 +84,31 @@ watch(
   },
 )
 onMounted(load)
+useSellerIdentity(() => (props.seller ? order.value?.shop : null))
 </script>
 <template>
-  <section>
-    <h1 class="h3">Chi tiết đơn {{ order?.order_code }}</h1>
+  <section :class="{ 'buyer-flow': !seller }">
+    <PageHeader
+      v-if="seller"
+      :title="`Chi tiết đơn ${order?.order_code || ''}`"
+      eyebrow="Không gian người bán"
+      description="Thông tin giao hàng, sản phẩm và các bước xử lý đơn."
+      ><RouterLink to="/seller/orders" class="btn btn-outline-secondary"
+        >← Đơn bán</RouterLink
+      ></PageHeader
+    >
+    <PageHeader
+      v-else
+      title="Chi tiết đơn mua"
+      :description="
+        order
+          ? `Mã đơn: ${order.order_code}`
+          : 'Thông tin giao hàng, thanh toán và sản phẩm trong đơn mua.'
+      "
+      ><RouterLink to="/orders" class="btn btn-outline-secondary"
+        >← Đơn mua của tôi</RouterLink
+      ></PageHeader
+    >
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <p v-for="(messages, field) in errors" :key="field" class="text-danger">
       {{ messages.join(' ') }}
@@ -91,10 +116,17 @@ onMounted(load)
     <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">Tải lại</button>
     <template v-if="order"
       ><OrderShipping :address="order.shipping_address" />
-      <template v-if="!seller"
-        ><p>
-          {{ orderStatuses[order.overall_status] }} · {{ order.payment_method || 'COD' }}:
-          {{ paymentStatuses[order.payment_status] }}
+      <div v-if="!seller" class="buyer-order-overview">
+        <p>
+          <StatusBadge
+            :status="order.overall_status"
+            :label="orderStatuses[order.overall_status]"
+          />
+          {{ getPaymentMethodLabel(order.payment_method || 'COD') }}:
+          <StatusBadge
+            :status="order.payment_status"
+            :label="paymentStatuses[order.payment_status]"
+          />
         </p>
         <p>
           Tổng đơn gốc: {{ formatPrice(order.total_amount) }} · Còn phải thu:
@@ -102,15 +134,27 @@ onMounted(load)
           <template v-if="order.payment_method !== 'ZALOPAY'">
             · Đã thu: {{ formatPrice(order.cod_collected_amount) }}
           </template>
-        </p></template
-      >
+        </p>
+      </div>
       <PaymentAttempts v-if="!seller" :order="order" @changed="order = $event" />
       <section v-for="part in parts" :key="part.id" class="card mb-3" :data-shop-order="part.id">
         <div class="card-body">
           <h2 class="h5">{{ part.shop.name }}</h2>
-          <p>{{ orderStatuses[part.status] }} — {{ formatPrice(part.total_amount) }}</p>
+          <p v-if="seller">
+            <StatusBadge :status="part.status" :label="orderStatuses[part.status]" />
+            <strong class="ms-2">{{ formatPrice(part.total_amount) }}</strong>
+          </p>
+          <p v-else>
+            <StatusBadge :status="part.status" :label="orderStatuses[part.status]" />
+            <strong class="ms-2">{{ formatPrice(part.total_amount) }}</strong>
+          </p>
           <p v-if="part.cancellation_reason">Lý do hủy: {{ part.cancellation_reason }}</p>
-          <OrderItems :items="part.items" :allow-reviews="!seller" @reviewed="reviewed" />
+          <OrderItems
+            :items="part.items"
+            :allow-reviews="!seller"
+            :seller="seller"
+            @reviewed="reviewed"
+          />
           <div
             v-if="
               seller &&
@@ -118,13 +162,13 @@ onMounted(load)
               part.payment_ready !== false &&
               nextOrderStatus[part.status]
             "
-            class="my-3"
+            class="my-3 seller-next-action"
           >
             <label
               v-if="part.status === 'SHIPPING' && part.payment_method !== 'ZALOPAY'"
               class="d-block mb-2"
               ><input v-model="collected" type="checkbox" data-cod-collected /> Đã giao và thu đủ
-              {{ formatPrice(part.total_amount) }} COD</label
+              {{ formatPrice(part.total_amount) }} khi nhận hàng</label
             >
             <button
               class="btn btn-primary"

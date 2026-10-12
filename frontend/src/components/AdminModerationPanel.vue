@@ -1,4 +1,10 @@
 <script setup>
+import { getStatusLabel, getRoleLabel } from '../utils/labels'
+import PageHeader from './ui/PageHeader.vue'
+import StatusBadge from './ui/StatusBadge.vue'
+import EmptyState from './ui/EmptyState.vue'
+import AdminRecordHeader from './admin/AdminRecordHeader.vue'
+import AdminRating from './admin/AdminRating.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import * as api from '../api/admin.api'
 import { useAuthStore } from '../stores/auth'
@@ -80,15 +86,23 @@ const moderate = () =>
       reason.value = ''
       await refresh()
     }
-  }, 'Đã cập nhật trạng thái và ghi audit.')
+  }, 'Đã cập nhật trạng thái và ghi nhật ký quản lý.')
 onMounted(() => load())
 </script>
 <template>
   <section v-if="auth.isAdmin">
-    <h1 class="h3">{{ isUser ? 'Quản lý người dùng' : 'Kiểm duyệt đánh giá' }}</h1>
-    <form class="row g-2 align-items-end my-3" @submit.prevent="load()">
+    <PageHeader
+      :title="isUser ? 'Quản lý người dùng' : 'Kiểm duyệt đánh giá'"
+      eyebrow="Quản trị · Sàn mua bán"
+      :description="
+        isUser
+          ? 'Tra cứu tài khoản và quản lý trạng thái truy cập.'
+          : 'Xem nội dung đánh giá và quản lý khả năng hiển thị.'
+      "
+    />
+    <form class="row g-2 align-items-end my-3 admin-toolbar" @submit.prevent="load()">
       <label v-if="isUser" class="col-md-4"
-        >Tên hoặc email<input
+        >Tên hoặc thư điện tử<input
           v-model="filters.search"
           name="search"
           maxlength="100"
@@ -97,19 +111,19 @@ onMounted(() => load())
       <label class="col-md-2"
         >Trạng thái<select v-model="filters.status" name="status" class="form-select">
           <option value="">Tất cả</option>
-          <option v-for="state in states" :key="state">{{ state }}</option>
+          <option v-for="state in states" :key="state" :value="state">{{ getStatusLabel(state) }}</option>
         </select></label
       >
       <label v-if="isUser" class="col-md-2"
         >Vai trò<select v-model="filters.role" name="role" class="form-select">
           <option value="">Tất cả</option>
-          <option>USER</option>
-          <option>ADMIN</option>
+          <option value="USER">{{ getRoleLabel('USER') }}</option>
+          <option value="ADMIN">{{ getRoleLabel('ADMIN') }}</option>
         </select></label
       >
       <template v-else
         ><label class="col-md-3"
-          >ID sản phẩm<input
+          >Mã sản phẩm<input
             v-model="filters.product"
             name="product"
             type="number"
@@ -124,38 +138,48 @@ onMounted(() => load())
         ></template
       >
       <div class="col-md-3">
-        <button class="btn btn-primary" :disabled="busy">Lọc / Tải lại</button>
+        <button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button>
       </div>
     </form>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <p v-for="(messages, key) in errors" :key="key" class="text-danger">{{ messages.join(' ') }}</p>
-    <div class="row g-4">
+    <div class="row g-4 admin-split">
       <div class="col-lg-7">
-        <div class="table-responsive">
-          <table class="table">
+        <div class="table-responsive admin-table-wrap">
+          <table class="table admin-table">
             <thead>
               <tr>
-                <th>{{ isUser ? 'Người dùng' : 'Sản phẩm / tác giả' }}</th>
-                <th>Trạng thái</th>
-                <th>Chi tiết</th>
+                <th scope="col">{{ isUser ? 'Người dùng' : 'Sản phẩm / tác giả' }}</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col">Chi tiết</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in rows" :key="row.id" :data-record="row.id">
+              <tr
+                v-for="row in rows"
+                :key="row.id"
+                :data-record="row.id"
+                :class="{ 'is-selected': selected?.id === row.id }"
+              >
                 <td>
                   <template v-if="isUser"
-                    >{{ row.name }}<br />{{ row.email }} · {{ row.role }}
-                    <span v-if="row.archived">(Đã lưu trữ)</span></template
+                    ><strong>{{ row.name }}</strong
+                    ><small class="d-block">{{ row.email }}</small
+                    ><small class="d-block"
+                      >{{ getRoleLabel(row.role) }} <span v-if="row.archived">(Đã lưu trữ)</span></small
+                    ></template
                   ><template v-else
-                    >{{ row.product.name }}<br />{{ row.author.name }} · {{ row.rating }} /
-                    5</template
-                  >
+                    ><strong>{{ row.product.name }}</strong
+                    ><small class="d-block">{{ row.author.name }}</small
+                    ><AdminRating :rating="row.rating"
+                  /></template>
                 </td>
-                <td>{{ row.status }}</td>
+                <td data-label="Trạng thái"><StatusBadge :status="row.status" /></td>
                 <td>
                   <button
                     class="btn btn-sm btn-outline-primary"
                     :disabled="busy"
+                    :aria-expanded="selected?.id === row.id"
                     @click="show(row.id)"
                   >
                     Xem
@@ -165,48 +189,81 @@ onMounted(() => load())
             </tbody>
           </table>
         </div>
-        <p v-if="!busy && !error && !rows.length">Không tìm thấy dữ liệu.</p>
+        <EmptyState
+          v-if="!busy && !error && !rows.length"
+          title="Không tìm thấy dữ liệu."
+          description="Điều chỉnh bộ lọc hoặc tải lại danh sách."
+        />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
       <aside v-if="selected" class="col-lg-5" data-selected>
-        <h2 class="h5">{{ isUser ? selected.name : selected.product.name }}</h2>
-        <p>{{ selected.status }}</p>
-        <p v-if="isUser">{{ selected.email }} · {{ selected.role }}</p>
-        <template v-else
-          ><p>{{ selected.author.name }} · {{ selected.rating }} / 5</p>
-          <p style="white-space: pre-wrap">{{ selected.comment || 'Không có nhận xét.' }}</p>
-          <p v-if="selected.moderation_reason">
-            Lý do gần nhất: {{ selected.moderation_reason }}
-          </p></template
-        >
-        <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="show(selected.id)">
-          Tải lại chi tiết
-        </button>
-        <form v-if="action" @submit.prevent="moderate">
-          <label class="form-label w-100"
-            >Lý do thay đổi<textarea
-              v-model="reason"
-              name="reason"
-              required
-              maxlength="1000"
-              class="form-control"
-            /></label
-          ><button
-            class="btn btn-outline-danger"
-            :data-target="action"
-            :disabled="busy || !reason.trim()"
+        <div class="admin-detail">
+          <AdminRecordHeader
+            :title="isUser ? selected.name : selected.product.name"
+            :status="selected.status"
+            :subtitle="isUser ? selected.email : selected.author.name"
+          />
+          <dl v-if="isUser">
+            <dt>Vai trò</dt>
+            <dd>{{ getRoleLabel(selected.role) }}</dd>
+            <template v-if="selected.phone"
+              ><dt>Số điện thoại</dt>
+              <dd>{{ selected.phone }}</dd></template
+            ><template v-if="selected.created_at"
+              ><dt>Ngày đăng ký</dt>
+              <dd>{{ new Date(selected.created_at).toLocaleDateString('vi-VN') }}</dd></template
+            >
+          </dl>
+          <template v-else
+            ><AdminRating :rating="selected.rating" />
+            <p class="admin-review-content mt-3">{{ selected.comment || 'Không có nhận xét.' }}</p>
+            <p v-if="selected.moderation_reason" class="text-secondary">
+              Lý do gần nhất: {{ selected.moderation_reason }}
+            </p></template
           >
-            {{ actionLabel }}
+          <button
+            class="btn btn-outline-secondary mb-3"
+            :disabled="busy"
+            @click="show(selected.id)"
+          >
+            Tải lại chi tiết
           </button>
-        </form>
-        <p v-else>Không có thao tác trạng thái được phép.</p>
-        <p class="text-secondary">
-          {{
-            isUser
-              ? 'Chỉ thay đổi trạng thái; không sửa email, mật khẩu hoặc vai trò.'
-              : 'Chỉ ẩn/hiện; không sửa nội dung hoặc số sao của người mua.'
-          }}
-        </p>
+          <form v-if="action" class="admin-moderation" @submit.prevent="moderate">
+            <p class="admin-moderation-title">Xác nhận {{ actionLabel.toLowerCase() }}</p>
+            <p class="text-secondary">
+              {{ getStatusLabel(selected.status) }} → {{ getStatusLabel(action) }}. Ghi rõ lý do trước khi xác nhận.
+            </p>
+            <label class="form-label w-100"
+              >Lý do thay đổi<textarea
+                v-model="reason"
+                name="reason"
+                required
+                maxlength="1000"
+                class="form-control"
+              /></label
+            ><button
+              class="btn btn-outline-danger"
+              :data-target="action"
+              :disabled="busy || !reason.trim()"
+            >
+              {{ actionLabel }}
+            </button>
+          </form>
+          <p v-else>Không có thao tác trạng thái được phép.</p>
+          <p class="text-secondary">
+            {{
+              isUser
+                ? 'Chỉ thay đổi trạng thái; không sửa thư điện tử, mật khẩu hoặc vai trò.'
+                : 'Chỉ ẩn/hiện; không sửa nội dung hoặc số sao của người mua.'
+            }}
+          </p>
+        </div>
+      </aside>
+      <aside v-else class="col-lg-5">
+        <EmptyState
+          title="Chọn bản ghi để xem chi tiết"
+          description="Thông tin và các thao tác hợp lệ sẽ xuất hiện tại đây."
+        />
       </aside>
     </div>
   </section>

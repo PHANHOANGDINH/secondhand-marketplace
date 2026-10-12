@@ -1,0 +1,222 @@
+[
+  {
+    "group": "phones",
+    "key": "iphone-13",
+    "name": "iPhone 13 128GB màu xanh",
+    "price": "7900000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Máy dùng cá nhân, pin 87%, Face ID và camera hoạt động tốt. Viền có vài vết xước nhỏ; kèm cáp sạc. Hình minh họa cho dữ liệu demo.",
+    "art": "phone",
+    "images": 2
+  },
+  {
+    "group": "phones",
+    "key": "galaxy-s22",
+    "name": "Samsung Galaxy S22 128GB",
+    "price": "6500000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Màn hình sáng đẹp, cảm ứng ổn định, máy chưa sửa chữa. Mặt lưng có dấu sử dụng nhẹ, kèm ốp bảo vệ. Hình minh họa cho dữ liệu demo.",
+    "art": "phone",
+    "images": 1
+  },
+  {
+    "group": "phones",
+    "key": "ipad-air-5",
+    "name": "iPad Air 5 Wi-Fi 64GB",
+    "price": "9900000.00",
+    "stock_quantity": 1,
+    "condition": "LIKE_NEW",
+    "description": "Bản Wi-Fi màu tím, dùng chủ yếu để đọc và ghi chú. Ngoại hình giữ gìn, kèm hộp và bộ sạc. Hình minh họa cho dữ liệu demo.",
+    "art": "tablet",
+    "images": 1
+  },
+  {
+    "group": "phones",
+    "key": "redmi-note-12",
+    "name": "Xiaomi Redmi Note 12 128GB",
+    "price": "2400000.00",
+    "stock_quantity": 2,
+    "condition": "GOOD",
+    "description": "Màn hình AMOLED, pin sử dụng tốt, các chức năng ổn định. Có xước nhẹ ở khung; phù hợp làm máy phụ. Hình minh họa cho dữ liệu demo.",
+    "art": "phone",
+    "images": 1
+  },
+  {
+    "group": "laptops",
+    "key": "macbook-air-m1",
+    "name": "MacBook Air M1 8GB / 256GB",
+    "price": "11900000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Máy học tập và làm việc văn phòng, pin còn 89%. Bàn phím và màn hình ổn định, có xước nhỏ ở đáy, kèm sạc. Hình minh họa cho dữ liệu demo.",
+    "art": "laptop",
+    "images": 2
+  },
+  {
+    "group": "laptops",
+    "key": "dell-inspiron-15",
+    "name": "Dell Inspiron 15 i5 / 8GB / 256GB",
+    "price": "6200000.00",
+    "stock_quantity": 1,
+    "condition": "FAIR",
+    "description": "Core i5 thế hệ 10, SSD 256GB; phù hợp học online và văn phòng. Vỏ có dấu sử dụng, pin khoảng 2–3 giờ, kèm sạc. Hình minh họa cho dữ liệu demo.",
+    "art": "laptop",
+    "images": 1
+  },
+  {
+    "group": "laptops",
+    "key": "thinkpad-t14",
+    "name": "ThinkPad T14 Ryzen 5 / 16GB / 512GB",
+    "price": "8900000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Bàn phím gõ tốt, màn hình Full HD, SSD 512GB. Máy có xước nhẹ bên ngoài; kèm sạc USB-C. Hình minh họa cho dữ liệu demo.",
+    "art": "laptop",
+    "images": 1
+  },
+  {
+    "group": "laptops",
+    "key": "asus-vivobook",
+    "name": "ASUS VivoBook 14 i5 / 8GB / 512GB",
+    "price": "7200000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Laptop gọn nhẹ cho sinh viên, màn hình và các cổng kết nối hoạt động bình thường. Kèm sạc, mặt A có xước nhỏ. Hình minh họa cho dữ liệu demo.",
+    "art": "laptop",
+    "images": 1
+  },
+  {
+    "group": "accessories",
+    "key": "airpods-pro-2",
+    "name": "AirPods Pro 2 hộp sạc Lightning",
+    "price": "3100000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Tai nghe và hộp đã vệ sinh, chống ồn hoạt động tốt. Hộp có xước nhẹ, kèm nút tai và cáp. Hình minh họa cho dữ liệu demo.",
+    "art": "earbuds",
+    "images": 2
+  },
+  {
+    "group": "accessories",
+    "key": "mx-master-3",
+    "name": "Logitech MX Master 3 màu graphite",
+    "price": "1350000.00",
+    "stock_quantity": 2,
+    "condition": "GOOD",
+    "description": "Nút bấm và cuộn hoạt động ổn định, kết nối Bluetooth tốt. Cao su có dấu sử dụng nhẹ; kèm đầu thu USB. Hình minh họa cho dữ liệu demo.",
+    "art": "mouse",
+    "images": 1
+  },
+  {
+    "group": "accessories",
+    "key": "keychron-k2",
+    "name": "Keychron K2 bàn phím cơ brown switch",
+    "price": "1200000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Bàn phím 75%, Bluetooth và dây đều hoạt động tốt. Keycap còn đủ, kèm cáp USB-C; đã vệ sinh. Hình minh họa cho dữ liệu demo.",
+    "art": "keyboard",
+    "images": 1
+  },
+  {
+    "group": "accessories",
+    "key": "sony-wh1000xm4",
+    "name": "Sony WH-1000XM4 màu đen",
+    "price": "3500000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Chống ồn và kết nối ổn định, đệm tai còn tốt. Kèm hộp đựng, cáp sạc và dây âm thanh. Hình minh họa cho dữ liệu demo.",
+    "art": "headphones",
+    "images": 1
+  },
+  {
+    "group": "home",
+    "key": "air-fryer",
+    "name": "Nồi chiên không dầu Philips 4,1L",
+    "price": "1150000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Nồi hoạt động bình thường, lòng nồi đã vệ sinh sạch. Có dấu sử dụng nhẹ bên ngoài; phù hợp gia đình nhỏ. Hình minh họa cho dữ liệu demo.",
+    "art": "fryer",
+    "images": 1
+  },
+  {
+    "group": "home",
+    "key": "coffee-maker",
+    "name": "Máy pha cà phê mini DeLonghi",
+    "price": "1850000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Máy pha espresso dùng tại nhà, bơm và vòi hơi hoạt động ổn định. Kèm tay pha và khay hứng; đã vệ sinh. Hình minh họa cho dữ liệu demo.",
+    "art": "coffee",
+    "images": 1
+  },
+  {
+    "group": "home",
+    "key": "xiaomi-fan",
+    "name": "Quạt đứng Xiaomi Smart Fan 2",
+    "price": "850000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Quạt chạy êm, các mức gió và nút bấm hoạt động tốt. Có xước nhỏ ở chân đế; kèm dây nguồn. Hình minh họa cho dữ liệu demo.",
+    "art": "fan",
+    "images": 1
+  },
+  {
+    "group": "fashion",
+    "key": "denim-jacket",
+    "name": "Áo khoác denim xanh size M",
+    "price": "320000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Áo denim dáng cơ bản, đã giặt sạch, không rách. Vai khoảng 44cm, dài áo 64cm; màu bạc nhẹ theo thời gian. Hình minh họa cho dữ liệu demo.",
+    "art": "jacket",
+    "images": 2
+  },
+  {
+    "group": "fashion",
+    "key": "stan-smith",
+    "name": "Giày Adidas Stan Smith size 40",
+    "price": "650000.00",
+    "stock_quantity": 1,
+    "condition": "FAIR",
+    "description": "Giày đã vệ sinh, đế còn tốt, có nếp gấp và dấu sử dụng nhẹ. Phù hợp chân khoảng 25cm, không còn hộp. Hình minh họa cho dữ liệu demo.",
+    "art": "shoes",
+    "images": 1
+  },
+  {
+    "group": "fashion",
+    "key": "laptop-backpack",
+    "name": "Balo laptop 15,6 inch màu xám",
+    "price": "280000.00",
+    "stock_quantity": 2,
+    "condition": "GOOD",
+    "description": "Ngăn laptop có đệm, khóa kéo hoạt động tốt. Balo đã giặt sạch, không rách; phù hợp đi học hoặc đi làm. Hình minh họa cho dữ liệu demo.",
+    "art": "backpack",
+    "images": 1
+  },
+  {
+    "group": "books",
+    "key": "clean-code",
+    "name": "Clean Code – sách tiếng Anh đã qua sử dụng",
+    "price": "220000.00",
+    "stock_quantity": 1,
+    "condition": "GOOD",
+    "description": "Sách bìa mềm, trang đầy đủ, có một vài ghi chú bằng bút chì. Phù hợp đọc và tham khảo khi học lập trình. Hình minh họa cho dữ liệu demo.",
+    "art": "book",
+    "images": 1
+  },
+  {
+    "group": "books",
+    "key": "database-textbook",
+    "name": "Giáo trình Cơ sở dữ liệu",
+    "price": "65000.00",
+    "stock_quantity": 2,
+    "condition": "FAIR",
+    "description": "Nội dung về mô hình dữ liệu, SQL và thiết kế CSDL. Trang đầy đủ, có gạch chân và ghi chú của người học trước. Hình minh họa cho dữ liệu demo.",
+    "art": "book",
+    "images": 1
+  }
+]

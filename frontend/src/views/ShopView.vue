@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import { getShop } from '../api/shop.api'
 import { domainError } from '../api/domain.api'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import ReportDialog from '../components/ReportDialog.vue'
 import ShopProducts from '../components/ShopProducts.vue'
 const route = useRoute(),
   shop = ref(null),
@@ -27,15 +29,20 @@ async function load(slug) {
 watch(() => route.params.slug, load, { immediate: true })
 </script>
 <template>
-  <section>
-    <RouterLink to="/shops">← Tất cả gian hàng</RouterLink>
+  <section class="buyer-flow">
+    <RouterLink to="/shops" class="buyer-back-link">← Tất cả gian hàng</RouterLink>
     <DomainFeedback :busy="busy" :error="error" />
     <button v-if="error" class="btn btn-outline-secondary" @click="load(route.params.slug)">
       Tải lại
     </button>
     <template v-if="shop"
-      ><h1 class="h3 mt-3">{{ shop.name }}</h1>
-      <p class="text-break" style="white-space: pre-wrap">{{ shop.description }}</p>
+      ><PageHeader :title="shop.name" eyebrow="Gian hàng trên sàn mua bán" />
+      <p class="public-shop-description">{{ shop.description }}</p>
+      <ReportDialog
+        target-type="SHOP"
+        :target-id="shop.id"
+        label="Báo cáo gian hàng"
+        class="mb-3" />
       <ShopProducts :shop-id="shop.id"
     /></template>
   </section>

@@ -11,13 +11,25 @@ use Illuminate\Validation\Validator;
 
 class PublicProductListRequest extends DomainRequest
 {
+    protected function prepareForValidation(): void
+    {
+        foreach (['q', 'search', 'keyword'] as $field) {
+            if (is_string($this->input($field))) {
+                $this->merge([$field => trim($this->input($field))]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
+            'q' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search') || $this->filled('keyword'))],
+            'has_video' => ['sometimes', 'boolean'],
+            'sale_type' => ['sometimes', Rule::in(['fixed', 'auction'])],
             'search' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('keyword'))], 'keyword' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search'))], 'category' => ['sometimes', 'integer', 'min:1'],
             'shop' => ['sometimes', 'integer', 'min:1'], 'condition' => ['sometimes', Rule::enum(ProductCondition::class)],
             'min_price' => ['sometimes', new DecimalPrice(true)], 'max_price' => ['sometimes', new DecimalPrice(true)],
-            'sort' => ['sometimes', Rule::in(['newest', 'price_asc', 'price_desc'])],
+            'sort' => ['sometimes', Rule::in(['newest', 'oldest', 'price_asc', 'price_desc', 'rating', 'relevance'])],
             'page' => ['sometimes', 'integer', 'min:1'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }

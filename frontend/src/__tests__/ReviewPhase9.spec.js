@@ -170,8 +170,8 @@ it('displays validation messages without hiding unsaved form', async () => {
   const { wrapper } = await setup(ReviewForm, { props: { item } })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Rating invalid')
-  expect(wrapper.text()).toContain('Comment too long')
+  expect(wrapper.text()).toContain('Số sao không hợp lệ')
+  expect(wrapper.text()).toContain('Nhận xét không hợp lệ')
   expect(wrapper.emitted('saved')).toBeUndefined()
 })
 it('duplicate/conflict response is visible and does not pretend success', async () => {
@@ -181,7 +181,7 @@ it('duplicate/conflict response is visible and does not pretend success', async 
   const { wrapper } = await setup(ReviewForm, { props: { item } })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Already reviewed')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   expect(wrapper.emitted('saved')).toBeUndefined()
 })
 it('OrderItems shows actions only for permitted Buyer items and preserves reviewed state', async () => {

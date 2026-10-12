@@ -1,4 +1,11 @@
 <script setup>
+import SellerActionCenter from '../components/seller/SellerActionCenter.vue'
+import { localizeValidationErrors } from '../utils/validationLabels'
+
+import { useSellerIdentity } from '../components/seller/useSellerIdentity'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
+
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { getSellerDashboard, getSellerRevenue } from '../api/sellerDashboard.api'
@@ -56,7 +63,7 @@ async function load() {
     if (ticket === sequence) {
       noShop.value = failure.response?.status === 404
       error.value = noShop.value ? 'Không tìm thấy gian hàng của bạn.' : domainError(failure)
-      errors.value = failure.response?.data?.errors || {}
+      errors.value = localizeValidationErrors(failure.response?.data?.errors)
     }
   } finally {
     if (ticket === sequence) busy.value = false
@@ -76,18 +83,28 @@ onMounted(load)
 onBeforeUnmount(() => {
   sequence++
 })
+useSellerIdentity(() => dashboard.value?.shop)
 </script>
 <template>
-  <section>
-    <h1 class="h3">Thống kê gian hàng</h1>
-    <p v-if="dashboard" class="text-secondary">{{ dashboard.shop.name }}</p>
-    <DomainFeedback :busy="busy" :error="error" />
+  <section class="seller-dashboard">
+    <PageHeader
+      title="Thống kê gian hàng"
+      eyebrow="Không gian người bán"
+      :description="dashboard ? dashboard.shop.name : 'Tổng quan sản phẩm, đơn hàng và doanh thu.'"
+      ><StatusBadge v-if="dashboard" :status="dashboard.shop.status"
+    /></PageHeader>
+    <SellerActionCenter v-if="dashboard" />
+    <DomainFeedback
+      :loading-layout="dashboard ? undefined : 'summary'"
+      :busy="busy"
+      :error="error"
+    />
     <p v-for="(messages, field) in errors" :key="field" class="text-danger">
       {{ messages.join(' ') }}
     </p>
     <p v-if="noShop"><RouterLink to="/seller/shop">Tạo hoặc kiểm tra gian hàng</RouterLink></p>
-    <form class="row g-2 align-items-end mb-4" @submit.prevent="submit">
-      <div class="col-md-3">
+    <form class="row g-2 align-items-end mb-4 seller-toolbar" @submit.prevent="submit">
+      <div class="col-sm-6 col-xl-3">
         <label for="dashboard-preset" class="form-label">Khoảng thời gian</label
         ><select
           id="dashboard-preset"
@@ -102,7 +119,7 @@ onBeforeUnmount(() => {
           <option value="custom">Tùy chọn</option>
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-sm-6 col-xl-3">
         <label for="dashboard-from" class="form-label">Từ ngày</label
         ><input
           id="dashboard-from"
@@ -116,7 +133,7 @@ onBeforeUnmount(() => {
           class="form-control"
         />
       </div>
-      <div class="col-md-3">
+      <div class="col-sm-6 col-xl-3">
         <label for="dashboard-to" class="form-label">Đến ngày</label
         ><input
           id="dashboard-to"
@@ -130,7 +147,7 @@ onBeforeUnmount(() => {
           class="form-control"
         />
       </div>
-      <div class="col-md-2">
+      <div class="col-sm-6 col-xl-2">
         <label for="dashboard-group" class="form-label">Nhóm doanh thu</label
         ><select
           id="dashboard-group"
@@ -142,7 +159,9 @@ onBeforeUnmount(() => {
           <option value="month">Theo tháng</option>
         </select>
       </div>
-      <div class="col-md-1"><button class="btn btn-primary" :disabled="busy">Xem</button></div>
+      <div class="col-sm-6 col-xl-1">
+        <button class="btn btn-outline-secondary" :disabled="busy">Xem</button>
+      </div>
     </form>
     <p class="text-secondary">
       Theo giờ Việt Nam; tối đa 366 ngày. Sản phẩm là tồn hiện tại, đơn hàng tính theo ngày tạo,
@@ -152,7 +171,7 @@ onBeforeUnmount(() => {
       <h2 class="h5">Sản phẩm hiện tại</h2>
       <div class="row g-3 mb-3">
         <div v-for="[field, label] in productCards" :key="field" class="col-6 col-lg-3">
-          <div class="card card-body">
+          <div class="card card-body seller-kpi">
             <span>{{ label }}</span
             ><strong class="h3 mb-0" :data-metric="field">{{ dashboard[field] }}</strong>
           </div>
@@ -166,7 +185,7 @@ onBeforeUnmount(() => {
       <h2 class="h5">Đơn được tạo trong kỳ</h2>
       <div class="row g-3 mb-3">
         <div v-for="[field, label] in orderCards" :key="field" class="col-6 col-lg-3">
-          <div class="card card-body">
+          <div class="card card-body seller-kpi">
             <span>{{ label }}</span
             ><strong class="h3 mb-0" :data-metric="field">{{ dashboard[field] }}</strong>
           </div>
@@ -196,8 +215,8 @@ onBeforeUnmount(() => {
       <p v-if="!dashboard.recent_orders.length" class="alert alert-info">
         Chưa có đơn hàng trong khoảng thời gian này.
       </p>
-      <div v-else class="table-responsive">
-        <table class="table">
+      <div v-else class="table-responsive seller-table-wrap">
+        <table class="table seller-table">
           <thead>
             <tr>
               <th>Mã đơn</th>
@@ -212,9 +231,11 @@ onBeforeUnmount(() => {
               <td>
                 <RouterLink :to="`/seller/orders/${order.id}`">{{ order.code }}</RouterLink>
               </td>
-              <td>{{ order.buyer.name }}</td>
-              <td>{{ formatPrice(order.total_amount) }}</td>
-              <td>{{ orderStatuses[order.status] }}</td>
+              <td data-label="Người mua">{{ order.buyer.name }}</td>
+              <td data-label="Tổng tiền">{{ formatPrice(order.total_amount) }}</td>
+              <td data-label="Trạng thái">
+                <StatusBadge :status="order.status" :label="orderStatuses[order.status]" />
+              </td>
               <td>
                 {{
                   new Date(order.created_at).toLocaleString('vi-VN', {

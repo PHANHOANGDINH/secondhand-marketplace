@@ -1,5 +1,13 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
+const route = useRoute()
+import { getStatusLabel } from '../utils/labels'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+import AdminRecordHeader from '../components/admin/AdminRecordHeader.vue'
+import ProductPhoto from '../components/ProductPhoto.vue'
+import { computed, onMounted, watch, reactive, ref } from 'vue'
 import * as productsApi from '../api/product.api'
 import { useFeedback } from '../composables/useFeedback'
 import { formatPrice, conditionLabel, statuses } from '../composables/productPresentation'
@@ -51,13 +59,24 @@ const moderate = (status) =>
     })
     reason.value = ''
     await refresh()
-  }, 'Đã ghi nhận kiểm duyệt và audit.')
-onMounted(() => load())
+  }, 'Đã ghi nhận kiểm duyệt và nhật ký quản lý.')
+async function inspectTarget(id) {
+  if (/^[1-9]\d*$/.test(String(id || ''))) await show(id)
+}
+watch(() => route.query.inspect, inspectTarget)
+onMounted(async () => {
+  await load()
+  await inspectTarget(route.query.inspect)
+})
 </script>
 <template>
   <section>
-    <h1 class="h3">Kiểm duyệt sản phẩm</h1>
-    <form class="row g-2 my-3" @submit.prevent="load()">
+    <PageHeader
+      title="Kiểm duyệt sản phẩm"
+      eyebrow="Quản trị · Sàn mua bán"
+      description="Đối chiếu hình ảnh, thông tin sản phẩm và trạng thái kiểm duyệt."
+    />
+    <form class="row g-2 my-3 admin-toolbar" @submit.prevent="load()">
       <div class="col-md-4">
         <DomainField
           v-model="filters.search"
@@ -75,7 +94,7 @@ onMounted(() => load())
           type="select"
           :options="[
             { value: '', label: 'Tất cả' },
-            ...statuses.map((value) => ({ value, label: value })),
+            ...statuses.map((value) => ({ value, label: getStatusLabel(value) })),
           ]"
           :errors="errors.status"
         />
@@ -96,7 +115,7 @@ onMounted(() => load())
           :errors="errors.category"
         />
       </div>
-      <div><button class="btn btn-primary" :disabled="busy">Lọc / Tải lại</button></div>
+      <div><button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button></div>
     </form>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <div
@@ -106,30 +125,49 @@ onMounted(() => load())
     >
       <div v-for="message in errors[key] || []" :key="message">{{ message }}</div>
     </div>
-    <div class="row g-4">
+    <div class="row g-4 admin-split">
       <div class="col-lg-6">
-        <div class="table-responsive">
-          <table class="table align-middle">
+        <div class="table-responsive admin-table-wrap">
+          <table class="table align-middle admin-table">
             <thead>
               <tr>
-                <th>Sản phẩm</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th scope="col">Sản phẩm</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="product in rows" :key="product.id">
+              <tr
+                v-for="product in rows"
+                :key="product.id"
+                :data-product="product.id"
+                :class="{ 'is-selected': selected?.id === product.id }"
+              >
                 <td>
-                  {{ product.name
-                  }}<small class="d-block"
-                    >{{ product.shop?.name }} · {{ product.category?.name }}</small
-                  ><span v-if="product.archived" class="badge text-bg-secondary">Đã xóa mềm</span>
+                  <div class="admin-product-summary">
+                    <ProductPhoto
+                      :src="product.primary_image?.url"
+                      :alt="product.name"
+                      style="width: 52px; height: 52px"
+                    />
+                    <div>
+                      <strong>{{ product.name }}</strong
+                      ><small class="d-block"
+                        >{{ product.shop?.name }} · {{ product.category?.name }}</small
+                      ><small class="d-block"
+                        >{{ formatPrice(product.price) }} · Tồn {{ product.stock_quantity }}</small
+                      ><span v-if="product.archived" class="badge text-bg-secondary"
+                        >Đã lưu trữ</span
+                      >
+                    </div>
+                  </div>
                 </td>
-                <td>{{ product.status }}</td>
+                <td data-label="Trạng thái"><StatusBadge :status="product.status" /></td>
                 <td>
                   <button
                     class="btn btn-sm btn-outline-primary"
                     :disabled="busy"
+                    :aria-expanded="selected?.id === product.id"
                     @click="show(product.id)"
                   >
                     Xem
@@ -139,46 +177,60 @@ onMounted(() => load())
             </tbody>
           </table>
         </div>
-        <p v-if="!busy && !error && !rows.length">Không có sản phẩm phù hợp.</p>
+        <EmptyState
+          v-if="!busy && !error && !rows.length"
+          title="Không có sản phẩm phù hợp."
+          description="Thử thay đổi bộ lọc."
+        />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
       <aside v-if="selected" class="col-lg-6">
-        <h2 class="h4">{{ selected.name }}</h2>
-        <p>
-          {{ selected.status }} · {{ formatPrice(selected.price) }} ·
-          {{ conditionLabel(selected.condition) }} · Tồn {{ selected.stock_quantity }}
-        </p>
-        <p>{{ selected.shop?.name }} / {{ selected.category?.name }}</p>
-        <ProductGallery :images="selected.images" :name="selected.name" />
-        <p class="text-break mt-3" style="white-space: pre-wrap">{{ selected.description }}</p>
-        <p v-if="selected.moderation_reason">Lý do gần nhất: {{ selected.moderation_reason }}</p>
-        <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="show(selected.id)">
-          Tải lại chi tiết</button
-        ><template v-if="actions.length"
-          ><DomainField
-            v-model="reason"
-            name="reason"
-            label="Lý do kiểm duyệt"
-            type="textarea"
-            required
-            :maxlength="1000"
-            :errors="errors.reason"
-          />
-          <div class="d-flex gap-2">
-            <button
-              v-for="target in actions"
-              :key="target"
-              :data-target="target"
-              class="btn btn-outline-primary"
-              :disabled="busy || !reason.trim()"
-              @click="moderate(target)"
-            >
-              {{ labels[target] }}
-            </button>
-          </div></template
-        >
-        <p v-else>Không có thao tác kiểm duyệt hợp lệ.</p>
+        <div class="admin-detail">
+          <AdminRecordHeader :title="selected.name" :status="selected.status" />
+          <p>
+            {{ formatPrice(selected.price) }} · {{ conditionLabel(selected.condition) }} · Tồn
+            {{ selected.stock_quantity }}
+          </p>
+          <p>{{ selected.shop?.name }} / {{ selected.category?.name }}</p>
+          <ProductGallery :images="selected.images" :name="selected.name" />
+          <p class="text-break mt-3" style="white-space: pre-wrap">{{ selected.description }}</p>
+          <p v-if="selected.moderation_reason">Lý do gần nhất: {{ selected.moderation_reason }}</p>
+          <button
+            class="btn btn-outline-secondary mb-3"
+            :disabled="busy"
+            @click="show(selected.id)"
+          >
+            Tải lại chi tiết
+          </button>
+          <div v-if="actions.length" class="admin-moderation">
+            <p class="admin-moderation-title">Xác nhận kiểm duyệt</p>
+            <p class="text-secondary">Ghi rõ lý do trước khi thay đổi trạng thái sản phẩm.</p>
+            <DomainField
+              v-model="reason"
+              name="reason"
+              label="Lý do kiểm duyệt"
+              type="textarea"
+              required
+              :maxlength="1000"
+              :errors="errors.reason"
+            />
+            <div class="d-flex gap-2">
+              <button
+                v-for="target in actions"
+                :key="target"
+                :data-target="target"
+                class="btn btn-outline-primary"
+                :disabled="busy || !reason.trim()"
+                @click="moderate(target)"
+              >
+                {{ labels[target] }}
+              </button>
+            </div>
+          </div>
+          <p v-else>Không có thao tác kiểm duyệt hợp lệ.</p>
+        </div>
       </aside>
+      <aside v-else class="col-lg-6"><EmptyState title="Chọn sản phẩm để xem chi tiết" /></aside>
     </div>
   </section>
 </template>

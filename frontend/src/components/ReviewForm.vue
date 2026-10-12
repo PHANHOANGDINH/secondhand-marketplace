@@ -33,7 +33,9 @@ async function submit() {
       class="form-select mb-2"
       :disabled="busy"
     >
-      <option v-for="value in 5" :key="value" :value="value">{{ value }} / 5</option>
+      <option v-for="value in 5" :key="value" :value="value">
+        {{ '★'.repeat(value) }} · {{ value }} / 5
+      </option>
     </select>
     <label :for="`review-comment-${item.id}`" class="form-label">Nhận xét (không bắt buộc)</label>
     <textarea

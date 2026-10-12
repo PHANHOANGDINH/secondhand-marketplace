@@ -1,4 +1,7 @@
 <script setup>
+import { localizeValidationErrors } from '../utils/validationLabels'
+
+import PageHeader from './ui/PageHeader.vue'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -34,13 +37,18 @@ async function submit() {
     form.password = ''
     form.password_confirmation = ''
     const target = route.query.redirect
+    const defaultDestination = props.registration
+      ? 'account'
+      : auth.isAdmin
+        ? 'admin-dashboard'
+        : 'home'
     await router.replace(
       typeof target === 'string' && /^\/(?!\/)/.test(target) && !target.includes('\\')
         ? target
-        : { name: 'account' },
+        : { name: defaultDestination },
     )
   } catch (error) {
-    errors.value = error.response?.data?.errors ?? {}
+    errors.value = localizeValidationErrors(error.response?.data?.errors)
     message.value = authError(error)
     form.password = ''
     form.password_confirmation = ''
@@ -53,12 +61,21 @@ async function submit() {
     :aria-busy="auth.loading"
     @submit.prevent="submit"
   >
-    <h1 class="h3 mb-4">{{ registration ? 'Tạo tài khoản' : 'Đăng nhập' }}</h1>
+    <PageHeader
+      :title="registration ? 'Tạo tài khoản' : 'Đăng nhập'"
+      :description="
+        registration
+          ? 'Bắt đầu hành trình mua bán đồ cũ của bạn.'
+          : 'Chào mừng bạn trở lại sàn mua bán.'
+      "
+    />
     <p v-if="message || auth.initializationError" class="alert alert-danger" role="alert">
       {{ message || auth.initializationError }}
     </p>
     <div v-if="registration" class="mb-3">
-      <label for="auth-name" class="form-label">Họ tên</label>
+      <label for="auth-name" class="form-label"
+        >Họ tên<span class="ui-required" aria-hidden="true"> *</span></label
+      >
       <input
         id="auth-name"
         v-model="form.name"
@@ -77,7 +94,9 @@ async function submit() {
       </div>
     </div>
     <div class="mb-3">
-      <label for="auth-email" class="form-label">Email</label>
+      <label for="auth-email" class="form-label"
+        >Thư điện tử<span class="ui-required" aria-hidden="true"> *</span></label
+      >
       <input
         id="auth-email"
         v-model="form.email"
@@ -96,7 +115,9 @@ async function submit() {
       </div>
     </div>
     <div class="mb-3">
-      <label for="auth-password" class="form-label">Mật khẩu</label>
+      <label for="auth-password" class="form-label"
+        >Mật khẩu<span class="ui-required" aria-hidden="true"> *</span></label
+      >
       <input
         id="auth-password"
         v-model="form.password"
@@ -118,7 +139,9 @@ async function submit() {
       </div>
     </div>
     <div v-if="registration" class="mb-3">
-      <label for="auth-confirmation" class="form-label">Xác nhận mật khẩu</label>
+      <label for="auth-confirmation" class="form-label"
+        >Xác nhận mật khẩu<span class="ui-required" aria-hidden="true"> *</span></label
+      >
       <input
         id="auth-confirmation"
         v-model="form.password_confirmation"
@@ -140,6 +163,9 @@ async function submit() {
       <input id="auth-remember" v-model="form.remember" type="checkbox" class="form-check-input" />
       <label for="auth-remember" class="form-check-label">Ghi nhớ đăng nhập</label>
     </div>
+    <RouterLink v-if="!registration" class="mb-3 text-end" to="/forgot-password"
+      >Quên mật khẩu?</RouterLink
+    >
     <button class="btn btn-primary" type="submit" :disabled="auth.loading">
       {{ auth.loading ? 'Đang xử lý…' : registration ? 'Đăng ký' : 'Đăng nhập' }}
     </button>

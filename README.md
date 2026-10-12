@@ -1,133 +1,252 @@
-﻿# Secondhand Marketplace
+# Secondhand Marketplace
 
-A Vietnamese marketplace for buying and selling used products. Buyers browse moderated listings, manage addresses, check out with COD or ZaloPay, track orders and review completed purchases. Shop owners manage products, uploads, fulfillment and revenue. Administrators moderate listings/reviews, manage categories/account status and view system/order dashboards.
+A Vietnamese secondhand marketplace with Buyer, Seller and Admin interfaces. The application uses Vue 3/Vite, Bootstrap, Pinia, Chart.js and homepage-only GSAP; Laravel 13/Sanctum provides the JSON API, cookie authentication and MySQL persistence.
 
-Feature freeze is active. See [final verification](docs/final-verification.md), [demo guide](docs/demo-guide.md), [deployment guide](docs/deployment-guide.md) and [implemented API summary](docs/api-summary.md).
+Canonical documentation entry point: [Final project index](docs/final-project-index.md), including the [release checklist](docs/final-release-checklist.md).
 
-## Architecture and stack
+## Architecture
 
 ```text
-Browser -> Nginx -> Vue production SPA
-                 -> /storage/* -> persistent public uploads
-                 -> /api/* and /sanctum/csrf-cookie -> Laravel PHP-FPM -> MySQL
+Browser http://localhost:5173
+  -> Vite (Vue SPA; development proxy /api, /sanctum, /storage, /placeholders)
+     -> Laravel http://127.0.0.1:8000
+        -> MySQL 127.0.0.1:3306 / secondhand_marketplace
+        -> backend/storage/app/public (uploads)
+        -> backend/storage/framework/sessions (file sessions)
 ```
 
-Frontend: Vue 3, Vue Router, Pinia, Axios, Bootstrap 5, Chart.js and Vite. Backend: Laravel 13, Sanctum 4, Eloquent and MySQL. Testing/quality: PHPUnit, Vitest, Pint, ESLint and Oxlint. Stateful cookie sessions and CSRF protect authenticated writes; policies enforce ownership. Stock/payment totals are server controlled. Auth tokens are not stored in browser storage.
+The browser makes same-origin API requests through Vite. This avoids cross-site cookies between `localhost` and `127.0.0.1` while retaining Sanctum, CSRF, host-only HttpOnly session cookies and SameSite=Lax. Axios credentials/XSRF behavior is unchanged. The backend is also directly accessible at its stated URL.
 
-Local development: Vue at http://localhost:5173 and Laravel at http://localhost:8000. Docker: one origin, currently http://localhost:8088, a separate MySQL database and persistent volumes. Production requires HTTPS termination and production merchant credentials; local Docker verification deliberately uses HTTP.
+## LOCAL DEVELOPMENT WITH XAMPP
 
-## Prerequisites
+Prerequisites: XAMPP MySQL/MariaDB, a compatible **PHP 8.4 CLI** for the installed lockfile, Composer 2, Node **22.18+ (22.x) or 24.12+**, and npm. Enable PHP PDO MySQL, fileinfo, GD, OpenSSL, DOM/XML and the other extensions checked by Composer. XAMPP's bundled PHP can be older than Laravel supports: check `php --version` and `composer check-platform-reqs`; use a compatible separate CLI instead of downgrading the application. Apache is not needed for Artisan/Vite.
 
-- PHP 8.4 recommended (Composer requires ^8.3), Composer 2, normal Laravel extensions plus PDO MySQL, BCMath, Fileinfo and GD with JPEG/PNG/WebP.
-- Node.js ^22.18.0 or >=24.12.0 and npm; Docker uses Node 24.
-- MySQL and a limited application user. Tests require a separate database named `secondhand_marketplace_test`.
-- Docker Engine/Desktop with Linux containers and Docker Compose for deployment; Docker uses MySQL 8.4.
-- Git. Examples use PowerShell; use `npm` instead of `npm.cmd` on other platforms.
+### First-time setup
 
-## Local development setup
-
-From `backend/`:
+Start XAMPP MySQL. Create `secondhand_marketplace` only if it does not exist. Configure a local database user with access to this database; keep its username/password in private `backend/.env`. Do not replace an existing database or existing env/key.
 
 ```powershell
+cd backend
 composer install
-# First setup only, when .env does not exist:
+# Only if .env is missing:
 Copy-Item .env.example .env
+# Only if APP_KEY is empty on this initial setup:
 php artisan key:generate
-```
-
-Preserve an existing private `.env` and APP_KEY. Create the intended development database/restricted user and fill DB_HOST/PORT/DATABASE/USERNAME/PASSWORD. Example defaults use `secondhand_marketplace` on 127.0.0.1:3306. After confirming the connection:
-
-```powershell
 php artisan config:clear
+php artisan migrate:status
+# For a new database / reviewed pending migrations only (back up existing data first):
 php artisan migrate
 php artisan storage:link
-.\serve.ps1
+# Warm mail templates to avoid a slow first reset email on Windows:
+php artisan view:cache
+composer check-platform-reqs
 ```
 
-`serve.ps1` starts localhost:8000 with project-local upload limits; supply `-PhpExecutable <php.exe path>` if needed. On other platforms: `php -d upload_max_filesize=5M -d post_max_size=45M -d memory_limit=256M artisan serve --host=localhost --port=8000 --no-reload`.
-
-From `frontend/` in another terminal:
-
 ```powershell
-npm.cmd ci
-# Only if a private frontend .env does not exist:
+cd frontend
+npm install
+# Only if .env is missing:
 Copy-Item .env.example .env
-npm.cmd run dev -- --host=localhost --port=5173 --strictPort
 ```
 
-Open localhost:5173. Use **localhost** consistently for browser origins; DB_HOST may remain 127.0.0.1. VITE_API_BASE_URL defaults to http://localhost:8000; CORS/Sanctum must match the frontend origin/authority. Restart servers after env changes. Do not run `migrate:fresh` against development data.
+### Exact startup order
 
-## Docker deployment setup
-
-Follow the [deployment guide](docs/deployment-guide.md) to create the gitignored `.env.docker-verification` with new independent secrets and localhost:8088 settings. Preserve an existing key/env/volumes.
+1. Start **XAMPP MySQL** on `127.0.0.1:3306`. If another MySQL service already owns that port, resolve it deliberately and preserve its data; do not start a second server or move/delete database files blindly.
+2. Start Laravel in terminal 1:
 
 ```powershell
-# Repository root
- docker compose --env-file .env.docker-verification config --quiet
- docker compose --env-file .env.docker-verification build
- docker compose --env-file .env.docker-verification up -d --wait --wait-timeout 180
- docker compose --env-file .env.docker-verification ps -a
- curl.exe --fail http://localhost:8088/api/v1/health
+cd backend
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Only Nginx publishes a host port. Compose runs MySQL, a one-shot ordinary migration service, PHP-FPM, the existing reconciliation scheduler and Vue/Nginx. Named volumes retain MySQL data and uploads/sessions/cache. Routine shutdown uses `down`, without `-v`. Fresh Docker databases contain no default accounts or seeded products.
+3. Start Vue in terminal 2:
 
-Production uses a private `.env.production` from `.env.production.example`, exact public authority, HTTPS termination, Secure cookies and stable secrets. Sandbox endpoints are rejected with APP_ENV=production. The deployment guide covers exact commands, proxy trust, ingress and troubleshooting.
+```powershell
+cd frontend
+npm run dev
+```
+
+4. Open **http://localhost:5173**. API health: **http://127.0.0.1:8000/api/v1/health**, or **http://localhost:5173/api/v1/health** through the proxy.
+
+### Auction realtime, Arena, winner checkout and notifications (A2–A5)
+
+Auction A1, A4 and A5 additive migrations must be applied with `php artisan migrate` (never `migrate:fresh` on development data). Configure private backend `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` and the matching **public key only** in frontend `VITE_REVERB_APP_KEY`. Restart Vite after changing its env. Reverb uses `127.0.0.1:8080` locally; Laravel and Vite keep their existing ports.
+
+In two additional terminals:
+
+```powershell
+cd backend
+php artisan config:clear
+php artisan reverb:start
+```
+
+```powershell
+cd backend
+php artisan schedule:work
+```
+
+The scheduler starts/finalizes due auctions. Broadcasts run after commit without a queue worker; REST remains authoritative. A3 provides public discovery at `/auctions`, the realtime Arena at `/auctions/:id` and Seller management at `/seller/auctions`. A4 adds winner-only checkout at `/auctions/:id/checkout`, using the existing COD/ZaloPay Order flow. Configure `AUCTION_WINNER_CHECKOUT_HOURS=24` in the backend to set the claim window. Scheduled/live auctions and unexpired winner claims block fixed-price buying; after the winner Order reserves one unit, remaining stock can be sold normally. See [Auction A2 verification](docs/auction-a2-realtime-verification.md) for configuration and channels, and [Auction A3 UI verification](docs/auction-a3-ui-verification.md) for the Arena and Seller flows. See [Auction A4 settlement verification](docs/auction-a4-settlement-verification.md) for checkout, stock, exclusivity, tests and limitations.
+
+A5 adds persistent auction/order notifications at `/notifications` and a bell in Buyer, Seller and Admin headers. The database is authoritative; private Reverb delivery happens after commit. Offline notifications reload on login, reconnect or returning to the app. Set `AUCTION_CHECKOUT_REMINDER_MINUTES=60` for a single pre-expiry reminder (`0` disables it). The same `schedule:work` process starts/finalizes auctions and checks reminders every minute. Keep it running during demos. See [Auction A5 verification](docs/auction-a5-notifications-verification.md) for recipients, deduplication, race checks and limitations.
+
+For the default 50 MiB product-video limit, configure the CLI's `php.ini` with `upload_max_filesize=50M`, `post_max_size=60M`, `memory_limit=256M`, then restart the backend. Image validation remains 5 MiB/file and 8 images/product. The optional `backend/serve.ps1` applies `backend/dev/uploads.ini` to the normal CLI configuration and starts the same host/port. Application image/type/count rules remain unchanged.
+
+Run `php artisan schedule:work` in another backend terminal when testing scheduled ZaloPay reconciliation. Stop local processes with Ctrl+C; neither process needs Apache or a container.
 
 ## Environment variables
 
-| Area | Requirements |
+| Setting | Local value / purpose |
 | --- | --- |
-| Laravel | APP_ENV, APP_DEBUG, APP_KEY, APP_URL; production debug false, private stable key |
-| Database | DB_CONNECTION=mysql, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD; development/test/Docker connections remain separate |
-| SPA auth | FRONTEND_URLS exact origin; SANCTUM_STATEFUL_DOMAINS host[:port] without scheme; SESSION_DOMAIN=null, SESSION_SECURE_COOKIE=true over HTTPS, SameSite=Lax |
-| Proxy | TRUSTED_PROXIES empty for direct serving; Compose trusts only its static Nginx IP |
-| Frontend | VITE_API_BASE_URL for development; Docker uses a relative base; never put secrets in VITE variables |
-| Docker | COMPOSE_PROJECT_NAME, PUBLIC_HOST/SCHEME/PORT, PUBLISH_ADDRESS, HTTP_PORT, APP_SUBNET, NGINX_INTERNAL_IP; independent DB_PASSWORD/MYSQL_ROOT_PASSWORD |
-| ZaloPay | ZALOPAY_APP_ID, ZALOPAY_KEY1/KEY2, ZALOPAY_CREATE_URL/QUERY_URL/RETURN_URL/CALLBACK_URL/EXPIRE_SECONDS |
+| APP_ENV / APP_URL | `local` / `http://127.0.0.1:8000` |
+| APP_KEY | Generate once; retain it for existing encrypted data/sessions |
+| DB_CONNECTION / DB_HOST / DB_PORT | `mysql` / `127.0.0.1` / `3306` |
+| DB_DATABASE | `secondhand_marketplace` |
+| DB_USERNAME / DB_PASSWORD | Your private local database credentials; examples contain no password |
+| FRONTEND_URLS | `http://localhost:5173`; exact credentialed CORS allowlist |
+| SANCTUM_STATEFUL_DOMAINS | `localhost:5173` |
+| SESSION_DRIVER / SESSION_DOMAIN | `file` / `null` (host-only) |
+| SESSION_SECURE_COOKIE / SESSION_SAME_SITE | `false` for local HTTP / `lax` |
+| TRUSTED_PROXIES | Empty for direct local serving |
+| VITE_API_BASE_URL | `/`; do not point browser cookie-auth requests across hostnames |
+| VITE_BACKEND_PROXY_TARGET | `http://127.0.0.1:8000` (Vite development only) |
+| MAIL_MAILER / LOG_CHANNEL / LOG_STACK | `log` / `stack` / `single` |
+| PASSWORD_RESET_URL | `http://localhost:5173/reset-password` |
+| ZALOPAY_APP_ID / KEY1 / KEY2 | Private authorized Sandbox credentials; never frontend variables |
+| ZALOPAY_CREATE_URL / QUERY_URL | Sandbox V2 endpoints from backend env example |
+| ZALOPAY_RETURN_URL | `http://localhost:5173/payment/result` |
+| ZALOPAY_CALLBACK_URL | Public HTTPS callback URL when testing delivery; local URLs cannot receive provider callbacks |
 
-Backend `.env.example` has secret-free Sandbox URLs, localhost:5173 return and 900-second expiry; keys are empty. Root `.env.production.example` supplies production endpoints and empty credentials with configurable callback/return URLs. Set every payment endpoint/expiry explicitly when enabling it. Never replace a production credential with a Sandbox key.
+Copy examples only for fresh setup. Retain existing DB credentials, APP_KEY and merchant keys. After backend env changes run `php artisan config:clear` and restart; restart Vite after frontend env changes. Production SMTP remains configurable with `MAIL_MAILER=smtp`, `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` and `MAIL_FROM_NAME` in a private env.
 
-## Test commands
+## Optional Gmail SMTP for password reset
 
-Create `backend/.env.testing` from `.env.testing.example` only if absent. Provision `secondhand_marketplace_test`, its private credentials and first-time test APP_KEY (`php artisan key:generate --env=testing`). The test harness checks the actual MySQL database name before rebuilding the **test** schema; SQLite is not a substitute.
+The default private local env can keep `MAIL_MAILER=log`. To send real email, configure these values **only in `backend/.env`** after obtaining credentials for a sender you control:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_SCHEME=smtp
+MAIL_USERNAME=your-controlled-sender@gmail.com
+MAIL_PASSWORD="your-google-app-password"
+MAIL_FROM_ADDRESS=your-controlled-sender@gmail.com
+MAIL_FROM_NAME="Secondhand Marketplace"
+PASSWORD_RESET_URL=http://localhost:5173/reset-password
+```
+
+The values above are placeholders, not credentials. Use a **Google App Password**, never your normal Gmail account password. Enable 2-Step Verification on an eligible account and generate an App Password privately; some organizational/security policies prevent App Passwords. See [Google App Password instructions](https://support.google.com/accounts/answer/185833) and [Google SMTP settings](https://support.google.com/mail/answer/7104828?hl=en). The sender should match MAIL_USERNAME unless an authorized sending alias is configured.
+
+The installed Laravel mail configuration already reads all these variables. `MAIL_SCHEME=smtp` with port 587 uses Symfony's automatic **STARTTLS** negotiation; `tls` is not a valid scheme here. `smtps` is implicit TLS, usually port 465, and is not this 587 configuration. Keep certificate verification and automatic TLS enabled; do not disable either to bypass connection errors. [Symfony Mailer TLS behavior](https://symfony.com/doc/current/mailer.html#tls-peer-verification) describes the transport. Remove an old `MAIL_URL` override if present before using individual SMTP env variables. PHP OpenSSL and outbound access to smtp.gmail.com:587 are required.
+
+After changing private env values:
 
 ```powershell
-# backend/
+cd backend
+php artisan config:clear
+php artisan view:cache
+# Restart an already running backend, then:
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+Use Login -> Forgot Password at http://localhost:5173 with a controlled demo recipient that has an account in the selected safe demo database. Confirm Inbox/Spam receipt, open the localhost:5173 reset link, choose a new application password and log in. Reusing that link must fail. An unknown address must receive the same generic API message without receiving a reset email. SMTP acceptance alone does not prove inbox receipt; the recipient must confirm it. Do not change existing development account emails/passwords solely to demonstrate delivery; use a disposable account/database.
+
+For developers without SMTP credentials, set `MAIL_MAILER=log`, clear config cache and restart. Reset email/link then appears in private `backend/storage/logs/laravel.log`. This is an explicit fallback, not an automatic SMTP-to-log substitution. Generic forgot-password success is not proof of delivery: transport errors intentionally preserve that response, so inspect sanitized notification errors privately. Never publish App Passwords, reset links, env files, SMTP exception details or logs.
+
+Troubleshooting: verify sender/App Password eligibility and authentication, port 587 connectivity, TLS/CA trust and the intended mailer; check spam and account-provider sending limits. Gmail-account password changes can revoke App Passwords. Do not use the normal Gmail password or turn off TLS verification.
+
+SMTP setup and regression checks passed; authenticated delivery/inbox verification is pending private credentials and a controlled recipient. See [SMTP verification](docs/deployment-guide.md#smtp-verification--2026-10-07) for exact results.
+
+## Password reset, uploads and payment testing
+
+Login → “Quên mật khẩu?” sends a generic response. With the default log mailer, find the reset email/link in **`backend/storage/logs/laravel.log`**, open the localhost:5173 reset link and return to Login after resetting. Keep log files private: reset links are sensitive. No Mailpit service is required. The broker handles token expiry and one-time use; normal responses contain no token.
+
+Product uploads use Laravel's **public** disk explicitly. `php artisan storage:link` exposes `storage/app/public` at `public/storage`; on Windows the link can be a junction. Files persist on the local filesystem across backend restarts. Preserve that directory and existing files. Do not expose private storage or logs. Existing avatar/shop-logo capabilities are unchanged.
+
+COD is the reproducible offline payment demo. ZaloPay uses authorized **Sandbox** credentials locally; production keys/endpoints are separate. For callback delivery, use a public HTTPS tunnel (for example Cloudflare Tunnel) targeting the backend at `http://127.0.0.1:8000`, then set the callback URL ending `/api/v1/payments/zalopay/callback`. Trust only an explicitly configured proxy if one is actually needed; never set a wildcard just to enable local auth. The backend verifies gateway MAC, reference, amount and idempotency. A return URL does not prove payment. Real production payment/TLS hosting is outside this local workflow.
+
+## Demo data and presentation
+
+Use the additive **FinalDemoSeeder** for the complete local C1 demo. Configure a private `DEMO_PASSWORD` (at least 12 characters) in `backend/.env`; no usable password is committed. It creates six isolated `c1-*@example.test` accounts: one Admin, two Sellers and three Buyers. Existing accounts/passwords and unrelated records are preserved; reruns do not reset presentation progress.
+
+```powershell
+cd backend
+php artisan config:clear
+php artisan db:seed --class=FinalDemoSeeder --no-interaction
+```
+
+The pack contains two ACTIVE shops, 18 dedicated products using current categories/local owned artwork, valid auctions/bids and winner settlement, COD Orders with lawful fulfillment, published purchase-linked reviews, small local demo videos/comments, persistent notifications and Buyer/Seller conversations. Older catalog listings remain in place. The media is labeled test-pattern demo footage, not an authentic review. The earlier catalog-only DemoMarketplaceSeeder remains available for its original deficit-filling use.
+
+Keep four terminals running (start MySQL first):
+
+```powershell
+# backend/ — terminal 1
+php artisan serve --host=127.0.0.1 --port=8000
+# backend/ — terminal 2
+php artisan reverb:start
+# backend/ — terminal 3
+php artisan schedule:work
+# frontend/ — terminal 4
+npm run dev
+```
+
+Open `http://localhost:5173`. [Presentation script and accounts](docs/demo-script.md) gives exact preparation and Buyer/Seller/Admin/Auction/Video/Messaging journeys. [Final demo verification](docs/final-demo-verification.md) records integration, tests, security and limitations. Password recovery remains available with log mail; reset links are private. Never use migrate:fresh to reset a presentation. A new short auction must be prepared through Seller UI when demonstrating winner checkout live; seeding does not extend old deadlines.
+
+## Tests
+
+Backend tests strictly require a separate MySQL database named **`secondhand_marketplace_test`** and APP_ENV=testing. Create it and grant a configured test user access; copy `backend/.env.testing.example` to `.env.testing` only if missing, fill private credentials/key, and retain the development database separately. Do not redirect tests to the development DB.
+
+```powershell
+cd backend
 php artisan config:clear
 php artisan test --compact
-php vendor/bin/pint --test --format agent
-# frontend/
-npm.cmd run test:unit -- --run
-npm.cmd run lint
-npm.cmd run build
+php vendor/bin/pint --dirty --format agent
 ```
 
-Docker smoke/persistence tests use Python 3 standard-library helpers under `docker/verification/`, only against `marketplace_phase14`; fixtures are nonce-scoped and cleaned. Exact commands and final totals are in the deployment/final-verification guides.
-
-## Accounts and demo preparation
-
-Register accounts with privately chosen passwords: at least 12 characters including letters/numbers, at most 72 bytes. Registration grants USER/ACTIVE. A seller is a user owning a shop; there is no public SELLER/Admin role selector. Only an operator provisions an administrator; see the demo guide. No real passwords, keys or private account credentials are published here.
-
-Optional local-only seeders include reserved examples `admin@example.com`, `seller@example.com`, `buyer@example.com`. Their fixed development credentials are unsuitable for production and must be replaced if those accounts are used. Seeders refuse production/Docker databases. Seeding was not run during final verification. Fresh registration and the documented moderation flow are preferred for demonstrations.
-
-## Project structure
-
-```text
-backend/                Laravel requests, policies, services, resources, routes and tests
-frontend/src/           Vue views/components, API helpers, stores, router and tests
-docker/nginx/           Static/API/public-storage Nginx template
-docker/verification/    Isolated HTTP/persistence and fixture cleanup helpers
-compose.yaml            MySQL, migration, backend, scheduler and frontend/Nginx
-.env.production.example Secret-free production configuration template
-docs/                   Current guides and historical design/phase evidence
-.runtime/               Gitignored logs, private verification state and cookie jars
+```powershell
+cd frontend
+npm run test:unit -- --run
+npm run lint
+npm run build
 ```
 
-## Features and known limitations
+`npm run build` creates static files in `frontend/dist`; the Vite development proxy is not bundled into production output. Production hosting needs a separately configured API/reverse proxy; `vite preview` is not this documented authenticated development workflow.
 
-Implemented: auth/profile/default addresses; shop approval; hierarchical categories; searchable/filterable paginated catalog; seller product lifecycle and sanitized image uploads; cart; whole-cart COD/ZaloPay checkout/idempotency; stock/order concurrency guards; buyer cancellation/history; seller fulfillment; purchase-verified reviews/moderation; seller revenue charts; admin status/category/shop/product/review management, read-only orders/system dashboards; scheduled ZaloPay reconciliation; Docker persistence.
+## Project structure and features
 
-Not implemented: notifications, chat, auctions, refunds, payouts, commissions, password recovery, email verification, OAuth/2FA, cloud storage or reconciliation management UI. Shipping/discount are zero. Late/ambiguous online money requires manual reconciliation; expired online reservations are not automatically released. Retained upload URLs remain public when listings become hidden. File sessions/cache suit a single backend; multi-node stores, public TLS, merchant onboarding, live callback/wallet E2E, backup restore and production load testing need separate work.
+- `backend/`: Laravel API, policies, validation, services, migrations, seeders and PHPUnit tests.
+- `frontend/`: Vue pages/layouts, API clients, Pinia stores, shared UI, Vite configuration and Vitest tests.
+- `docs/`: API summary, current local setup/demo guide and historical verification reports.
 
-Historical design/requirements/state/permission files may include proposed or superseded scope; they are not an endpoint contract. The current [API summary](docs/api-summary.md) and [final verification](docs/final-verification.md) describe shipped behavior. Phase 12 records earlier user-confirmed Sandbox card payment; the final run does not claim a new live payment.
+Implemented: registration/login/logout/session/profile, forgot/reset password, owned addresses, public product/shop/category discovery, seller shop/product/image workflows, moderation, cart, transactional idempotent checkout, COD, ZaloPay V2 Sandbox integration, buyer/seller orders, reviews, Seller/Admin dashboards and administration. Buyer/seller text messaging, persistent in-app auction notifications and auction backend/realtime infrastructure are also available. Homepage Video Review discovery, Theater mode and persistent realtime plain-text comments are implemented. The realtime auction Arena and Seller auction management are implemented. Winner checkout creates one ordinary Order/ShopOrder/OrderItem at the winning bid price and reuses COD/ZaloPay payment attempts; refund, payout and commission remain out of scope.
+
+## Status and limitations
+
+Current setup is Windows/local development. [Local setup and troubleshooting](docs/deployment-guide.md), [API summary](docs/api-summary.md), and [local verification](docs/xampp-local-verification.md) are current references. Previous deployment/phase reports are historical; their removed infrastructure commands are not current setup instructions. Archived container data volumes were retained during removal to avoid deleting previously seeded data.
+
+This machine's XAMPP PHP is 8.0.30 and its MariaDB is not the server currently owning port 3306. Verification uses the compatible PHP 8.4 CLI and existing MySQL service, leaving the development database unchanged. Switch the database service only with a deliberate backup/migration plan. Exact XAMPP MariaDB compatibility remains unverified. Public callback delivery needs a tunnel; live merchant payments, TLS production hosting, backup restore and multi-node operation are not verified. File sessions/storage are local to one machine; reconciliation requiring manual intervention has no dedicated UI.
+
+## Product video reviews (B1)
+
+Apply the additive Product Video migration with `php artisan migrate`; never reset development data. Seller product editor and Quick Listing include optional MP4/WebM uploads after saving a draft, title/description, primary/order, hide/show and confirmed deletion. Public Product Detail shows READY videos only when the existing Product/Shop visibility rules pass. Product Lists never load video players. B1 does not change Product moderation, Auction, Order or Payment behavior.
+
+Default: three videos/product, 50 MiB each. `PRODUCT_VIDEO_MAX_KB=51200` is configurable in private backend env. PHP's upload/post caps must also allow it. The bundled helper keeps the normal CLI configuration and applies local limits:
+
+```powershell
+cd backend
+.\serve.ps1
+# If PHP is not on PATH, pass your compatible PHP 8.4 executable:
+# .\serve.ps1 -PhpExecutable 'C:\path\to\php.exe'
+```
+
+Alternatively configure the same limits privately in php.ini before `php artisan serve --host=127.0.0.1 --port=8000`. Restart backend after changes. Keep `php artisan storage:link` pointing to `storage/app/public`. No ffmpeg dependency is added: poster/duration remain nullable, native browser codec support applies. See [Video B1 verification](docs/video-b1-verification.md) for APIs, permissions, tests, demo fixtures and storage limitations.
+
+## Final documentation and defense pack
+
+Start with the [final project index](docs/final-project-index.md). It separates current implementation from historical planning/verification reports.
+
+- [System overview](docs/final-system-overview.md) and [module inventory](docs/final-module-inventory.md): roles, delivered modules, rules and API groups.
+- [Architecture](docs/final-architecture.md), [ERD](docs/final-erd.md), [use cases](docs/final-use-cases.md), [sequences](docs/final-sequences.md) and [auction states](docs/auction-state-machines.md): current Mermaid diagrams grounded in code/migrations.
+- [Security](docs/final-security-summary.md) and [testing summary](docs/final-testing-summary.md): controls, C1 totals and explicit external/production limits.
+- [7–10 minute defense demo](docs/demo-script.md) and [Q&A](docs/defense-qa.md): preparation, clicks/talking points/results and fallbacks.
+
+C1 local-demo baseline: **352 backend tests / 3,504 assertions**, **355 frontend tests / 28 files**, **166 actual browser checks**, Pint/lint/build PASS. C2 is documentation-only and does not imply another regression run or production certification. Sandbox creation is verified; completed real payment/callback remains unverified manually. No real password/secret is included in the defense material.

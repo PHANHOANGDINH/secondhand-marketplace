@@ -19,14 +19,28 @@ function draw() {
   }
   chart = new Chart(canvas.value, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Doanh thu', data: values, backgroundColor: '#0d6efd' }] },
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Doanh thu',
+          data: values,
+          backgroundColor: '#0d6efd',
+          borderRadius: 5,
+          maxBarThickness: 36,
+        },
+      ],
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
+      layout: { padding: { top: 12, right: 8 } },
       scales: {
         y: {
           beginAtZero: true,
+          border: { display: false },
+          grid: { color: 'rgba(108, 117, 125, 0.1)' },
           ticks: {
             callback: (value) =>
               new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value),

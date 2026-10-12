@@ -1,0 +1,53 @@
+# Final testing summary
+
+Verified **FINAL C1 on 2026-10-09**, reused for documentation-only C2. No application code changed; these are inherited results, not a new suite run. Evidence: [C1 verification](final-demo-verification.md).
+
+| Verification | Confirmed result |
+| --- | --- |
+| Backend full | **352 tests / 3,504 assertions PASS** |
+| Focused C1, included in full total | 3 tests / 78 assertions PASS |
+| Frontend full | **355 tests / 28 files PASS** |
+| Actual multi-browser | **166 checks PASS**, zero application console errors/uncaught exceptions |
+| Responsive viewports | **1440 / 1024 / 768 / 390 px** |
+| Pint / lint / production build | PASS / PASS / PASS |
+| Seeder/data/cleanup | Identical rerun across 22 business tables; original rows unchanged; temporary records/uploads removed |
+
+Do not add the three focused tests again to 352. Browser checks are assertions across journeys/viewports, not 166 independently isolated E2E cases.
+
+## Representative coverage
+
+| Category | Evidence / scope |
+| --- | --- |
+| Unit/feature/integration | Money/model/domain behavior through services and HTTP tests against guarded MySQL test DB; actual local browser/API integration separately |
+| Security | Session/CSRF, invalid/expired/reused reset tokens, generic unknown email, Admin/ownership/IDOR, tampering and raw-error suppression |
+| Concurrency | Stock/checkout, cancellation/payment, concurrent bid minimum, finalization/expiry/checkout/reminder/scheduler races; controlled workers, not throughput measurement |
+| Auction | Decimal increments, self-bid, time limits, winner/no-bid/idempotency, winner-only Order/price snapshot |
+| Realtime | Payload/channel auth, after-commit/outage behavior, frontend dedup/reconnect; real two-browser bids/OUTBID and Theater comments |
+| Messaging/notifications | Participant/owner IDOR, history/read/unread/persistence/dedup, polling cleanup and bell/navigation; actual Buyer/Seller polling reply |
+| Video/content | Local MIME/container/size/ownership/visibility; hidden resources denied, plain text/moderation; browser native codec scope |
+| Payment | Real normal/auction COD Orders; real ZaloPay Sandbox create → PENDING/gateway URL; callback/query/replay/reference/amount/cancellation automated tests |
+| Responsive/accessibility | Four emulated widths, no settled overflow, focus/ESC, reduced motion, dialog/header cleanup, no stuck GSAP; targeted checks, not WCAG certification |
+| Demo E2E | Home/Product/Cart/Checkout/Order, Account, Seller/Admin, timed multi-account Auction/winner checkout, Notifications, Theater and Messaging |
+
+## Reproduction
+
+Privately configure `backend/.env.testing` for **secondhand_marketplace_test**, APP_ENV=testing. TestCase checks configured and actual DB names; never repoint tests to development.
+
+```powershell
+# backend/
+php artisan config:clear
+php artisan test --compact
+php vendor/bin/pint --dirty --format agent
+# frontend/
+npm run test:unit -- --run
+npm run lint
+npm run build
+```
+
+Use compatible PHP 8.4 and `npm.cmd` when Windows wrappers require it. Startup/preparation: [demo script](demo-script.md). No development migrate:fresh.
+
+## Unverified boundaries
+
+Final real paid ZaloPay callback/payment completion and external paid-status query were **not manually verified**. Public HTTPS tunnel/controlled Sandbox instruments are needed for that optional demo; automated tests are not external success. Real SMTP inbox receipt depends on controlled credentials/recipient. No production load/stress, multi-node deployment, physical-device, formal penetration/full contrast audit or backup-restore certification.
+
+**PASS for local demo scope.** C2 checks documentation/schema/link/diagram sources; see [project index](final-project-index.md).

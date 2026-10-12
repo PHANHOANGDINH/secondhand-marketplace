@@ -21,14 +21,25 @@ class ProductQuery
 
     public function related(Builder $query): Builder
     {
-        return ReviewService::withSummary($query)->with(['shop' => fn (BelongsTo $q) => $q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at'), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+        $user = request()->user('sanctum');
+        if ($user) {
+            $query->withExists(['wishlistEntries as is_wishlisted' => fn (Builder $rows) => $rows->where('user_id', $user->id)]);
+        }
+
+        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at'), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
     }
 
     public function apply(Builder $query, array $filters, bool $descendants = false): Builder
     {
-        if (($keyword = $filters['search'] ?? $filters['keyword'] ?? null) !== null && $keyword !== '') {
+        if (($keyword = $filters['q'] ?? $filters['search'] ?? $filters['keyword'] ?? null) !== null && $keyword !== '') {
             $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $keyword).'%';
-            $query->where(fn (Builder $q) => $q->whereRaw("name LIKE ? ESCAPE '!'", [$pattern])->orWhereRaw("description LIKE ? ESCAPE '!'", [$pattern]));
+            $query->where(function (Builder $q) use ($pattern, $descendants): void {
+                $q->whereRaw("name LIKE ? ESCAPE '!'", [$pattern])->orWhereRaw("description LIKE ? ESCAPE '!'", [$pattern]);
+                if ($descendants) {
+                    $q->orWhereHas('category', fn (Builder $related) => $related->whereRaw("name LIKE ? ESCAPE '!'", [$pattern]))
+                        ->orWhereHas('shop', fn (Builder $related) => $related->whereRaw("name LIKE ? ESCAPE '!'", [$pattern]));
+                }
+            });
         }
         foreach (['status', 'condition'] as $field) {
             if (isset($filters[$field])) {
@@ -55,12 +66,29 @@ class ProductQuery
         if (isset($filters['max_price'])) {
             $query->where('price', '<=', $filters['max_price']);
         }
+        if ($descendants && isset($filters['has_video'])) {
+            $query->has('videos', (bool) $filters['has_video'] ? '>=' : '<', 1, 'and', fn (Builder $videos) => $videos->where('status', 'READY'));
+        }
+        if ($descendants && isset($filters['sale_type'])) {
+            if ($filters['sale_type'] === 'auction') {
+                $query->whereHas('auctionClaim');
+            } else {
+                $query->whereDoesntHave('auctionClaim');
+            }
+        }
+        $query = $this->related($query);
+        if ($descendants && ($filters['sort'] ?? '') === 'relevance' && $keyword !== null && $keyword !== '') {
+            $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $keyword);
+            $query->orderByRaw("CASE WHEN name = ? THEN 0 WHEN name LIKE ? ESCAPE '!' THEN 1 WHEN name LIKE ? ESCAPE '!' THEN 2 ELSE 3 END", [$keyword, $escaped.'%', '%'.$escaped.'%']);
+        }
         match ($filters['sort'] ?? 'newest') {
+            'oldest' => $query->orderBy('created_at')->orderBy('id'),
+            'rating' => $query->orderByDesc('average_rating')->orderByDesc('review_count')->orderByDesc('id'),
             'price_asc' => $query->orderBy('price')->orderBy('id'),
             'price_desc' => $query->orderByDesc('price')->orderByDesc('id'),
             default => $query->orderByDesc('created_at')->orderByDesc('id'),
         };
 
-        return $this->related($query);
+        return $query;
     }
 }

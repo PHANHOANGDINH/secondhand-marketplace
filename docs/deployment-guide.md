@@ -1,142 +1,130 @@
-# Deployment guide
+# Local development with XAMPP
 
-Current verified deployment: **http://localhost:8088**, project `marketplace-phase14`, separate database `marketplace_phase14`. This is production-like infrastructure with local HTTP, not a publicly secured payment deployment. [PHASE 14 verification](phase-14-verification.md) records the initial container build; [final verification](final-verification.md) records the final frontend and regression checks.
+The current runtime is Vue/Vite at **http://localhost:5173**, Laravel Artisan at **http://127.0.0.1:8000**, and a MySQL-compatible server at **127.0.0.1:3306** using **secondhand_marketplace**. See [README startup commands](../README.md#local-development-with-xampp). This guide replaces the previous container setup; historical reports retain their original results.
 
-## Local Docker setup
+## Startup and configuration
 
-Prerequisites: Docker's Linux engine, Compose, free host port 8088 and a non-conflicting private subnet. Run from the repository root. Do not overwrite the existing private `.env.docker-verification`; its APP_KEY/passwords must remain stable for existing volumes/sessions.
+1. Start XAMPP MySQL. Confirm port 3306 is free or already owned by the intended database server. Preserve an existing database before switching services.
+2. In `backend`, run `composer install`; create `.env` from `.env.example` only if absent. Configure DB username/password privately. Generate APP_KEY only when initially empty. Run `php artisan config:clear`, `php artisan migrate:status`, and `php artisan storage:link`. Warm mail templates with `php artisan view:cache` to avoid slow first rendering on Windows. Apply ordinary `php artisan migrate` only for an initial database or reviewed pending migrations with a backup.
+3. Run `php artisan serve --host=127.0.0.1 --port=8000`.
+4. In `frontend`, run `npm install`; create `.env` from `.env.example` only if absent. Run `npm run dev`.
+5. Open http://localhost:5173. Check both http://127.0.0.1:8000/api/v1/health and http://localhost:5173/api/v1/health.
 
-For a new checkout, create that file once with this PowerShell block. It writes secrets privately without printing them; no real secret belongs in a committed example:
+Use PHP 8.4 for the installed Composer lockfile; the installed XAMPP PHP 8.0.30 cannot run this Laravel version. A separate PHP CLI alongside XAMPP MySQL is supported. Check `php --version`, `php --ini`, `composer check-platform-reqs`, and `node --version` before starting. Do not alter application dependencies merely to accommodate an old bundled PHP.
 
-```powershell
-$envFile = '.env.docker-verification'
-if (Test-Path -LiteralPath $envFile) { throw 'Preserve the existing private env and key.' }
-$settings = Get-Content .env.production.example
-$values = @{
-    COMPOSE_PROJECT_NAME = 'marketplace-phase14'
-    PUBLIC_HOST = 'localhost:8088'
-    PUBLIC_SCHEME = 'http'
-    PUBLIC_PORT = '8088'
-    PUBLISH_ADDRESS = '127.0.0.1'
-    HTTP_PORT = '8088'
-    SESSION_SECURE_COOKIE = 'false'
-    DB_DATABASE = 'marketplace_phase14'
-    ZALOPAY_CALLBACK_URL = ''
-}
-$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
-foreach ($name in @('APP_KEY', 'DB_PASSWORD', 'MYSQL_ROOT_PASSWORD')) {
-    $buffer = New-Object byte[] 32
-    $rng.GetBytes($buffer)
-    $secret = [Convert]::ToBase64String($buffer)
-    if ($name -eq 'APP_KEY') { $secret = 'base64:' + $secret }
-    $values[$name] = $secret
-}
-$rng.Dispose()
-foreach ($name in $values.Keys) {
-    $settings = $settings -replace ('^' + $name + '=.*$'), ($name + '=' + $values[$name])
-}
-[IO.File]::WriteAllLines((Join-Path (Get-Location) $envFile), $settings, [Text.UTF8Encoding]::new($false))
+## Sanctum / cookies
+
+`VITE_API_BASE_URL=/` and `VITE_BACKEND_PROXY_TARGET=http://127.0.0.1:8000` route browser `/api` and `/sanctum` through Vite. Keep `FRONTEND_URLS=http://localhost:5173`, `SANCTUM_STATEFUL_DOMAINS=localhost:5173`, `SESSION_DOMAIN=null`, `SESSION_DRIVER=file`, `SESSION_SAME_SITE=lax`, and local `SESSION_SECURE_COOKIE=false`. Session cookies remain HttpOnly; the XSRF cookie must remain readable for Axios. Existing credential/XSRF handling is unchanged. Direct cross-host API configuration is unsuitable for this local cookie-auth pair. CORS is still an exact origin allowlist with credentials, not a wildcard.
+
+## Email, storage, scheduled payment queries
+
+Default `MAIL_MAILER=log` writes reset email to `backend/storage/logs/laravel.log`. Follow its localhost:5173 reset link privately. SMTP remains configurable in backend env; no container mail service is needed. Never publish logs/reset links.
+
+`php artisan storage:link` links `backend/public/storage` to `backend/storage/app/public`. Product images are PNG/JPEG/WebP under the existing validation rules. Configure CLI upload limits using `backend/dev/uploads.ini` values; optional `./serve.ps1` applies them. Preserve uploads and the stable APP_KEY across restarts. Existing file sessions live in `storage/framework/sessions`.
+
+For Sandbox, keep merchant keys private and use the V2 Sandbox URLs from the env example. Set `ZALOPAY_RETURN_URL=http://localhost:5173/payment/result`; provider callbacks need a public HTTPS tunnel to port 8000 and the `/api/v1/payments/zalopay/callback` path. Run `php artisan schedule:work` in a separate terminal to enable scheduled reconciliation. Do not fabricate PAID state or weaken verification for demos. Production keys/SMTP/HTTPS are separately provisioned.
+
+## Optional Gmail SMTP for password reset
+
+The default private local env can keep `MAIL_MAILER=log`. To send real email, configure these values **only in `backend/.env`** after obtaining credentials for a sender you control:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_SCHEME=smtp
+MAIL_USERNAME=your-controlled-sender@gmail.com
+MAIL_PASSWORD="your-google-app-password"
+MAIL_FROM_ADDRESS=your-controlled-sender@gmail.com
+MAIL_FROM_NAME="Secondhand Marketplace"
+PASSWORD_RESET_URL=http://localhost:5173/reset-password
 ```
 
-Leave merchant credentials blank for the reproducible COD demo. The production image intentionally refuses Sandbox gateway endpoints. All browser traffic must use the exact configured authority `localhost:8088`; 127.0.0.1:8088 is not an interchangeable public Host.
+The values above are placeholders, not credentials. Use a **Google App Password**, never your normal Gmail account password. Enable 2-Step Verification on an eligible account and generate an App Password privately; some organizational/security policies prevent App Passwords. See [Google App Password instructions](https://support.google.com/accounts/answer/185833) and [Google SMTP settings](https://support.google.com/mail/answer/7104828?hl=en). The sender should match MAIL_USERNAME unless an authorized sending alias is configured.
+
+The installed Laravel mail configuration already reads all these variables. `MAIL_SCHEME=smtp` with port 587 uses Symfony's automatic **STARTTLS** negotiation; `tls` is not a valid scheme here. `smtps` is implicit TLS, usually port 465, and is not this 587 configuration. Keep certificate verification and automatic TLS enabled; do not disable either to bypass connection errors. [Symfony Mailer TLS behavior](https://symfony.com/doc/current/mailer.html#tls-peer-verification) describes the transport. Remove an old `MAIL_URL` override if present before using individual SMTP env variables. PHP OpenSSL and outbound access to smtp.gmail.com:587 are required.
+
+After changing private env values:
 
 ```powershell
-docker compose --env-file .env.docker-verification config --quiet
-docker compose --env-file .env.docker-verification build
-docker compose --env-file .env.docker-verification up -d --wait --wait-timeout 180
-docker compose --env-file .env.docker-verification ps -a
-docker compose --env-file .env.docker-verification exec -T nginx nginx -t
-docker compose --env-file .env.docker-verification exec -T backend php artisan migrate:status --no-interaction
-curl.exe --fail http://localhost:8088/api/v1/health
+cd backend
+php artisan config:clear
+php artisan view:cache
+# Restart an already running backend, then:
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Open localhost:8088 in a browser. Fresh databases contain no default accounts or seeded products; use [demo preparation](demo-guide.md). `config --quiet` validates without dumping expanded credentials.
+Use Login -> Forgot Password at http://localhost:5173 with a controlled demo recipient that has an account in the selected safe demo database. Confirm Inbox/Spam receipt, open the localhost:5173 reset link, choose a new application password and log in. Reusing that link must fail. An unknown address must receive the same generic API message without receiving a reset email. SMTP acceptance alone does not prove inbox receipt; the recipient must confirm it. Do not change existing development account emails/passwords solely to demonstrate delivery; use a disposable account/database.
 
-## Topology, health and persistence
+For developers without SMTP credentials, set `MAIL_MAILER=log`, clear config cache and restart. Reset email/link then appears in private `backend/storage/logs/laravel.log`. This is an explicit fallback, not an automatic SMTP-to-log substitution. Generic forgot-password success is not proof of delivery: transport errors intentionally preserve that response, so inspect sanitized notification errors privately. Never publish App Passwords, reset links, env files, SMTP exception details or logs.
 
-| Container | Port / lifecycle |
+Troubleshooting: verify sender/App Password eligibility and authentication, port 587 connectivity, TLS/CA trust and the intended mailer; check spam and account-provider sending limits. Gmail-account password changes can revoke App Passwords. Do not use the normal Gmail password or turn off TLS verification.
+
+### SMTP verification — 2026-10-07
+
+| Check | Result |
 | --- | --- |
-| nginx | Only published port, localhost:8088 -> 80; Vue SPA/static files, API FastCGI and public upload alias; API health check |
-| backend | Internal PHP-FPM 9000; non-root www-data; FPM ping check |
-| mysql | Internal 3306/33060 on a private database network; application-user SQL health check |
-| migrate | Ordinary `migrate --force`, once after MySQL healthy, exits 0; backend waits for success |
-| scheduler | Existing `schedule:work` reconciliation job, starts after backend healthy; running status/restart policy, no heartbeat endpoint |
+| Gmail preset resolved by installed Laravel/Symfony transport | PASS; automatic STARTTLS enabled |
+| smtp.gmail.com:587 connectivity and verified TLS negotiation | PASS; no authentication or email attempted |
+| Laravel config cache cleared | PASS |
+| Backend auth/password-reset regression | 31 tests / 196 assertions PASS |
+| Frontend auth/password-reset regression | 30 tests / 3 files PASS |
+| Generic unknown-email response, invalid/expired/reset-reuse cases | PASS in backend regression; not a real SMTP delivery test |
+| Real authenticated SMTP reset email / inbox receipt / emailed-link browser reset | NOT RUN — private sender credentials and a controlled recipient have not been provided |
 
-Long-running containers restart unless stopped. Named `marketplace-phase14_mysql_data` retains MySQL; `marketplace-phase14_laravel_storage` retains uploads, file sessions/cache and storage files. Nginx mounts the latter read-only and serves only `storage/app/public`, not private storage. No host DB port is published or used. App/schema changes require backup planning; ordinary migrations can still change the Docker schema, so inspect new migrations before production upgrades.
+Only `backend/.env.example`, README and this local setup guide were changed for SMTP setup. Private backend/.env still uses the working log fallback; no auth logic, broker, route, token rule, frontend behavior or development account/password was changed. Tests use the separate dedicated test database. The reset URL remains http://localhost:5173/reset-password.
 
-Backend startup builds config/route/view caches from runtime env, never a copied host cache. OPcache does not check timestamps; rebuild/recreate after source/env changes. Frontend uses relative API URLs; Nginx rewrites SPA URLs to index.html and sends `/api/*`, `/sanctum/csrf-cookie`, `/up` to Laravel's fixed index.php. Dotfiles/direct PHP paths are blocked. Public uploaded PNG/JPEG/WebP remain accessible across restart/recreation.
+**Configuration/regression: PASS. Full real SMTP end-to-end: FAIL / verification pending.** SMTP authentication and inbox receipt cannot be inferred from connectivity or a generic forgot-password response. Configure the App Password privately in backend/.env and identify a controlled recipient before attempting the requested real-email verification; never send the App Password through chat or commit it.
 
-```powershell
-# Release/update, preserving project name/key/volumes:
-docker compose --env-file .env.docker-verification build
-docker compose --env-file .env.docker-verification up -d --force-recreate --wait --wait-timeout 180
-# Ordinary restart; wait for health before testing a write:
-docker compose --env-file .env.docker-verification restart mysql backend nginx scheduler
-docker compose --env-file .env.docker-verification ps -a
-# Stop without deleting named volumes:
-docker compose --env-file .env.docker-verification down
-```
+## Tests and demo data
 
-Do not add `-v`, run migrate:fresh or regenerate APP_KEY to troubleshoot. Volume identity depends on project name. Backups must cover both named volumes plus the private key/env; backup restore/HA are not verified here. MySQL initialization credentials apply only when creating its volume; env changes alone do not rotate an existing user's password.
+See [README tests](../README.md#tests) for the full backend/frontend commands. PHPUnit refuses the development database and uses `secondhand_marketplace_test`. The current development database's migrations are already applied; no migration or seeding was run against it during this switch.
 
-## Production HTTPS and merchant configuration
-
-Use private `.env.production` from `.env.production.example` with independent credentials and a stable key; the initial secret-generation example is in [PHASE 14](phase-14-verification.md#exact-deployment-commands). Set PUBLIC_HOST to the exact deployed host, PUBLIC_SCHEME=https, PUBLIC_PORT=443 and SESSION_SECURE_COOKIE=true. Default ingress is 127.0.0.1:8080 behind a generic HTTPS terminator on the same host, preserving the configured Host. Certificates/TLS termination are outside Compose.
-
-Compose enforces production/debug=false, encrypted HttpOnly host-only SameSite=Lax sessions, exact FRONTEND_URLS/Sanctum authority and a narrowly trusted Nginx IP. Nginx replaces caller-supplied forwarded host/scheme/port/IP; Laravel trusts only that proxy. To preserve client IP behind an additional ingress, configure a narrowly trusted Nginx real-IP allowlist for that known ingress; do not blindly trust arbitrary X-Forwarded-For. Subnet/IP changes must update APP_SUBNET and NGINX_INTERNAL_IP together.
-
-Enable production ZaloPay only with provisioned production APP_ID/KEY1/KEY2, production create/query URLs, a public HTTPS CALLBACK_URL ending `/api/v1/payments/zalopay/callback`, and an owned RETURN_URL (default public origin + `/payment/result`). Keep keys outside build contexts/source/frontend. Provider callbacks require HTTPS/TLS 1.2+ ([provider FAQ](https://docs.zalopay.vn/vi/docs/faq/)). Sandbox setup belongs to the separate local environment in the demo guide. A paid redirect is not evidence of payment; backend signed callback/query verifies it.
-
-```powershell
-docker compose --env-file .env.production config --quiet
-docker compose --env-file .env.production build
-docker compose --env-file .env.production up -d --wait --wait-timeout 180
-curl.exe --fail https://marketplace.example.com/api/v1/health
-```
-
-No live production money/callback, TLS certificate or cloud deployment was performed in this phase. File sessions/cache support one backend; multiple nodes need shared stores. API health proves Laravel routing; MySQL has a separate health check, so inspect both.
-
-## Reproduce HTTP/persistence verification
-
-Python 3 standard library is sufficient. Use only an empty, disposable `marketplace_phase14` database; the guarded helper rejects any other database/host/env. This is a test procedure, not a demo seed or an operation to run against real customer data.
-
-```powershell
-$env:VERIFICATION_LABEL = 'phase15'
-New-Item -ItemType Directory -Force .runtime | Out-Null
-docker compose --env-file .env.docker-verification cp docker/verification/database.php backend:/tmp/phase14-docker-db.php
-python docker/verification/http-smoke.py prepare
-# Optional browser page checks while fixtures/cookie jars exist (see below).
-# Capture read-side cart initialization before the persistence baseline:
-python docker/verification/http-smoke.py checkpoint
-docker compose --env-file .env.docker-verification restart mysql backend nginx scheduler
-# Wait until mysql/backend/nginx are healthy and scheduler is running.
-docker compose --env-file .env.docker-verification ps -a
-python docker/verification/http-smoke.py persistence
-docker compose --env-file .env.docker-verification up -d --force-recreate --wait --wait-timeout 180
-docker compose --env-file .env.docker-verification cp docker/verification/database.php backend:/tmp/phase14-docker-db.php
-python docker/verification/http-smoke.py cleanup
-Remove-Item Env:VERIFICATION_LABEL
-```
-
-The verifier tests critical API writes/authorization, cookie/CSRF behavior, exact-origin CORS, catalog/upload/checkout/COD/reviews/dashboards and count/hash/image/session persistence. Browser navigation submits no forms, but the existing cart GET initializes an empty cart for a user without one; `checkpoint` verifies ownership, an unchanged buyer cart and unchanged other tables before saving the pre-restart snapshot. Run checkpoint once after the optional initial browser pass. It removes only guarded nonce-scoped fixtures and confirms the empty business baseline after cleanup. If preparation fails after creating accounts, use the same label and `python docker/verification/http-smoke.py abort`. After verified cleanup, a repeat isolated run can clear its test rate-limit cache with `exec -T backend php artisan cache:clear --no-interaction`; that is not routine production remediation. Private cookie jars/results are gitignored under `.runtime/`.
-
-Optional Windows headless Edge verification requires installed Edge and Node 24 (or a Node version with built-in WebSocket). Run between prepare and checkpoint, using a fresh isolated profile; the script reads only prepared fixture cookies, checks 32 deployed pages and closes its isolated browser:
-
-```powershell
-$profilePath = Join-Path (Get-Location) '.runtime\phase15-browser-profile'
-Start-Process -FilePath 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -WindowStyle Hidden -ArgumentList @('--headless=new','--remote-debugging-address=127.0.0.1','--remote-debugging-port=9223',('--user-data-dir=' + $profilePath),'--no-first-run','--disable-background-networking','about:blank')
-# Wait for localhost:9223/json/version to respond, then:
-node docker/verification/browser-smoke.mjs
-```
+On an explicitly selected safe demo database, run `php artisan db:seed --class=DemoMarketplaceSeeder`. It adds only a deficit below 20 visible products and is safe to re-run. Use the [demo script](demo-guide.md); historical data-pack counts describe the former isolated deployment, not this machine's development inventory. Never reset the existing DB to prepare a presentation.
 
 ## Troubleshooting
 
-- Engine unavailable: start Docker Desktop's Linux engine. Leave unrelated projects/volumes alone.
-- Build/config failure: fill required private key/password/public-host settings; inspect logs without publishing secrets. Images exclude all local env/vendor/storage files.
-- 502/unhealthy startup: `ps -a`, `logs --tail 50 migrate backend mysql nginx scheduler`, `nginx -t`; migration must exit 0 and MySQL application-user health must pass.
-- Blank/outdated UI: rebuild frontend image and recreate Nginx; local Vite changes do not update a deployed image.
-- 419/login failure: exact origin/authority, stable APP_KEY, `/sanctum/csrf-cookie`, credentials/XSRF and Secure-cookie settings; HTTP verification uses Secure=false only locally.
-- Empty connection: Nginx 444 rejects wrong Host. Use localhost:8088, not 127.0.0.1, for this stack.
-- Upload 413/missing image: Nginx 45 MB request cap, PHP 5 MB/file and 45 MB POST, stricter image validator; inspect the correct storage volume/public directory. Correct imported storage ownership deliberately rather than deleting volumes.
-- Gateway unavailable: distinguish absent merchant setup, production/Sandbox mismatch and actual provider failure. Keep COD available; never fake PAID or weaken callback verification.
-- Port/subnet conflict: choose a free HTTP_PORT and adjust PUBLIC_HOST/PORT consistently; adjust subnet/static Nginx IP together.
+- Port 3306 occupied: inspect `Get-NetTCPConnection -LocalPort 3306 -State Listen` and XAMPP's log; do not terminate an unrelated database or overwrite its data directory. This machine currently uses the existing MySQL267 service, so exact XAMPP MariaDB validation is pending.
+- PHP platform errors: use the compatible CLI on PATH; check Composer platform requirements and required extensions. Do not use the installed XAMPP PHP 8.0.30.
+- 8000/5173 unavailable: stop your previously started process or resolve the conflict. Vite uses a strict 5173 port to keep origins consistent.
+- Proxy connection refused: start Laravel first; check direct health and `VITE_BACKEND_PROXY_TARGET`.
+- 419/login failure: use exactly localhost:5173, same-origin API base `/`, obtain `/sanctum/csrf-cookie`, retain cookies, and keep a stable APP_KEY. Clear config cache/restart after env changes. Do not set SameSite=None or disable CSRF to solve hostname mismatch.
+- Reset email timeout on first use: run `php artisan view:cache`; this machine initially took 26 seconds to render mail, exceeding the unchanged 10-second Axios timeout. Warm rendering was verified by the browser flow.
+- Reset email absent: check MAIL_MAILER, the single log file and notification errors; responses deliberately stay generic even for unknown accounts.
+- Image missing: verify the public storage link/target and file existence without deleting existing uploads. Windows may require Developer Mode/admin rights to create a symbolic link; an existing correct junction is valid.
+- Upload rejected: distinguish PHP request/file caps from unchanged application validation, MIME, dimensions and ownership requirements.
+- Stale frontend: restart Vite after env changes; run lint/tests/build after source changes.
+- ZaloPay unavailable: verify Sandbox credentials and environment separately; localhost callbacks cannot arrive from the provider. COD remains the offline demo path.
+
+[Local verification](xampp-local-verification.md) records current results and remaining blockers. Historical container volumes remain archived; project configuration and current startup commands no longer use them.
+
+## Local auction lifecycle and notification workers (A5)
+
+Apply reviewed additive migrations with `php artisan migrate` (preserve existing data; never reset the development DB). Configure the existing backend Reverb credentials privately, match only the public key/host/port in frontend env, then restart Vite after frontend env changes. Start MySQL first. Use separate terminals:
+
+```powershell
+cd backend
+php artisan config:clear
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+```powershell
+cd frontend
+npm run dev
+```
+
+```powershell
+cd backend
+php artisan reverb:start
+```
+
+```powershell
+cd backend
+php artisan schedule:work
+```
+
+Open http://localhost:5173. The existing minute schedule invokes `auctions:sync --limit=100` without overlapping and also reconciles ZaloPay. For a reviewed safe demo database, `php artisan auctions:sync --limit=100` runs one lifecycle pass manually. It starts due scheduled auctions, finalizes expired auctions and sends due winner reminders; notification writes join those transactions, broadcasts run after commit. There is no queue-worker requirement for this synchronous broadcast approach.
+
+Backend env: `AUCTION_WINNER_CHECKOUT_HOURS=24`, `AUCTION_CHECKOUT_REMINDER_MINUTES=60` (0 disables reminders). Run `config:clear` and restart scheduler/backend after changing configuration. A reminder that commits before checkout may remain in history; one that acquires the Auction lock after Order commit is suppressed. Expiry derives from the stored server deadline and does not create an Order or change stock.
+
+If realtime is unavailable, use the bell/page refresh or return/login to load persisted notifications. Verify the notification API session first, then Reverb origin/public key, port 8080 connectivity and private channel authorization. Do not disable CSRF/channel ownership. If expiry reminders are absent, check scheduler, threshold, expiry and existing Order; repeated passes intentionally send at most one. Notifications created before A5 deployment are not backfilled. Delivery latency and retention at high volume are not production-validated. See [A5 report](auction-a5-notifications-verification.md).

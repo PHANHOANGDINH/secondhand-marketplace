@@ -154,7 +154,7 @@ it('catalog handles empty, validation and connection error states', async () => 
   })
   await button(wrapper, 'Tải lại').trigger('click')
   await flushPromises()
-  expect(wrapper.get('#max_price-errors').text()).toContain('Invalid price range')
+  expect(wrapper.get('#max_price-errors').text()).toContain('Giá cao nhất không hợp lệ')
   productApi.listProducts.mockRejectedValue(new Error('offline'))
   await button(wrapper, 'Tải lại').trigger('click')
   await flushPromises()
@@ -251,7 +251,7 @@ it('seller editing includes version for stock and refreshes returned status', as
       price: '999999.99',
     }),
   )
-  expect(wrapper.text()).toContain('PENDING')
+  expect(wrapper.text()).toContain('Chờ duyệt')
 })
 it('seller form displays backend validation errors and retains inputs', async () => {
   vi.spyOn(productApi, 'getSellerProduct').mockResolvedValue(product)
@@ -261,7 +261,7 @@ it('seller form displays backend validation errors and retains inputs', async ()
   const { wrapper } = await setup(SellerProductEditView, '/seller/products/10/edit')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.get('#price-errors').text()).toContain('decimal string')
+  expect(wrapper.get('#price-errors').text()).toContain('Giá không hợp lệ')
   expect(wrapper.get('input[name=name]').element.value).toBe(product.name)
 })
 it('seller restrictions remove actions and disable metadata and image controls', async () => {
@@ -368,7 +368,7 @@ it('admin rejection displays stale conflict without changing the displayed state
     status: 'REJECTED',
     reason: 'Wrong description',
   })
-  expect(wrapper.get('[role=alert]').text()).toContain('status changed')
+  expect(wrapper.get('[role=alert]').text()).toContain('Dữ liệu đã thay đổi')
   expect(wrapper.find('[data-target=ACTIVE]').exists()).toBe(true)
 })
 it('USER is redirected away from admin product pages', async () => {
@@ -378,7 +378,7 @@ it('USER is redirected away from admin product pages', async () => {
   auth.user = { role: 'USER' }
   expect(
     await createAuthGuard(auth)({ meta: { requiresAdmin: true, requiresAuth: true } }),
-  ).toEqual({ name: 'home' })
+  ).toEqual({ name: 'forbidden' })
 })
 it('price display retains decimals and large integer values without monetary float arithmetic', () => {
   expect(formatPrice('0.10')).toBe('0,10 ₫')

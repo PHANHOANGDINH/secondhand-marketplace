@@ -1,3 +1,5 @@
+> Historical verification report. Container infrastructure has since been removed. Results below retain their original context; use the [current local setup](deployment-guide.md) and [local verification](xampp-local-verification.md) for present instructions.
+
 # Final verification — PHASE 15
 
 Date: 2026-10-05, Asia/Saigon. Feature freeze preserved. This phase reviews UI/demo usability, updates current documentation and verifies the complete application and production-like Docker deployment. It adds no new business feature, schema, dependency or payment capability.

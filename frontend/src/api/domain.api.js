@@ -14,12 +14,9 @@ export function domainError(error) {
     return 'Bạn không có quyền thực hiện thao tác này hoặc tài khoản/gian hàng đang bị khóa.'
   if (status === 404) return 'Không tìm thấy dữ liệu hoặc dữ liệu không còn được công khai.'
   if (status === 409)
-    return (
-      error.response?.data?.message ||
-      'Dữ liệu đã thay đổi hoặc đang được sử dụng. Vui lòng tải lại.'
-    )
+    return 'Dữ liệu đã thay đổi hoặc đang được sử dụng. Vui lòng tải lại.'
   if (status === 422) return 'Vui lòng kiểm tra các trường bên dưới.'
-  if (status === 419) return 'Phiên CSRF đã hết hạn. Vui lòng thử lại.'
+  if (status === 419) return 'Phiên bảo mật đã hết hạn. Vui lòng thử lại.'
   if (status === 429) return 'Bạn thao tác quá nhanh. Vui lòng chờ rồi thử lại.'
   return 'Không thể kết nối máy chủ. Vui lòng thử lại.'
 }

@@ -60,6 +60,9 @@ class ProductService
             }
             $content = $locked->isDirty(['name', 'description', 'category_id', 'price', 'condition']);
             $stock = $locked->isDirty('stock_quantity');
+            if ($stock) {
+                app(FixedPriceEligibility::class)->assertAvailable($locked->id);
+            }
             if ($from === ProductStatus::ACTIVE && $stock && $locked->stock_quantity === 0) {
                 $locked->status = ProductStatus::SOLD;
             } elseif (($content && in_array($from, [ProductStatus::ACTIVE, ProductStatus::HIDDEN], true)) || ($stock && $locked->stock_quantity > 0 && in_array($from, [ProductStatus::ACTIVE, ProductStatus::SOLD], true))) {

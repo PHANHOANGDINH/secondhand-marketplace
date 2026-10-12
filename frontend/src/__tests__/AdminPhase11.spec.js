@@ -10,6 +10,7 @@ import AdminDashboardView from '../views/AdminDashboardView.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 import AdminReviewsView from '../views/AdminReviewsView.vue'
 import AdminOrdersView from '../views/AdminOrdersView.vue'
+import ForbiddenView from '../views/ForbiddenView.vue'
 import { formatPrice } from '../composables/productPresentation'
 const user = {
   id: '2',
@@ -205,13 +206,13 @@ it('user status stale conflict and validation errors remain visible', async () =
   })
   await wrapper.get('[data-selected] form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('User status has changed')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   api.moderateUser.mockRejectedValueOnce({
     response: { status: 422, data: { errors: { reason: ['Reason is required'] } } },
   })
   await wrapper.get('[data-selected] form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Reason is required')
+  expect(wrapper.text()).toContain('Lý do là bắt buộc')
   await button(wrapper, 'Tải lại chi tiết').trigger('click')
   await flushPromises()
   expect(api.getAdminUser).toHaveBeenCalledTimes(2)
@@ -327,11 +328,19 @@ it('order empty list, pagination and server date validation are rendered', async
   })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Date range invalid')
+  expect(wrapper.text()).toContain('Ngày kết thúc không hợp lệ')
 })
-it('all four actual routes reject guests and ordinary users', async () => {
+it('all actual admin routes reject guests and ordinary users', async () => {
   const { auth } = await setup(AdminDashboardView, { role: null })
-  for (const path of ['/admin/dashboard', '/admin/users', '/admin/reviews', '/admin/orders']) {
+  for (const path of [
+    '/admin/dashboard',
+    '/admin/users',
+    '/admin/reviews',
+    '/admin/orders',
+    '/admin/categories',
+    '/admin/shops',
+    '/admin/products',
+  ]) {
     const route = applicationRouter.resolve(path)
     expect(route.meta.requiresAdmin).toBe(true)
     auth.user = null
@@ -340,7 +349,9 @@ it('all four actual routes reject guests and ordinary users', async () => {
       query: { redirect: route.fullPath },
     })
     auth.user = { id: '2', role: 'USER' }
-    expect(await createAuthGuard(auth)(route)).toEqual({ name: 'home' })
+    expect(await createAuthGuard(auth)(route)).toEqual({ name: 'forbidden' })
+    auth.user = { id: '3', name: 'Seller', role: 'USER' }
+    expect(await createAuthGuard(auth)(route)).toEqual({ name: 'forbidden' })
     auth.user = { id: '1', role: 'ADMIN' }
     expect(await createAuthGuard(auth)(route)).toBe(true)
   }
@@ -377,4 +388,65 @@ it('admin API mutations use cookie CSRF helper and whitelisted status payload', 
   })
   await api.getAdminOrder('12')
   expect(get).toHaveBeenLastCalledWith('/api/v1/admin/orders/12', { params: undefined })
+})
+
+it('ordinary-user admin navigation reaches the forbidden page without loading admin data', async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const auth = useAuthStore(pinia)
+  auth.initialized = true
+  auth.user = { id: '2', role: 'USER', status: 'ACTIVE' }
+  const dashboard = vi.fn(() => Promise.resolve({ template: '<div>Admin data</div>' }))
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: { template: '<div />' } },
+      { path: '/account', name: 'account', component: { template: '<div />' } },
+      { path: '/login', name: 'login', component: { template: '<div />' } },
+      { path: '/admin/dashboard', component: dashboard, meta: { requiresAdmin: true } },
+      { path: '/403', name: 'forbidden', component: ForbiddenView, meta: { requiresAuth: true } },
+    ],
+  })
+  router.beforeEach(createAuthGuard(auth))
+  await router.push('/admin/dashboard')
+  await router.isReady()
+  expect(router.currentRoute.value.path).toBe('/403')
+  expect(dashboard).not.toHaveBeenCalled()
+  const wrapper = mount(ForbiddenView, { global: { plugins: [pinia, router] } })
+  expect(wrapper.get('h1').text()).toContain('403')
+  expect(wrapper.text()).toContain('Bạn không có quyền truy cập')
+  expect(wrapper.get('a[href="/account"]').text()).toContain('Tài khoản')
+  wrapper.unmount()
+  disposePinia(pinia)
+})
+
+it('logout makes an admin URL inaccessible and preserves its intended return', async () => {
+  const pinia = createPinia()
+  instances.push(pinia)
+  const auth = useAuthStore(pinia)
+  auth.initialized = true
+  auth.user = { id: '1', role: 'ADMIN', status: 'ACTIVE' }
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: { template: '<div />' } },
+      { path: '/login', name: 'login', component: { template: '<div />' } },
+      {
+        path: '/admin/dashboard',
+        component: { template: '<div />' },
+        meta: { requiresAdmin: true },
+      },
+    ],
+  })
+  router.beforeEach(createAuthGuard(auth))
+  await router.push('/admin/dashboard')
+  expect(router.currentRoute.value.path).toBe('/admin/dashboard')
+  vi.spyOn(axios, 'get').mockResolvedValue({})
+  vi.spyOn(axios, 'post').mockResolvedValue({})
+  await auth.logout()
+  await router.push('/')
+  await router.push('/admin/dashboard')
+  expect(router.currentRoute.value.name).toBe('login')
+  expect(router.currentRoute.value.query.redirect).toBe('/admin/dashboard')
+  expect(auth.isAdmin).toBe(false)
 })

@@ -212,7 +212,7 @@ it('shows date validation messages and hides previous metrics after failed refre
   })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Range exceeds 366 days')
+  expect(wrapper.text()).toContain('Ngày kết thúc không hợp lệ')
   expect(wrapper.find('[data-metric]').exists()).toBe(false)
 })
 it('guides a user without a shop to the existing shop page', async () => {

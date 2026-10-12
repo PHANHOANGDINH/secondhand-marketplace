@@ -6,7 +6,7 @@ try {
     $env:PHP_INI_SCAN_DIR = $previousScanDirectory + [IO.Path]::PathSeparator + (Join-Path $PSScriptRoot 'dev')
     Push-Location $PSScriptRoot
     try {
-        & $PhpExecutable artisan serve --host=localhost --port=8000 --tries=1 --no-reload
+        & $PhpExecutable artisan serve --host=127.0.0.1 --port=8000 --tries=1 --no-reload
     } finally {
         Pop-Location
     }

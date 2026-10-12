@@ -1,3 +1,4 @@
+import { localizeValidationErrors } from '../utils/validationLabels'
 import { ref } from 'vue'
 import { domainError } from '../api/domain.api'
 export function useFeedback() {
@@ -20,7 +21,7 @@ export function useFeedback() {
       return true
     } catch (failure) {
       error.value = domainError(failure)
-      errors.value = failure.response?.data?.errors || {}
+      errors.value = localizeValidationErrors(failure.response?.data?.errors)
       return false
     } finally {
       busy.value = false

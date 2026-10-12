@@ -5,6 +5,74 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/seller/inventory',
+      name: 'seller-inventory',
+      component: () => import('../views/SellerInventoryView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/seller/inventory',
+      name: 'seller-inventory',
+      component: () => import('../views/SellerInventoryView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('../views/ReportsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin/reports',
+      name: 'admin-reports',
+      component: () => import('../views/ReportsView.vue'),
+      props: { admin: true },
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/wishlist',
+      name: 'wishlist',
+      component: () => import('../views/WishlistView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import('../views/NotificationsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/auctions/:id/checkout',
+      name: 'auction-checkout',
+      component: () => import('../views/AuctionCheckoutView.vue'),
+      meta: { requiresAuth: true },
+    },
+    { path: '/auctions', name: 'auctions', component: () => import('../views/AuctionsView.vue') },
+    {
+      path: '/auctions/:id',
+      name: 'auction',
+      component: () => import('../views/AuctionArenaView.vue'),
+    },
+    {
+      path: '/seller/auctions',
+      name: 'seller-auctions',
+      component: () => import('../views/SellerAuctionsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/seller/auctions/:id',
+      name: 'seller-auction',
+      component: () => import('../views/AuctionArenaView.vue'),
+      props: { seller: true },
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/403',
+      name: 'forbidden',
+      component: () => import('../views/ForbiddenView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/payment/result',
       name: 'payment-result',
       component: () => import('../views/PaymentResultView.vue'),
@@ -77,6 +145,16 @@ const router = createRouter({
       name: 'cart',
       component: () => import('../views/CartView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/ForgotPasswordView.vue'),
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('../views/ResetPasswordView.vue'),
     },
     { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
     {

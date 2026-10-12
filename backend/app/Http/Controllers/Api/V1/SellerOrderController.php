@@ -9,6 +9,7 @@ use App\Http\Requests\Domain\UpdateShopOrderRequest;
 use App\Http\Resources\ShopOrderResource;
 use App\Models\Shop;
 use App\Models\ShopOrder;
+use App\Services\SellerInventoryService;
 use App\Services\ShopOrderService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,9 @@ class SellerOrderController extends Controller
     public function index(SellerOrderListRequest $request): AnonymousResourceCollection
     {
         $query = ShopOrder::whereIn('shop_id', Shop::withTrashed()->where('owner_id', $request->user()->id)->select('id'))->with(['shop', 'order.payments', 'orderItems']);
+        if ($request->boolean('action_required')) {
+            app(SellerInventoryService::class)->actionableOrders($query);
+        }
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }

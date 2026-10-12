@@ -67,12 +67,15 @@ class CartService
         ]);
         $visible = $this->products->publicVisible()->whereIn('id', $items->pluck('product_id'))->pluck('id')->flip();
 
-        return $items->map(function (CartItem $item) use ($buyer, $visible): array {
+        $reserved = app(FixedPriceEligibility::class)->claims()->whereIn('product_id', $items->pluck('product_id'))->pluck('product_id')->flip();
+
+        return $items->map(function (CartItem $item) use ($buyer, $visible, $reserved): array {
             $product = $item->product;
             $public = $product !== null && $visible->has($product->id);
             $reason = match (true) {
                 $product?->shop?->owner_id === $buyer->id => 'OWN_SHOP',
                 ! $public => 'PRODUCT_UNAVAILABLE',
+                $reserved->has($product->id) => 'AUCTION_RESERVED',
                 $item->quantity > $product->stock_quantity => 'INSUFFICIENT_STOCK',
                 default => null,
             };
@@ -120,6 +123,7 @@ class CartService
                 abort_unless($item && $item->id === $existing->id, 404);
             }
             abort_unless($this->products->publicVisible()->whereKey($locked->id)->exists(), 409, 'Product is no longer available. Refresh your cart.');
+            app(FixedPriceEligibility::class)->assertAvailable($locked->id);
             $next = $existing === null ? ($item?->quantity ?? 0) + $quantity : $quantity;
             if ($next < 1 || $next > 99) {
                 throw ValidationException::withMessages(['quantity' => ['The resulting quantity must be between 1 and 99.']]);

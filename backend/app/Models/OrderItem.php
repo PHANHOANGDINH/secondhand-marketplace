@@ -11,7 +11,7 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['shop_order_id', 'product_id', 'product_name', 'product_image', 'product_price', 'quantity', 'subtotal'];
+    protected $fillable = ['auction_id', 'shop_order_id', 'product_id', 'product_name', 'product_image', 'product_price', 'quantity', 'subtotal'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
@@ -22,6 +22,11 @@ class OrderItem extends Model
             'quantity' => 'integer',
             'subtotal' => 'decimal:2',
         ];
+    }
+
+    public function auction(): BelongsTo
+    {
+        return $this->belongsTo(Auction::class);
     }
 
     public function shopOrder(): BelongsTo

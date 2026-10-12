@@ -1,4 +1,9 @@
 <script setup>
+import { getRoleLabel } from '../utils/labels'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+import LoadingState from '../components/ui/LoadingState.vue'
 import { onMounted, ref } from 'vue'
 import { getAdminDashboard } from '../api/admin.api'
 import { useAuthStore } from '../stores/auth'
@@ -16,7 +21,7 @@ const metrics = [
   ['active_shops', 'Gian hàng hoạt động'],
   ['pending_shops', 'Gian hàng chờ duyệt'],
   ['total_products', 'Tổng sản phẩm'],
-  ['active_products', 'Sản phẩm ACTIVE'],
+  ['active_products', 'Sản phẩm đang hoạt động'],
   ['pending_products', 'Sản phẩm chờ duyệt'],
   ['total_orders', 'Tổng đơn mua'],
   ['completed_orders', 'Đơn hoàn tất toàn bộ'],
@@ -34,59 +39,84 @@ onMounted(load)
 </script>
 <template>
   <section v-if="auth.isAdmin">
-    <h1 class="h3">Tổng quan quản trị</h1>
+    <PageHeader
+      title="Tổng quan quản trị"
+      eyebrow="Quản trị · Sàn mua bán"
+      description="Số liệu toàn thời gian về người dùng, gian hàng và hoạt động mua bán."
+      ><button class="btn btn-outline-primary" :disabled="busy" @click="load">
+        Tải lại
+      </button></PageHeader
+    >
+    <DomainFeedback :error="error" /><LoadingState
+      layout="summary"
+      v-if="busy"
+      label="Đang tải tổng quan quản trị…"
+    />
     <p class="text-secondary">
-      Số liệu toàn thời gian. Người dùng, gian hàng và sản phẩm không gồm bản ghi đã xóa. Đơn hàng
-      giữ toàn bộ lịch sử.
+      Người dùng, gian hàng và sản phẩm không gồm bản ghi đã xóa. Đơn hàng giữ toàn bộ lịch sử.
     </p>
-    <button class="btn btn-outline-primary mb-3" :disabled="busy" @click="load">Tải lại</button
-    ><DomainFeedback :busy="busy" :error="error" />
-    <template v-if="data"
-      ><div class="row g-3">
-        <div v-for="[field, label] in metrics" :key="field" class="col-6 col-lg-3">
-          <div class="card card-body">
+    <template v-if="data">
+      <div class="row g-3 mb-4">
+        <div v-for="[field, label] in metrics" :key="field" class="col-6 col-md-4 col-xl-3">
+          <div class="card card-body admin-kpi">
             <span>{{ label }}</span
-            ><strong class="h3" :data-metric="field">{{ data[field] }}</strong>
+            ><strong :data-metric="field">{{ data[field] }}</strong>
           </div>
         </div>
       </div>
-      <section class="card card-body my-3">
-        <h2 class="h5">Doanh thu hàng hóa đã hoàn tất</h2>
-        <strong class="h3" data-total-revenue>{{ formatPrice(data.total_revenue) }}</strong>
-        <p>
-          Tổng tiền hàng của các phần đơn COMPLETED, không gồm phí giao hàng hoặc các lần thanh
+      <section class="admin-panel admin-revenue">
+        <h2>Doanh thu hàng hóa đã hoàn tất</h2>
+        <strong data-total-revenue>{{ formatPrice(data.total_revenue) }}</strong>
+        <p class="mb-0">
+          Tổng tiền hàng của các phần đơn đã hoàn thành, không gồm phí giao hàng hoặc các lần thanh
           toán. Đây không phải doanh thu hoa hồng của nền tảng. Đơn hoàn tất một phần vẫn đóng góp
-          tiền hàng của phần COMPLETED.
+          tiền hàng của phần đã hoàn thành.
         </p>
       </section>
-      <h2 class="h5">5 đơn mới nhất</h2>
-      <p v-if="!data.recent_orders.length">Chưa có đơn hàng.</p>
-      <ul class="list-group mb-3">
-        <li
-          v-for="order in data.recent_orders"
-          :key="order.id"
-          class="list-group-item"
-          data-recent-order
-        >
-          <RouterLink :to="{ path: '/admin/orders', query: { order: order.id } }">{{
-            order.order_code
-          }}</RouterLink>
-          · {{ order.buyer.name }} · {{ orderStatuses[order.overall_status] }} ·
-          {{ formatPrice(order.total_amount) }}
-        </li>
-      </ul>
-      <h2 class="h5">5 người dùng mới nhất</h2>
-      <p v-if="!data.recent_users.length">Chưa có người dùng.</p>
-      <ul class="list-group">
-        <li
-          v-for="user in data.recent_users"
-          :key="user.id"
-          class="list-group-item"
-          data-recent-user
-        >
-          {{ user.name }} · {{ user.role }} · {{ user.status }}
-        </li>
-      </ul>
+      <div class="row g-4">
+        <div class="col-xl-7">
+          <section class="admin-panel">
+            <h2>5 đơn mới nhất</h2>
+            <EmptyState
+              v-if="!data.recent_orders.length"
+              title="Chưa có đơn hàng."
+              description="Các đơn mua gần đây sẽ xuất hiện tại đây."
+            />
+            <div v-else class="admin-activity">
+              <article v-for="order in data.recent_orders" :key="order.id" data-recent-order>
+                <div>
+                  <RouterLink :to="{ path: '/admin/orders', query: { order: order.id } }">{{
+                    order.order_code
+                  }}</RouterLink>
+                  <p>{{ order.buyer.name }}</p>
+                  <p>
+                    <StatusBadge
+                      :status="order.overall_status"
+                      :label="orderStatuses[order.overall_status]"
+                    />
+                  </p>
+                </div>
+                <strong>{{ formatPrice(order.total_amount) }}</strong>
+              </article>
+            </div>
+          </section>
+        </div>
+        <div class="col-xl-5">
+          <section class="admin-panel">
+            <h2>5 người dùng mới nhất</h2>
+            <EmptyState v-if="!data.recent_users.length" title="Chưa có người dùng." />
+            <div v-else class="admin-activity">
+              <article v-for="user in data.recent_users" :key="user.id" data-recent-user>
+                <div>
+                  <strong>{{ user.name }}</strong>
+                  <p>{{ getRoleLabel(user.role) }}</p>
+                </div>
+                <StatusBadge :status="user.status" />
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
     </template>
   </section>
 </template>

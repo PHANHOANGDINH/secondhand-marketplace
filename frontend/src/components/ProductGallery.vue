@@ -16,8 +16,13 @@ watch(
 const current = computed(() => props.images.find((row) => row.id === selected.value))
 </script>
 <template>
-  <div>
-    <ProductPhoto :src="current?.url" :alt="name" class="w-100" style="max-height: 440px" />
+  <div class="marketplace-gallery">
+    <ProductPhoto
+      :src="current?.url"
+      :alt="name"
+      class="w-100"
+      style="aspect-ratio: 1; max-height: 540px"
+    />
     <div class="d-flex gap-2 flex-wrap mt-3">
       <button
         v-for="(image, index) in images"
@@ -38,3 +43,19 @@ const current = computed(() => props.images.find((row) => row.id === selected.va
     </div>
   </div>
 </template>
+
+<style scoped>
+.marketplace-gallery > :deep(img) {
+  padding: 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem !important;
+  background: var(--bs-tertiary-bg) !important;
+}
+button {
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+button[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.15);
+}
+</style>

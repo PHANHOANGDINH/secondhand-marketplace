@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue'
 import { listShops } from '../api/shop.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 const rows = ref([]),
   meta = ref(null),
@@ -17,9 +19,12 @@ const load = (page = 1) =>
 onMounted(() => load())
 </script>
 <template>
-  <section>
-    <h1 class="h3">Khám phá gian hàng</h1>
-    <form class="d-flex gap-2 my-3" @submit.prevent="load()">
+  <section class="buyer-flow">
+    <PageHeader
+      title="Khám phá gian hàng"
+      description="Tìm gian hàng và những món đồ đang chờ một hành trình mới."
+    />
+    <form class="d-flex gap-2 buyer-filter" @submit.prevent="load()">
       <label for="search" class="visually-hidden">Tìm theo tên</label
       ><input
         id="search"
@@ -27,13 +32,17 @@ onMounted(() => load())
         maxlength="100"
         placeholder="Tìm theo tên gian hàng"
         class="form-control"
-      /><button class="btn btn-primary" :disabled="busy">Tìm</button>
+      /><button class="btn btn-outline-secondary" :disabled="busy">Tìm</button>
     </form>
     <DomainFeedback :busy="busy" :error="error" />
-    <p v-if="!rows.length && !busy && !error">Chưa tìm thấy gian hàng.</p>
+    <EmptyState
+      v-if="!rows.length && !busy && !error"
+      title="Chưa tìm thấy gian hàng."
+      description="Thử tìm với tên khác để khám phá thêm gian hàng."
+    />
     <div class="row g-3">
       <article v-for="shop in rows" :key="shop.id" class="col-md-6 col-lg-4">
-        <div class="card h-100">
+        <div class="card h-100 public-shop-card">
           <div class="card-body">
             <h2 class="h5">
               <RouterLink :to="`/shops/${shop.slug}`">{{ shop.name }}</RouterLink>

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { listProducts } from '../api/product.api'
 import { domainError } from '../api/domain.api'
+import EmptyState from './ui/EmptyState.vue'
 import ProductCard from './ProductCard.vue'
 import DomainFeedback from './DomainFeedback.vue'
 import CollectionPager from './CollectionPager.vue'
@@ -44,7 +45,7 @@ watch(
     >
       Thử lại
     </button>
-    <p v-if="!busy && !error && !rows.length">Chưa có sản phẩm đang bán.</p>
+    <EmptyState v-if="!busy && !error && !rows.length" title="Chưa có sản phẩm đang bán." />
     <div class="row g-3">
       <div v-for="product in rows" :key="product.id" class="col-sm-6 col-lg-3">
         <ProductCard :product="product" />

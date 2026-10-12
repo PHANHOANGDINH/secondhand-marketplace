@@ -109,9 +109,28 @@ it('result queries owned backend order and ignores forged redirect paid status',
   const { wrapper } = await setup(PaymentResultView)
   expect(orderApi.getOrder).toHaveBeenCalledWith('7')
   expect(paymentApi.queryPayment).toHaveBeenCalledWith('7')
-  expect(wrapper.get('[data-payment-attempt]').text()).toContain('Đang chờ thanh toán')
+  expect(wrapper.get('[data-payment-attempt]').text()).toContain('Chờ thanh toán')
   expect(wrapper.get('[data-payment-attempt]').text()).not.toContain('Đã thanh toán')
+  expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang chờ kết quả thanh toán')
 })
+it.each([
+  ['FAILED', false, 'Thanh toán không thành công'],
+  ['CANCELLED', false, 'Thanh toán đã hủy'],
+  ['PAID', true, 'Giao dịch cần đối soát'],
+])(
+  'result presentation follows verified %s and reconciliation state',
+  async (status, reconciliation, title) => {
+    paymentApi.queryPayment.mockResolvedValue({
+      ...order,
+      payment_status: status,
+      reconciliation_required: reconciliation,
+      payments: [{ ...pending, status, order_url: null }],
+    })
+    const { wrapper } = await setup(PaymentResultView)
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe(title)
+    expect(wrapper.find('[data-verified-result].buyer-result-success').exists()).toBe(false)
+  },
+)
 it('only renders paid after verified backend query and removes payment link', async () => {
   paymentApi.queryPayment.mockResolvedValue({
     ...order,
@@ -127,7 +146,7 @@ it('query failure preserves pending truth and shows error instead of trusting re
   paymentApi.queryPayment.mockRejectedValue(new Error('Network'))
   const { wrapper } = await setup(PaymentResultView)
   expect(wrapper.text()).toContain('Không thể kết nối')
-  expect(wrapper.get('[data-payment-attempt]').text()).toContain('Đang chờ thanh toán')
+  expect(wrapper.get('[data-payment-attempt]').text()).toContain('Chờ thanh toán')
 })
 it('changing result order while its request is pending loads the new order and ignores the old response', async () => {
   let resolveFirst
@@ -253,7 +272,7 @@ it('stale retry conflict displays error and reconciliation disables retries and 
   const { wrapper } = await setup(PaymentAttempts, { order: { ...order, can_retry_payment: true } })
   await wrapper.get('[data-retry-payment]').trigger('click')
   await flushPromises()
-  expect(wrapper.text()).toContain('Order already paid')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   await wrapper.setProps({
     order: { ...order, reconciliation_required: true, can_retry_payment: true },
   })

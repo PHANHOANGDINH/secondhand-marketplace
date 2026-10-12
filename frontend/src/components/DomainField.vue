@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { computed } from 'vue'
+const props = defineProps({
+  idPrefix: { type: String, default: '' },
   name: { type: String, required: true },
   label: { type: String, required: true },
   modelValue: { type: [String, Number], default: '' },
@@ -10,20 +12,23 @@ defineProps({
   disabled: Boolean,
   maxlength: { type: Number, default: undefined },
 })
+const fieldId = computed(() => `${props.idPrefix}${props.name}`)
 defineEmits(['update:modelValue'])
 </script>
 <template>
   <div class="mb-3">
-    <label :for="name" class="form-label">{{ label }}</label>
+    <label :for="fieldId" class="form-label"
+      >{{ label }}<span v-if="required" class="ui-required" aria-hidden="true"> *</span></label
+    >
     <select
       v-if="type === 'select'"
-      :id="name"
+      :id="fieldId"
       :name="name"
       :value="modelValue"
       :disabled="disabled"
       :required="required"
       :aria-invalid="errors.length ? 'true' : undefined"
-      :aria-describedby="errors.length ? `${name}-errors` : undefined"
+      :aria-describedby="errors.length ? `${fieldId}-errors` : undefined"
       class="form-select"
       :class="{ 'is-invalid': errors.length }"
       @change="$emit('update:modelValue', $event.target.value)"
@@ -34,14 +39,14 @@ defineEmits(['update:modelValue'])
     </select>
     <textarea
       v-else-if="type === 'textarea'"
-      :id="name"
+      :id="fieldId"
       :name="name"
       :value="modelValue"
       :maxlength="maxlength"
       :required="required"
       :disabled="disabled"
       :aria-invalid="errors.length ? 'true' : undefined"
-      :aria-describedby="errors.length ? `${name}-errors` : undefined"
+      :aria-describedby="errors.length ? `${fieldId}-errors` : undefined"
       rows="3"
       class="form-control"
       :class="{ 'is-invalid': errors.length }"
@@ -49,7 +54,7 @@ defineEmits(['update:modelValue'])
     />
     <input
       v-else
-      :id="name"
+      :id="fieldId"
       :name="name"
       :type="type"
       :value="modelValue"
@@ -57,12 +62,12 @@ defineEmits(['update:modelValue'])
       :required="required"
       :disabled="disabled"
       :aria-invalid="errors.length ? 'true' : undefined"
-      :aria-describedby="errors.length ? `${name}-errors` : undefined"
+      :aria-describedby="errors.length ? `${fieldId}-errors` : undefined"
       class="form-control"
       :class="{ 'is-invalid': errors.length }"
       @input="$emit('update:modelValue', $event.target.value)"
     />
-    <div v-if="errors.length" :id="`${name}-errors`" class="invalid-feedback d-block">
+    <div v-if="errors.length" :id="`${fieldId}-errors`" class="invalid-feedback d-block">
       <div v-for="message in errors" :key="message">{{ message }}</div>
     </div>
   </div>

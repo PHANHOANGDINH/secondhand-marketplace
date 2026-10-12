@@ -1,0 +1,553 @@
+.seller-shell {
+  min-height: 100vh;
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+}
+.seller-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  background: var(--bs-body-bg);
+}
+.seller-brand {
+  font-weight: 750;
+  font-size: 1.2rem;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  letter-spacing: -0.035em;
+}
+.seller-brand span {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--bs-secondary-color);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+}
+.seller-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+}
+.seller-topbar-actions a {
+  text-decoration: none;
+}
+.seller-user {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bs-secondary-color);
+}
+.seller-workspace {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  max-width: 1600px;
+  margin: auto;
+}
+.seller-sidebar {
+  padding: 2rem 1.25rem;
+  border-right: 1px solid var(--bs-border-color);
+  min-height: calc(100vh - 82px);
+  background: var(--bs-body-bg);
+}
+.seller-sidebar-caption {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--bs-secondary-color);
+  padding-inline: 0.75rem;
+  margin-bottom: 1rem;
+}
+.seller-sidebar nav {
+  display: grid;
+  gap: 0.35rem;
+}
+.seller-sidebar nav a {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem 0.75rem;
+  border-radius: 0.65rem;
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 550;
+}
+.seller-sidebar nav a span {
+  font-size: 0.7rem;
+  align-self: center;
+  opacity: 0.6;
+}
+.seller-sidebar nav a.active {
+  color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), 0.08);
+}
+.seller-sidebar-note {
+  margin-top: 3rem;
+  padding: 1rem 0.75rem;
+  border-top: 1px solid var(--bs-border-color);
+  font-size: 0.8rem;
+}
+.seller-sidebar-note p {
+  margin: 0.5rem 0 0.7rem;
+  line-height: 1.6;
+  color: var(--bs-secondary-color);
+}
+.seller-sidebar-note a,
+.seller-account-link {
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+.seller-account-link {
+  display: block;
+  padding: 0.75rem;
+}
+.seller-content {
+  min-width: 0;
+  padding: 2.5rem clamp(1.25rem, 3vw, 3rem) 4rem;
+}
+.seller-menu-toggle {
+  display: none;
+}
+.seller-shell .buyer-page-header {
+  margin-bottom: 1.75rem;
+}
+.seller-shell .buyer-page-header h1 {
+  font-size: clamp(1.55rem, 2.5vw, 2.1rem);
+  letter-spacing: -0.04em;
+}
+.seller-shell .buyer-page-description {
+  max-width: 650px;
+  font-size: 0.9rem;
+}
+.seller-shell .buyer-eyebrow {
+  font-size: 0.65rem;
+}
+:is(.seller-shell, .account-shell) :is(.card, .workspace-panel) {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  background: var(--bs-body-bg);
+  box-shadow: 0 3px 12px rgba(var(--bs-dark-rgb), 0.025);
+}
+.workspace-panel {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.workspace-panel-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.workspace-panel-heading :is(h2, h3) {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.workspace-step {
+  color: var(--bs-primary);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+:is(.seller-shell, .account-shell) .card-body {
+  padding: 1.5rem;
+}
+:is(.seller-shell, .account-shell) textarea.form-control {
+  min-height: 140px;
+}
+:is(.seller-shell, .account-shell) .text-secondary {
+  line-height: 1.65;
+  font-size: 0.85rem;
+}
+.seller-toolbar {
+  padding: 1.25rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  align-items: end;
+  gap: 1rem !important;
+}
+.seller-toolbar label {
+  font-size: 0.8rem;
+  font-weight: 550;
+}
+.seller-toolbar :is(input, select) {
+  margin-top: 0.35rem;
+}
+.seller-table-wrap {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  background: var(--bs-body-bg);
+}
+.seller-table {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+.seller-table th {
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-secondary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1rem;
+  white-space: nowrap;
+}
+.seller-table td {
+  padding: 1.15rem 1rem;
+  vertical-align: middle;
+}
+.seller-table tr:last-child td {
+  border-bottom: 0;
+}
+.seller-table td:first-child {
+  min-width: 210px;
+}
+.seller-table td:last-child {
+  min-width: 200px;
+}
+.seller-table strong {
+  margin-top: 0.5rem;
+  font-weight: 650;
+}
+.seller-table small {
+  color: var(--bs-secondary-color);
+}
+.seller-table img {
+  border-radius: 0.65rem;
+  object-fit: contain;
+  background: var(--bs-tertiary-bg);
+}
+.seller-kpi {
+  height: 100%;
+}
+.seller-kpi span {
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+}
+.seller-kpi strong {
+  font-size: 2rem;
+  letter-spacing: -0.05em;
+  margin-top: 0.7rem;
+}
+.seller-shell [data-total-revenue] {
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  letter-spacing: -0.05em;
+  color: var(--bs-primary);
+}
+.seller-dashboard h2.h5 {
+  margin-block: 1.75rem 1rem;
+  font-weight: 650;
+  font-size: 1rem;
+}
+.seller-dashboard .card h2 {
+  margin-top: 0;
+}
+.seller-form {
+  max-width: 980px;
+}
+.seller-form fieldset {
+  min-width: 0;
+}
+.seller-submit-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+.seller-status-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+}
+.seller-images .card {
+  overflow: hidden;
+}
+.seller-images .card img {
+  background: var(--bs-tertiary-bg);
+  border-radius: 0.65rem;
+}
+.seller-image-controls {
+  padding: 0.6rem 0.25rem;
+}
+.seller-order-card .card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.seller-order-card .card-body > div {
+  min-width: 0;
+}
+.seller-order-card a {
+  font-weight: 650;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.seller-order-card p {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+}
+.seller-order-card .seller-order-value {
+  color: var(--bs-body-color);
+  font-weight: 650;
+  font-size: 1.1rem;
+  text-align: right;
+}
+.seller-shell address {
+  background: var(--bs-body-bg);
+  border-radius: 1rem !important;
+  line-height: 1.9;
+  font-style: normal;
+}
+.seller-shell [data-order-item] > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.seller-next-action {
+  padding: 1.25rem;
+  background: rgba(var(--bs-primary-rgb), 0.045);
+  border-radius: 0.75rem;
+}
+.seller-next-action label {
+  font-size: 0.9rem;
+}
+.account-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  margin-bottom: 2.5rem;
+  padding-bottom: 0.8rem;
+}
+.account-nav a {
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+  font-weight: 550;
+  text-decoration: none;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
+}
+.account-nav a.active {
+  background: rgba(var(--bs-primary-rgb), 0.07);
+  color: var(--bs-primary);
+}
+.account-nav a:last-child {
+  margin-left: auto;
+}
+.account-profile {
+  max-width: 850px;
+}
+.account-readonly {
+  background: var(--bs-tertiary-bg);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.account-readonly small {
+  display: block;
+  color: var(--bs-secondary-color);
+  margin-bottom: 0.25rem;
+}
+.account-readonly strong {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.account-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+.account-address-card.is-default {
+  border-color: rgba(var(--bs-primary-rgb), 0.35);
+}
+.account-address-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.account-address-card .badge {
+  font-size: 0.65rem;
+  border-radius: 2rem;
+  font-weight: 550;
+}
+.account-address-card p {
+  color: var(--bs-secondary-color);
+  line-height: 1.75;
+  font-size: 0.9rem;
+}
+.account-address-form {
+  padding: 1.5rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+}
+.confirm-delete-panel {
+  padding: 0.85rem;
+  background: var(--bs-danger-bg-subtle);
+  border-radius: 0.65rem;
+}
+.confirm-delete-panel p {
+  color: var(--bs-body-color);
+  font-size: 0.8rem;
+  margin-bottom: 0.65rem;
+}
+@media (max-width: 991px) {
+  .seller-topbar {
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+  }
+  .seller-topbar-actions {
+    gap: 1rem;
+  }
+  .seller-user {
+    display: none;
+  }
+  .seller-workspace {
+    display: block;
+  }
+  .seller-menu-toggle {
+    display: block;
+    flex-basis: 100%;
+    text-align: left;
+  }
+  .seller-sidebar {
+    display: none;
+    min-height: 0;
+    padding: 1rem 1.25rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+  .seller-sidebar.is-open {
+    display: block;
+  }
+  .seller-sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .seller-sidebar-note {
+    margin-top: 1rem;
+  }
+  .seller-content {
+    padding-top: 1.75rem;
+  }
+  .seller-dashboard .seller-toolbar {
+    padding: 1rem;
+  }
+}
+@media (max-width: 575px) {
+  .seller-topbar-actions {
+    font-size: 0.75rem;
+    gap: 0.75rem;
+  }
+  .seller-topbar-actions .btn {
+    font-size: 0.75rem;
+  }
+  .seller-brand {
+    font-size: 1rem;
+  }
+  .seller-content {
+    padding-inline: 1rem;
+  }
+  :is(.seller-shell, .account-shell) .card-body,
+  .workspace-panel,
+  .account-address-form {
+    padding: 1.1rem;
+  }
+  .seller-shell .buyer-page-header {
+    align-items: flex-start;
+  }
+  .seller-toolbar label {
+    width: 100%;
+  }
+  .seller-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .seller-table {
+    display: block;
+  }
+  .seller-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .seller-table tbody {
+    display: grid;
+    gap: 1rem;
+  }
+  .seller-table tr {
+    display: block;
+    padding: 1rem;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+  }
+  .seller-table td {
+    display: block;
+    min-width: 0 !important;
+    padding: 0.5rem 0;
+    border: 0;
+    background: transparent;
+    overflow-wrap: anywhere;
+  }
+  .seller-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.35rem;
+  }
+  .seller-order-card .card-body {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .seller-order-card .buyer-status {
+    font-size: 0.65rem;
+  }
+  .account-nav {
+    gap: 0.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .account-nav a {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.7rem;
+  }
+  .account-nav a:last-child {
+    margin-left: 0;
+  }
+}
+
+/* Keep Bootstrap's twelve-column grid intact inside the report toolbar. */
+.seller-dashboard .seller-toolbar {
+  gap: 0 !important;
+  row-gap: 0.75rem !important;
+  margin-inline: 0;
+}
+.account-shell dd {
+  overflow-wrap: anywhere;
+}
+.seller-sidebar-note .buyer-status {
+  margin-top: 0.65rem;
+}
+.seller-sidebar-note strong {
+  display: block;
+  overflow-wrap: anywhere;
+}

@@ -1,4 +1,5 @@
 import { mount, flushPromises } from '@vue/test-utils'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { createAuthGuard } from '../router/authGuard'
@@ -60,9 +61,14 @@ async function setup(component, role = 'USER') {
     auth = useAuthStore(pinia)
   auth.user = { ...user, role }
   auth.initialized = true
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }],
+  })
+  await router.push('/admin/shops')
   const wrapper = mount(component, {
     global: {
-      plugins: [pinia],
+      plugins: [pinia, router],
       stubs: { RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' } },
     },
   })
@@ -107,7 +113,7 @@ it('shows profile field validation and keeps current identity on failure', async
   const { wrapper, auth } = await setup(ProfileView)
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.get('#phone-errors').text()).toContain('Invalid phone')
+  expect(wrapper.get('#phone-errors').text()).toContain('Số điện thoại không hợp lệ')
   expect(auth.user.name).toBe(user.name)
   expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeUndefined()
 })
@@ -156,6 +162,8 @@ it('sets default and deletes addresses then reloads server state', async () => {
   await flushPromises()
   expect(addressApi.setDefaultAddress).toHaveBeenCalledWith('10')
   await button(wrapper, 'Xóa').trigger('click')
+  expect(addressApi.deleteAddress).not.toHaveBeenCalled()
+  await button(wrapper, 'Xác nhận xóa').trigger('click')
   await flushPromises()
   expect(addressApi.deleteAddress).toHaveBeenCalledWith('10')
   expect(addressApi.listAddresses).toHaveBeenCalledTimes(3)
@@ -169,7 +177,7 @@ it('shows address API errors without losing the entered form', async () => {
   await wrapper.get('input[name=recipient_name]').setValue('Retained')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.get('#ward-errors').text()).toContain('Required ward')
+  expect(wrapper.get('#ward-errors').text()).toContain('Phường/xã là bắt buộc')
   expect(wrapper.get('input[name=recipient_name]').element.value).toBe('Retained')
 })
 it('offers shop creation on 404 and submits no privileged status or owner', async () => {
@@ -186,7 +194,7 @@ it('offers shop creation on 404 and submits no privileged status or owner', asyn
     name: shop.name,
     description: shop.description,
   })
-  expect(wrapper.text()).toContain('PENDING')
+  expect(wrapper.text()).toContain('Chờ duyệt')
 })
 it('does not interpret authentication failure as a missing shop', async () => {
   vi.spyOn(shopApi, 'getSellerShop').mockRejectedValue({ response: { status: 401 } })
@@ -198,7 +206,7 @@ it('shows existing shop status and updates only name and description', async () 
   vi.spyOn(shopApi, 'getSellerShop').mockResolvedValue(shop)
   vi.spyOn(shopApi, 'updateShop').mockResolvedValue(shop)
   const { wrapper } = await setup(SellerShopView)
-  expect(wrapper.text()).toContain('PENDING')
+  expect(wrapper.text()).toContain('Chờ duyệt')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
   expect(shopApi.updateShop).toHaveBeenCalledWith({
@@ -218,7 +226,7 @@ it('keeps suspended shop read-only and exposes rejected resubmission', async () 
   await button(wrapper, 'Gửi lại để xét duyệt').trigger('click')
   await flushPromises()
   expect(shopApi.submitShop).toHaveBeenCalledTimes(1)
-  expect(wrapper.text()).toContain('PENDING')
+  expect(wrapper.text()).toContain('Chờ duyệt')
 })
 it('admin guard waits for session and distinguishes guest, USER and ADMIN', async () => {
   const pinia = createPinia(),
@@ -228,7 +236,7 @@ it('admin guard waits for session and distinguishes guest, USER and ADMIN', asyn
     target = { meta: { requiresAdmin: true } }
   expect(await guard(target)).toEqual({ name: 'login' })
   auth.user = user
-  expect(await guard(target)).toEqual({ name: 'home' })
+  expect(await guard(target)).toEqual({ name: 'forbidden' })
   auth.user = { ...user, role: 'ADMIN' }
   expect(await guard(target)).toBe(true)
 })
@@ -270,7 +278,7 @@ it('admin category deletion displays server conflict and retains confirmation', 
   await wrapper.get('[data-delete-category]').trigger('submit')
   await flushPromises()
   expect(categoryApi.deleteCategory).toHaveBeenCalledWith('30', 'Unused')
-  expect(wrapper.get('[role=alert]').text()).toContain('children or products')
+  expect(wrapper.get('[role=alert]').text()).toContain('Dữ liệu đã thay đổi')
   expect(wrapper.find('[data-delete-category]').exists()).toBe(true)
 })
 it('shop moderation presents allowed transitions and sends expected status and reason', async () => {
@@ -301,4 +309,16 @@ it('admin UI does not offer self moderation', async () => {
   await button(wrapper, 'Xem').trigger('click')
   await flushPromises()
   expect(wrapper.find('[data-target]').exists()).toBe(false)
+})
+
+it('profile cancel restores saved fields without an API write', async () => {
+  vi.spyOn(profileApi, 'getProfile').mockResolvedValue(user)
+  vi.spyOn(profileApi, 'updateProfile')
+  const { wrapper } = await setup(ProfileView)
+  await wrapper.get('input[name=name]').setValue('Unsaved name')
+  await wrapper.get('input[name=phone]').setValue('0909999999')
+  await button(wrapper, 'Hủy thay đổi').trigger('click')
+  expect(wrapper.get('input[name=name]').element.value).toBe(user.name)
+  expect(wrapper.get('input[name=phone]').element.value).toBe('')
+  expect(profileApi.updateProfile).not.toHaveBeenCalled()
 })

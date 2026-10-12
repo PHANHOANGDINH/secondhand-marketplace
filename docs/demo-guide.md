@@ -1,25 +1,13 @@
-# End-to-end demo guide
+# Local marketplace demo guide
 
-Use three separate browser profiles or different browsers: **Buyer**, **Seller**, **Admin**. Multiple private windows in the same browser can share a cookie session, so they are not reliable actor isolation. The production-like COD demo origin is **http://localhost:8088**. Choose private passwords; this guide contains no account credentials or merchant keys. Startup/health commands are in [deployment guide](deployment-guide.md).
+Use **http://localhost:5173** with Laravel at **http://127.0.0.1:8000**, following [local startup](deployment-guide.md). Use separate browser profiles for Buyer, Seller and Admin. Choose private passwords; this guide publishes no usable credentials.
 
-## Preparation (operator, before presentation)
+## Preparation
 
-1. Confirm Nginx/backend/MySQL are healthy and the scheduler is running. A fresh Docker database is empty; final automated verification cleans its temporary accounts/products, so it does not leave demo credentials behind.
-2. Register three distinct accounts at `/register`, with privately chosen passwords of at least 12 characters containing letters and numbers. Use separate profiles to avoid session overlap. Do not try to pass role/status in registration.
-3. Provision only the intended registered administrator through the operator console. This is a one-time operator action, not a public API/business feature. Run the command below, then type the PHP lines interactively; replace the reserved example email with the actual registered admin email:
-
-```powershell
-docker compose --env-file .env.docker-verification exec backend php artisan tinker
-```
-
-```php
-$admin = App\Models\User::where('email', 'admin-demo@example.test')->firstOrFail();
-$admin->forceFill(['role' => 'ADMIN'])->save();
-exit
-```
-
-4. Reload/login in the Admin window and confirm admin links appear. In `/admin/categories`, create an ACTIVE category with a reason. Do not run development seeders against Docker or change a real user's role merely for a demo.
-5. Keep at least one product with stock >=3 and a small valid JPEG/PNG/WebP ready for upload. Actual demo actions create intentional data in the dedicated Docker database; automatic verification fixtures are separate and cleaned. Do not reset the development database for a presentation.
+1. Start the configured MySQL server, Laravel, then Vue. Check health through Vite. Inspect the catalog first; use `php artisan db:seed --class=DemoMarketplaceSeeder` only on an explicitly selected safe demo database when a product deficit exists. The existing development database is not reset or changed by setup.
+2. Prepare your own Buyer, Seller and administrator accounts on a disposable demo database. Registration never accepts role/status. An authorized operator may provision only the intended administrator through `php artisan tinker` in that database; do not change a real user's role for a presentation.
+3. Confirm an ACTIVE category/shop/product and sufficient stock. Keep a valid small PNG/JPEG/WebP ready for the existing image editor. Never use the full DatabaseSeeder or migrate:fresh against existing development data.
+4. Interactive demo actions intentionally change data; use a separate demo DB if development records must remain untouched. The earlier [data-pack report](demo-data-pack.md) describes an isolated historical catalog; it is not a claim that those 20 records were copied into development.
 
 ## Seller and Admin: publish a listing (3–4 minutes)
 
@@ -42,15 +30,13 @@ exit
 3. Seller: `/seller/dashboard`, choose a date range including today. Show completed merchandise revenue/chart/table and recent orders; shipping/discount are currently zero, and revenue is not commission/payout.
 4. Admin: `/admin/dashboard`, `/admin/orders` (read-only), `/admin/users` and `/admin/reviews`. Hide/unhide the demo review with a reason and show public aggregate changes. Account suspension may be shown only on a disposable account; never suspend the presenting admin. Finish with categories/shop/product management.
 
-## ZaloPay Sandbox branch (separate environment)
-
-**The Docker backend at localhost:8088 runs APP_ENV=production and rejects Sandbox gateway endpoints. Do not weaken that guard for a demo.** Use the local Laravel/Vue setup at localhost:8000/5173 and an intentional disposable demo database (or a known safe local dataset), with the same Buyer/Seller/Admin moderation preparation. Do not copy production keys into this environment.
+## ZaloPay Sandbox
 
 In a private backend env, provide your authorized Sandbox APP_ID/KEY1/KEY2 and these non-secret values:
 
 ```dotenv
 APP_ENV=local
-APP_URL=http://localhost:8000
+APP_URL=http://127.0.0.1:8000
 FRONTEND_URLS=http://localhost:5173
 SANCTUM_STATEFUL_DOMAINS=localhost:5173
 ZALOPAY_CREATE_URL=https://sb-openapi.zalopay.vn/v2/create
@@ -61,20 +47,26 @@ ZALOPAY_EXPIRE_SECONDS=900
 # localhost cannot receive an external ZaloPay callback.
 ```
 
-Clear local config cache/restart backend after changing env. Configure CALLBACK_URL in private env/merchant settings for delivery tests. Run `php artisan schedule:work` locally if demonstrating scheduled reconciliation; the production-like Docker stack already runs its scheduler.
+Clear local config cache/restart backend after changing env. Configure CALLBACK_URL in private env/merchant settings for delivery tests. Run `php artisan schedule:work` locally if demonstrating scheduled reconciliation; there is no background scheduler unless you start one.
 
 1. Buyer adds a different available product and chooses ZaloPay at checkout. Select a preferred gateway channel if needed; the browser receives a backend-generated approved HTTPS ZaloPay URL.
 2. Complete a **Sandbox** payment only with provider-published test instruments, entered on the gateway; do not put card/wallet secrets in this app, source, slides or screenshots. Refer to the [official Sandbox guide](https://developer.zalopay.vn/v2/start/). Sandbox wallet access may require identification and suitable account permissions.
 3. Return to `/payment/result?order=<id>`. The page fetches the owned backend order and queries the gateway; URL `status=PAID` cannot prove payment. After verified PAID, Seller can fulfill without a COD-collected checkbox.
 4. For failed/pending payment, show current status, query/retry only when allowed. For reconciliation_required, stop further payment/fulfillment and explain manual handling; no refund UI is implemented.
 
-Earlier PHASE 12 records user-confirmed Sandbox card success and agent create/query checks. PHASE 15 does **not** repeat a live merchant/wallet transaction or claim public callback E2E. If authorized Sandbox setup is unavailable, demonstrate the verified payment UI/regression behavior and label the live branch **not configured**, rather than pretending a redirect or mock callback is a paid transaction.
-
-Production needs separate merchant onboarding/keys and public callback/redirect URLs. Production callbacks require HTTPS/TLS 1.2 or higher per the [provider FAQ](https://docs.zalopay.vn/vi/docs/faq/); local localhost verification does not satisfy that external delivery requirement.
+Sandbox and Production use separate authorized merchant credentials/endpoints. A public HTTPS tunnel (such as Cloudflare Tunnel) to backend port 8000 is needed for provider callback delivery; localhost is unreachable externally. Sandbox success is not a live production payment. If credentials are absent, clearly label the gateway branch unconfigured and use COD; do not fake PAID or bypass signed verification.
 
 ## Presentation checklist
 
-- Verify the exact origin, separate sessions, healthy containers, accounts/category/approved stock/image and today's dashboard range before presenting.
-- Keep private env/passwords/merchant consoles out of screen sharing. No default Docker password is published.
-- Show COD as the reproducible deployed end-to-end flow. Clearly label Sandbox, production-like infrastructure and unverified live production payments.
-- Known exclusions: notifications/chat/auction/refunds/payouts/commissions, automatic abandoned online-stock release and reconciliation UI. See [final verification](final-verification.md) for complete evidence and limitations.
+- Use localhost:5173 consistently, separate sessions, approved stock/images and a dashboard date range including today.
+- Keep passwords, env files, reset links and merchant credentials out of screen sharing.
+- Show COD as the offline end-to-end flow; show actual Sandbox only when authorized and configured.
+- Buyer/seller text messaging, auction Arena, winner checkout and persistent in-app notifications are available. Refund/payout/commission functionality remains out of scope. Local verification and current limitations are in [xampp-local-verification.md](xampp-local-verification.md).
+
+## Auction notifications demo (A5)
+
+Use disposable, authorized Seller and two Buyer accounts in separate browser sessions. Start Laravel, Vite, Reverb and the scheduler using the local deployment guide. Seller creates a valid LIVE auction. Buyer A bids; B outbids A. A sees the existing realtime outbid toast and a persistent bell entry with “Ra giá lại”. Mark it read and show the badge update.
+
+Let A bid again, disconnect/close A's app, and let B outbid A. Reopen/login as A: the missed OUTBID loads from the database. Repeated realtime delivery must not produce duplicate rows. Finish bidding before the configured server deadline; the scheduler finalizes the auction, the winner receives AUCTION_WON and the Seller/losing bidders receive AUCTION_ENDED. Use the winner notification to reach winner-only checkout and create COD Order. Buyer and Seller receive AUCTION_ORDER_CREATED; the notification targets their existing order pages.
+
+A single reminder is eligible inside `AUCTION_CHECKOUT_REMINDER_MINUTES` before the winner claim deadline, only while no Order exists. It is not sent after expiry. Configure shorter claim/reminder windows only on an isolated demo database if demonstrating this live; do not edit real auction deadlines or user passwords. Restore/clean only disposable fixtures. Historical verification used an explicitly isolated temporary auction whose deadline was shortened for the check.

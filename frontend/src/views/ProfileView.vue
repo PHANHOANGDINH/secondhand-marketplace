@@ -1,4 +1,5 @@
 <script setup>
+import PageHeader from '../components/ui/PageHeader.vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { getProfile, updateProfile } from '../api/profile.api'
@@ -24,33 +25,59 @@ const save = () =>
 onMounted(load)
 </script>
 <template>
-  <section style="max-width: 640px">
-    <h1 class="h3">Hồ sơ cá nhân</h1>
-    <DomainFeedback :busy="busy" :error="error" :success="success" />
-    <button v-if="!profile && !busy" class="btn btn-outline-secondary" @click="load">
+  <section class="account-profile">
+    <PageHeader
+      title="Hồ sơ cá nhân"
+      eyebrow="Tài khoản"
+      description="Thông tin cá nhân để hành trình mua bán thuận tiện hơn."
+    />
+    <DomainFeedback :busy="busy" :error="error" :success="success" /><button
+      v-if="!profile && !busy"
+      class="btn btn-outline-secondary"
+      @click="load"
+    >
       Tải lại
     </button>
-    <form v-if="profile" @submit.prevent="save">
-      <p>
-        Email: <strong>{{ profile.email }}</strong>
-      </p>
-      <DomainField
-        v-model="form.name"
-        name="name"
-        label="Họ tên"
-        required
-        :maxlength="100"
-        :errors="errors.name"
-      />
-      <DomainField
-        v-model="form.phone"
-        name="phone"
-        label="Số điện thoại"
-        type="tel"
-        :maxlength="20"
-        :errors="errors.phone"
-      />
-      <button type="submit" class="btn btn-primary" :disabled="busy">Lưu hồ sơ</button>
+    <form v-if="profile" class="workspace-panel" @submit.prevent="save">
+      <div class="workspace-panel-heading"><h2>Thông tin cá nhân</h2></div>
+      <div class="account-readonly">
+        <small>Thư điện tử đăng nhập</small><strong>{{ profile.email }}</strong>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <DomainField
+            v-model="form.name"
+            name="name"
+            label="Họ tên"
+            required
+            :maxlength="100"
+            :errors="errors.name"
+            :disabled="busy"
+          />
+        </div>
+        <div class="col-md-6">
+          <DomainField
+            v-model="form.phone"
+            name="phone"
+            label="Số điện thoại"
+            type="tel"
+            :maxlength="20"
+            :errors="errors.phone"
+            :disabled="busy"
+          />
+        </div>
+      </div>
+      <div class="account-actions">
+        <button type="submit" class="btn btn-primary" :disabled="busy">Lưu hồ sơ</button
+        ><button
+          type="button"
+          class="btn btn-outline-secondary"
+          :disabled="busy"
+          @click="fill(profile)"
+        >
+          Hủy thay đổi
+        </button>
+      </div>
     </form>
   </section>
 </template>

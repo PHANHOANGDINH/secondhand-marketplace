@@ -1,4 +1,7 @@
 <script setup>
+import PageHeader from '../components/ui/PageHeader.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
 import { onMounted, reactive, ref } from 'vue'
 import * as addressesApi from '../api/address.api'
 import { useFeedback } from '../composables/useFeedback'
@@ -79,15 +82,29 @@ onMounted(() => load())
 </script>
 <template>
   <section>
-    <h1 class="h3">Địa chỉ của tôi</h1>
+    <PageHeader
+      title="Địa chỉ của tôi"
+      eyebrow="Tài khoản"
+      description="Lưu địa chỉ nhận hàng và chọn địa chỉ mặc định cho lần mua tiếp theo."
+    />
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <div class="row g-4">
       <div class="col-lg-7">
         <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()">
           Tải lại danh sách
         </button>
-        <p v-if="!rows.length && !busy && !error">Chưa có địa chỉ.</p>
-        <article v-for="row in rows" :key="row.id" class="card mb-3" :data-address="row.id">
+        <EmptyState
+          v-if="!rows.length && !busy && !error"
+          title="Chưa có địa chỉ."
+          description="Thêm địa chỉ nhận hàng bằng biểu mẫu bên cạnh."
+        />
+        <article
+          v-for="row in rows"
+          :key="row.id"
+          class="card mb-3 account-address-card"
+          :class="{ 'is-default': row.is_default }"
+          :data-address="row.id"
+        >
           <div class="card-body">
             <h2 class="h5">
               {{ row.recipient_name }}
@@ -110,54 +127,52 @@ onMounted(() => load())
               >
                 Đặt mặc định
               </button>
-              <button
-                class="btn btn-outline-danger btn-sm"
-                :disabled="busy"
-                @click="remove(row.id)"
-              >
-                Xóa
-              </button>
+              <ConfirmDelete :disabled="busy" @confirm="remove(row.id)" />
             </div>
           </div>
         </article>
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
-      <form class="col-lg-5" @submit.prevent="save">
-        <h2 class="h5">{{ editing ? 'Sửa địa chỉ' : 'Thêm địa chỉ' }}</h2>
-        <DomainField
-          v-for="[key, label, max] in fields"
-          :key="key"
-          v-model="form[key]"
-          :name="key"
-          :label="label"
-          :maxlength="max"
-          :type="key === 'phone' ? 'tel' : 'text'"
-          :required="key !== 'district'"
-          :errors="errors[key]"
-        />
-        <p class="text-secondary">Quốc gia: Việt Nam</p>
-        <label class="form-check mb-3"
-          ><input
-            v-model="form.is_default"
-            name="is_default"
-            type="checkbox"
-            class="form-check-input"
-          />
-          Đặt làm mặc định</label
-        >
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary" :disabled="busy">Lưu địa chỉ</button
-          ><button
-            v-if="editing"
-            type="button"
-            class="btn btn-secondary"
+      <div class="col-lg-5">
+        <form class="account-address-form" @submit.prevent="save">
+          <h2 class="h5">{{ editing ? 'Sửa địa chỉ' : 'Thêm địa chỉ' }}</h2>
+          <DomainField
+            v-for="[key, label, max] in fields"
+            :key="key"
+            v-model="form[key]"
+            :name="key"
+            :label="label"
+            :maxlength="max"
+            :type="key === 'phone' ? 'tel' : 'text'"
+            :required="key !== 'district'"
+            :errors="errors[key]"
             :disabled="busy"
-            @click="cancelEdit"
+          />
+          <p class="text-secondary">Quốc gia: Việt Nam</p>
+          <label class="form-check mb-3"
+            ><input
+              v-model="form.is_default"
+              name="is_default"
+              :disabled="busy"
+              type="checkbox"
+              class="form-check-input"
+            />
+            Đặt làm mặc định</label
           >
-            Hủy sửa
-          </button>
-        </div>
-      </form>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" :disabled="busy">Lưu địa chỉ</button
+            ><button
+              v-if="editing"
+              type="button"
+              class="btn btn-secondary"
+              :disabled="busy"
+              @click="cancelEdit"
+            >
+              Hủy sửa
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </section>
 </template>

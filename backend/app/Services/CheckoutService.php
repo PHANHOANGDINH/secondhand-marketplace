@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PaymentMethod;
-use App\Enums\PaymentStatus;
 use App\Enums\ProductStatus;
-use App\Enums\ShopOrderStatus;
 use App\Exceptions\CheckoutPlanChanged;
 use App\Models\Address;
 use App\Models\Cart;
@@ -14,12 +12,11 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
-    public function __construct(private OrderLocks $locks, private AuditService $audit) {}
+    public function __construct(private OrderLocks $locks) {}
 
     /** @return array{order: Order, created: bool} */
     public function checkout(User $user, int $addressId, string $key, PaymentMethod $method = PaymentMethod::COD, array $channels = []): array
@@ -72,6 +69,7 @@ class CheckoutService
                         }
                         abort_if($shop?->owner_id === $buyer->id, 403, 'You cannot buy from your own shop.');
                         abort_unless($product && ! $product->trashed() && $product->status === ProductStatus::ACTIVE && $product->stock_quantity >= $item->quantity && $item->quantity >= 1 && $item->quantity <= 99 && $this->locks->eligible($shop, $accounts[$shop->owner_id], $categories, $product->category_id), 409, 'A cart item is unavailable or has insufficient stock. Refresh your cart.');
+                        app(FixedPriceEligibility::class)->assertAvailable($product->id);
                         $image = $product->images()->where('is_primary', true)->lockForUpdate()->first();
                         abort_unless($image, 409, 'A cart item no longer has a primary image.');
                         $amount = OrderSummary::checked(bcmul($product->price, (string) $item->quantity, 2));
@@ -81,30 +79,7 @@ class CheckoutService
                     if ($method === PaymentMethod::ZALOPAY) {
                         ZaloPayGateway::amount($total);
                     }
-                    $shipping = [];
-                    foreach (['recipient_name', 'phone', 'address_line', 'ward', 'district', 'province', 'country_code'] as $field) {
-                        $shipping['shipping_'.$field] = $address->$field;
-                    }
-                    $order = Order::create([...$shipping, 'buyer_id' => $buyer->id, 'order_code' => 'SHM-'.Str::upper(Str::random(24)), 'checkout_key' => $key, 'request_hash' => $hash, 'subtotal' => $total, 'shipping_fee' => '0.00', 'discount_amount' => '0.00', 'total_amount' => $total, 'currency' => 'VND', 'payment_method' => $method]);
-                    foreach ($groups as $shopId => $rows) {
-                        $subtotal = array_reduce($rows, fn (string $sum, array $row): string => bcadd($sum, $row['subtotal'], 2), '0.00');
-                        $part = $order->shopOrders()->create(['shop_id' => $shopId, 'status' => ShopOrderStatus::PENDING, 'subtotal' => $subtotal, 'shipping_fee' => '0.00', 'discount_amount' => '0.00', 'total_amount' => $subtotal]);
-                        foreach ($rows as $row) {
-                            $part->orderItems()->create($row);
-                            $product = $products[$row['product_id']];
-                            $product->stock_quantity -= $row['quantity'];
-                            if ($product->stock_quantity === 0) {
-                                $product->status = ProductStatus::SOLD;
-                            }
-                            $product->save();
-                            if ($product->status === ProductStatus::SOLD) {
-                                $this->audit->record($buyer, 'products', $product->id, 'product.checkout_sold', 'ACTIVE', 'SOLD', $product->updated_at->format('Y-m-d H:i:s.u'));
-                            }
-                        }
-                        $this->audit->record($buyer, 'shop_orders', $part->id, 'shop_order.created', null, 'PENDING', null);
-                    }
-                    $payment = $method === PaymentMethod::ZALOPAY ? app(ZaloPayService::class)->newAttempt($order, 1, $channels) : $order->payments()->create(['attempt_number' => 1, 'method' => PaymentMethod::COD, 'amount' => $total, 'currency' => 'VND', 'status' => PaymentStatus::PENDING, 'transaction_reference' => 'COD-'.Str::uuid()]);
-                    $this->audit->record($buyer, 'payments', $payment->id, 'payment.created', null, 'PENDING', null);
+                    $order = app(OrderCreator::class)->create($buyer, $address, $key, $hash, $method, $channels, $groups, $products, $total);
                     $cart->items()->delete();
                     $cart->touch();
 

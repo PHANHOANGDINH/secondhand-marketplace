@@ -1,4 +1,11 @@
 <script setup>
+import InventoryBadge from '../components/seller/InventoryBadge.vue'
+import { getStatusLabel } from '../utils/labels'
+import { useSellerIdentity } from '../components/seller/useSellerIdentity'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+
 import { onMounted, ref } from 'vue'
 import * as productsApi from '../api/product.api'
 import { getSellerShop } from '../api/shop.api'
@@ -50,23 +57,34 @@ const action = (product, target) =>
     await refresh()
   }, 'Đã cập nhật sản phẩm.')
 onMounted(() => load())
+useSellerIdentity(() => shop.value)
 </script>
 <template>
   <section>
-    <div class="d-flex justify-content-between gap-3 flex-wrap">
-      <h1 class="h3">Sản phẩm của tôi</h1>
-      <RouterLink
+    <PageHeader
+      title="Sản phẩm của tôi"
+      eyebrow="Không gian người bán"
+      :description="
+        shop
+          ? `Quản lý sản phẩm của ${shop.name}.`
+          : 'Quản lý nội dung, hình ảnh và trạng thái sản phẩm.'
+      "
+      ><RouterLink
         v-if="['PENDING', 'ACTIVE'].includes(shop?.status)"
         to="/seller/products/create"
         class="btn btn-primary"
-        >Thêm sản phẩm</RouterLink
-      >
-    </div>
+        >+ Thêm sản phẩm</RouterLink
+      ></PageHeader
+    >
+    <RouterLink to="/seller/inventory" class="btn btn-outline-secondary mb-3"
+      >Quản lý tồn kho</RouterLink
+    >
     <RouterLink v-if="!shop && !busy" to="/seller/shop">Xem / tạo gian hàng</RouterLink>
     <p v-if="shop && shop.status !== 'ACTIVE'" class="alert alert-info">
-      Gian hàng {{ shop.status }}. Chỉ gian hàng ACTIVE được gửi sản phẩm để duyệt.
+      Gian hàng {{ getStatusLabel(shop.status) }}. Chỉ gian hàng đang hoạt động được gửi sản phẩm để
+      duyệt.
     </p>
-    <form class="d-flex gap-2 flex-wrap my-3" @submit.prevent="load()">
+    <form class="d-flex gap-2 flex-wrap my-3 seller-toolbar" @submit.prevent="load()">
       <label class="flex-grow-1"
         >Tìm kiếm<input
           v-model="search"
@@ -76,9 +94,11 @@ onMounted(() => load())
       ><label
         >Trạng thái<select v-model="status" name="status_filter" class="form-select">
           <option value="">Tất cả</option>
-          <option v-for="state in statuses" :key="state">{{ state }}</option>
+          <option v-for="state in statuses" :key="state" :value="state">
+            {{ getStatusLabel(state) }}
+          </option>
         </select></label
-      ><button class="btn btn-outline-primary align-self-end" :disabled="busy">
+      ><button class="btn btn-outline-secondary align-self-end" :disabled="busy">
         Lọc / Tải lại
       </button>
     </form>
@@ -86,9 +106,13 @@ onMounted(() => load())
     <div v-for="(messages, key) in errors" :key="key" class="text-danger">
       {{ messages.join(' ') }}
     </div>
-    <p v-if="!busy && !error && !rows.length">Chưa có sản phẩm.</p>
-    <div class="table-responsive">
-      <table class="table align-middle">
+    <EmptyState
+      v-if="!busy && !error && !rows.length"
+      title="Chưa có sản phẩm."
+      description="Thêm sản phẩm hoặc điều chỉnh bộ lọc để xem kết quả."
+    />
+    <div v-if="rows.length" class="table-responsive seller-table-wrap">
+      <table class="table align-middle seller-table">
         <thead>
           <tr>
             <th>Sản phẩm</th>
@@ -110,9 +134,11 @@ onMounted(() => load())
                 new Date(product.created_at).toLocaleDateString('vi-VN')
               }}</small>
             </td>
-            <td>{{ formatPrice(product.price) }}<br />Còn {{ product.stock_quantity }}</td>
-            <td>{{ product.status }}</td>
-            <td>
+            <td data-label="Giá / tồn kho">
+              {{ formatPrice(product.price) }}<br /><InventoryBadge :product="product" />
+            </td>
+            <td data-label="Trạng thái"><StatusBadge :status="product.status" /></td>
+            <td data-label="Thao tác">
               <div class="d-flex gap-2 flex-wrap">
                 <RouterLink
                   :to="`/seller/products/${product.id}/edit`"

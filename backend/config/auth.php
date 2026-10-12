@@ -15,6 +15,8 @@ return [
     |
     */
 
+    'password_reset_url' => env('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password'),
+
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),

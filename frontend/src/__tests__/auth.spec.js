@@ -91,7 +91,7 @@ it('failed logout preserves authenticated state and allows explicit retry', asyn
   await expect(store.logout()).rejects.toMatchObject({ response: { status: 419 } })
   expect(store.user).toEqual(user)
   expect(api.post).toHaveBeenCalledTimes(1)
-  expect(authError({ response: { status: 419 } })).toContain('CSRF')
+  expect(authError({ response: { status: 419 } })).toContain('Phiên bảo mật')
 })
 it('network errors are visible without repeated me calls', async () => {
   api.get.mockRejectedValue(new Error('offline'))

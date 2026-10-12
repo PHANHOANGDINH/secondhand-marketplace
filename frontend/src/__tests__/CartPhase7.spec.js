@@ -80,6 +80,15 @@ async function setup(component, { guest = false, props = {} } = {}) {
 }
 const button = (wrapper, text) => wrapper.findAll('button').find((node) => node.text() === text)
 const product = { id: '1', slug: 'phone', stock_quantity: 5 }
+it('routes auction-reserved products to the arena without submitting a normal cart write', async () => {
+  const { wrapper } = await setup(AddToCart, {
+    props: { product: { ...product, auction: { id: '77', status: 'LIVE' } } },
+  })
+  expect(wrapper.find('form').exists()).toBe(false)
+  expect(wrapper.get('a').attributes('href')).toBe('/auctions/77')
+  expect(wrapper.text()).toContain('Xem phiên đấu giá')
+  expect(cartApi.addCartItem).not.toHaveBeenCalled()
+})
 beforeEach(() => {
   vi.restoreAllMocks()
   vi.spyOn(cartApi, 'getCart').mockResolvedValue(structuredClone(base))
@@ -104,6 +113,15 @@ it('loads current cart and renders multiple shop groups, prices, images and deci
     '/product-placeholder.svg',
   )
   expect(wrapper.find('[href*="checkout"]').exists()).toBe(true)
+})
+it('makes the add-to-cart action visibly unavailable when backend stock is zero', async () => {
+  const { wrapper } = await setup(AddToCart, {
+    props: { product: { ...product, stock_quantity: 0 } },
+  })
+  expect(wrapper.get('button[type="submit"]').element.disabled).toBe(true)
+  expect(wrapper.get('button[type="submit"]').text()).toBe('Tạm hết hàng')
+  expect(wrapper.get('input[name="quantity"]').element.disabled).toBe(true)
+  expect(cartApi.addCartItem).not.toHaveBeenCalled()
 })
 it('updates absolute quantity and takes new totals from server', async () => {
   const { wrapper, cart } = await setup(CartView)
@@ -175,7 +193,7 @@ it('permits reducing quantity after stock falls and displays validation errors',
   })
   await wrapper.get('[data-cart-item="11"] form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Quantity must be an integer')
+  expect(wrapper.text()).toContain('Số lượng không hợp lệ')
 })
 it('displays a load error and supports explicit retry', async () => {
   cartApi.getCart.mockRejectedValueOnce(new Error('offline'))
@@ -210,7 +228,7 @@ it('shows stock conflict, refreshes state and never retries the add automaticall
   const { wrapper } = await setup(AddToCart, { props: { product } })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Stock changed')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   expect(cartApi.addCartItem).toHaveBeenCalledOnce()
   expect(cartApi.getCart).toHaveBeenCalledOnce()
 })

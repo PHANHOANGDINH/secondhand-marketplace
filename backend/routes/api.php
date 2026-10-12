@@ -8,20 +8,30 @@ use App\Http\Controllers\Api\V1\AdminProductController;
 use App\Http\Controllers\Api\V1\AdminReviewController;
 use App\Http\Controllers\Api\V1\AdminShopController;
 use App\Http\Controllers\Api\V1\AdminUserController;
+use App\Http\Controllers\Api\V1\AuctionCheckoutController;
+use App\Http\Controllers\Api\V1\AuctionController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckoutController;
+use App\Http\Controllers\Api\V1\ConversationController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ProductImageController;
+use App\Http\Controllers\Api\V1\ProductVideoController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use App\Http\Controllers\Api\V1\PublicShopController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\SellerDashboardController;
+use App\Http\Controllers\Api\V1\SellerInventoryController;
 use App\Http\Controllers\Api\V1\SellerOrderController;
 use App\Http\Controllers\Api\V1\SellerProductController;
 use App\Http\Controllers\Api\V1\SellerShopController;
+use App\Http\Controllers\Api\V1\VideoCommentController;
+use App\Http\Controllers\Api\V1\WishlistController;
 use App\Http\Controllers\Api\V1\ZaloPayController;
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Http\Middleware\EnsureAdmin;
@@ -37,6 +47,8 @@ Route::get('/health', function () {
 
 Route::prefix('auth')->name('auth.')->group(function (): void {
     Route::middleware(EnsureSpaSession::class)->group(function (): void {
+        Route::post('/forgot-password', [PasswordResetController::class, 'forgot'])->middleware('throttle:forgot-password')->name('forgot-password');
+        Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:reset-password')->name('reset-password');
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register')->name('register');
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
     });
@@ -74,6 +86,7 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
 
 Route::middleware('throttle:public-read')->group(function (): void {
     Route::get('/products', [PublicProductController::class, 'index']);
+    Route::get('/products/suggestions', [PublicProductController::class, 'suggestions']);
     Route::get('/products/{slug}', [PublicProductController::class, 'show']);
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
@@ -123,6 +136,8 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
 });
 
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/seller/inventory', [SellerInventoryController::class, 'index']);
+    Route::get('/seller/action-center', [SellerInventoryController::class, 'summary']);
     Route::get('/seller/dashboard', [SellerDashboardController::class, 'show']);
     Route::get('/seller/dashboard/revenue', [SellerDashboardController::class, 'revenue']);
 });
@@ -140,3 +155,68 @@ Route::prefix('admin')->middleware(['auth:sanctum', EnsureActiveAccount::class, 
 });
 
 Route::post('/payments/zalopay/callback', [ZaloPayController::class, 'callback'])->middleware('throttle:public-read');
+
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/conversations', [ConversationController::class, 'index']);
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('throttle:messaging');
+    Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'send'])->middleware('throttle:messaging');
+    Route::post('/conversations/{conversation}/read', [ConversationController::class, 'read']);
+});
+
+Route::middleware('throttle:public-read')->group(function (): void {
+    Route::get('/auctions', [AuctionController::class, 'index']);
+    Route::get('/auctions/{auction}', [AuctionController::class, 'show']);
+    Route::get('/auctions/{auction}/bids', [AuctionController::class, 'bids']);
+});
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/seller/auctions', [AuctionController::class, 'sellerIndex']);
+    Route::post('/seller/auctions', [AuctionController::class, 'store']);
+    Route::get('/seller/auctions/{auction}', [AuctionController::class, 'sellerShow']);
+    Route::post('/seller/auctions/{auction}/cancel', [AuctionController::class, 'cancel']);
+    Route::get('/auctions/{auction}/checkout', [AuctionCheckoutController::class, 'show']);
+    Route::post('/auctions/{auction}/checkout', [AuctionCheckoutController::class, 'store'])->middleware('throttle:payment');
+    Route::post('/auctions/{auction}/bids', [AuctionController::class, 'placeBid'])->middleware('throttle:auction-bid');
+});
+
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'count']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification');
+});
+
+Route::get('/products/{slug}/videos', [ProductVideoController::class, 'publicIndex'])->middleware('throttle:public-read');
+Route::get('/videos/{video}/comments', [VideoCommentController::class, 'index'])->middleware('throttle:public-read');
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::post('/videos/{video}/comments', [VideoCommentController::class, 'store'])->middleware('throttle:video-comment');
+    Route::patch('/video-comments/{comment}', [VideoCommentController::class, 'update']);
+});
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/seller/products/{product}/videos', [ProductVideoController::class, 'index']);
+    Route::post('/seller/products/{product}/videos', [ProductVideoController::class, 'store'])->middleware('throttle:upload');
+    Route::patch('/seller/products/{product}/videos/{video}', [ProductVideoController::class, 'update']);
+    Route::delete('/seller/products/{product}/videos/{video}', [ProductVideoController::class, 'destroy']);
+});
+
+Route::middleware('throttle:public-read')->group(function (): void {
+    Route::get('/videos', [ProductVideoController::class, 'discovery']);
+    Route::get('/videos/{video}', [ProductVideoController::class, 'discoveryShow'])->whereNumber('video');
+});
+
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/products/{product}/wishlist', [WishlistController::class, 'store'])->whereNumber('product');
+    Route::delete('/products/{product}/wishlist', [WishlistController::class, 'destroy'])->whereNumber('product');
+});
+
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:reports');
+    Route::get('/my-reports', [ReportController::class, 'index']);
+    Route::get('/my-reports/{report}', [ReportController::class, 'show'])->whereNumber('report');
+    Route::prefix('admin')->middleware(EnsureAdmin::class)->group(function (): void {
+        Route::get('/reports', [ReportController::class, 'index']);
+        Route::get('/reports/{report}', [ReportController::class, 'show'])->whereNumber('report');
+        Route::patch('/reports/{report}/status', [ReportController::class, 'updateStatus'])->whereNumber('report');
+    });
+});

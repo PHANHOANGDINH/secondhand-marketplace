@@ -1,4 +1,7 @@
 <script setup>
+import { useSellerIdentity } from '../components/seller/useSellerIdentity'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import * as shopsApi from '../api/shop.api'
 import { useFeedback } from '../composables/useFeedback'
@@ -31,16 +34,31 @@ const save = () =>
   }, 'Đã lưu gian hàng.')
 const submit = () => run(async () => fill(await shopsApi.submitShop()), 'Đã gửi lại để xét duyệt.')
 onMounted(load)
+useSellerIdentity(() => shop.value)
 </script>
 <template>
-  <section style="max-width: 720px">
-    <h1 class="h3">Gian hàng của tôi</h1>
+  <section class="seller-form">
+    <PageHeader
+      title="Gian hàng của tôi"
+      eyebrow="Không gian người bán"
+      description="Thông tin giới thiệu và trạng thái hoạt động của gian hàng."
+    />
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">Tải lại</button>
     <template v-if="loaded">
-      <div v-if="shop" class="mb-3">
-        <p>
-          Trạng thái: <span class="badge text-bg-secondary">{{ shop.status }}</span>
+      <div v-if="shop" class="workspace-panel">
+        <h2 class="h4 mb-3">{{ shop.name }}</h2>
+        <p>Trạng thái: <StatusBadge :status="shop.status" /></p>
+        <p class="text-secondary">
+          {{
+            {
+              PENDING: 'Gian hàng đang chờ xét duyệt trước khi hiển thị công khai.',
+              ACTIVE: 'Gian hàng đang hoạt động và hiển thị trên sàn mua bán.',
+              SUSPENDED: 'Gian hàng đang tạm ngừng, thông tin hiện ở chế độ chỉ xem.',
+              REJECTED:
+                'Gian hàng chưa được duyệt. Xem lý do, sửa thông tin và gửi lại để xét duyệt.',
+            }[shop.status]
+          }}
         </p>
         <p v-if="shop.moderation_reason">Thông tin kiểm duyệt: {{ shop.moderation_reason }}</p>
         <RouterLink v-if="shop.status === 'ACTIVE'" :to="`/shops/${shop.slug}`"
@@ -54,14 +72,15 @@ onMounted(load)
       <p v-if="suspended" class="alert alert-warning">
         Gian hàng đang tạm ngừng. Bạn có thể xem thông tin và liên hệ quản trị viên.
       </p>
-      <form @submit.prevent="save">
+      <form class="workspace-panel" @submit.prevent="save">
+        <div class="workspace-panel-heading"><h2>Thông tin gian hàng</h2></div>
         <DomainField
           v-model="form.name"
           name="name"
           label="Tên gian hàng"
           required
           :maxlength="150"
-          :disabled="suspended"
+          :disabled="suspended || busy"
           :errors="errors.name"
         />
         <DomainField
@@ -70,7 +89,7 @@ onMounted(load)
           label="Giới thiệu"
           type="textarea"
           :maxlength="10000"
-          :disabled="suspended"
+          :disabled="suspended || busy"
           :errors="errors.description"
         />
         <button v-if="!suspended" type="submit" class="btn btn-primary" :disabled="busy">

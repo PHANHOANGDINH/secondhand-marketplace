@@ -136,7 +136,7 @@ it('loads addresses and shop groups with exact displayed decimal total and COD',
   expect(wrapper.get('#checkout-address').element.value).toBe('10')
   expect(wrapper.findAll('[data-checkout-shop]')).toHaveLength(2)
   expect(wrapper.get('[data-checkout-total]').text()).toContain('0,40 ₫')
-  expect(wrapper.text()).toContain('COD')
+  expect(wrapper.text()).toContain('Thanh toán khi nhận hàng')
   expect(button(wrapper, 'Xác nhận').element.disabled).toBe(false)
 })
 it('submits selected address and COD only, refreshes cart badge and redirects to saved order', async () => {
@@ -171,7 +171,7 @@ it('displays checkout stock conflict, refreshes availability and allows correcti
   cartApi.getCart.mockResolvedValue({ ...cartData, has_unavailable_items: true })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Stock changed')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   expect(button(wrapper, 'Xác nhận').element.disabled).toBe(true)
   expect(sessionStorage.length).toBe(0)
 })
@@ -182,7 +182,7 @@ it('shows address validation errors', async () => {
   })
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(wrapper.text()).toContain('Address no longer exists')
+  expect(wrapper.text()).toContain('Địa chỉ giao hàng không hợp lệ')
 })
 it('retains idempotency key after uncertain network result and retries even when cart is already empty', async () => {
   const { wrapper, router } = await setup(CheckoutView)
@@ -286,7 +286,7 @@ it('seller sends expected status and advances only the next transition', async (
     expected_status: 'PENDING',
     status: 'CONFIRMED',
   })
-  expect(wrapper.get('[data-next-status]').text()).toContain('Đang chuẩn bị')
+  expect(wrapper.get('[data-next-status]').text()).toContain('Đang xử lý')
 })
 it('COD completion requires explicit full collection confirmation', async () => {
   api.getSellerOrder.mockResolvedValue({ ...part, status: 'SHIPPING' })
@@ -320,7 +320,7 @@ it('seller cancellation includes failure category, and stale conflict refreshes 
     reason: 'Broken',
     failure_category: 'DAMAGED',
   })
-  expect(wrapper.text()).toContain('Status changed')
+  expect(wrapper.text()).toContain('Dữ liệu đã thay đổi')
   expect(wrapper.find('form').exists()).toBe(false)
 })
 it('seller suspended shop sees history without transition buttons', async () => {

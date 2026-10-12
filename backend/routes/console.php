@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('zalopay:reconcile --limit=100')->everyMinute()->withoutOverlapping();
+
+Schedule::command('auctions:sync --limit=100')->everyMinute()->withoutOverlapping();

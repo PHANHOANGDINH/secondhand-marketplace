@@ -1,3 +1,5 @@
+> Historical verification report. Container infrastructure has since been removed. Results below retain their original context; use the [current local setup](deployment-guide.md) and [local verification](xampp-local-verification.md) for present instructions.
+
 # PHASE 14 — Docker, Nginx and deployment verification
 
 Verification date: 2026-10-05 (Asia/Saigon). Feature freeze retained; deployment configuration and verification only. Development database migrations, resets and seeders were not run.

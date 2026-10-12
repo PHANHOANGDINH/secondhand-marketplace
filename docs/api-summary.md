@@ -1,6 +1,6 @@
 # Implemented API summary
 
-This is the current application contract, checked against `backend/routes/api.php` and the frontend API clients. Historical design documents also contain future endpoints; they are not all implemented. Base path: `/api/v1`. Docker origin: `http://localhost:8088`; local Laravel origin: `http://localhost:8000`.
+This is the current application contract, checked against `backend/routes/api.php` and the frontend API clients. Historical design documents also contain future endpoints; they are not all implemented. Base path: `/api/v1`. Local Laravel origin: `http://127.0.0.1:8000`; the browser uses the Vite proxy at `http://localhost:5173`.
 
 ## Authentication, payloads and errors
 
@@ -17,6 +17,7 @@ Methods/paths below are relative to `/api/v1`, except the CSRF endpoint. All non
 | Area | Implemented routes | Access / behavior |
 | --- | --- | --- |
 | Health/auth | GET `/health`; POST `/auth/register`, `/auth/login`; GET `/auth/me`; POST `/auth/logout` | Health and register/login public; me/logout authenticated. Logout remains available for a blocked session |
+| Password reset | POST `/auth/forgot-password`, `/auth/reset-password` | Stateful CSRF-protected requests; generic forgot response, broker token validation, throttling and one-time reset |
 | Profile | GET, PATCH `/profile` | Current user; name/phone edits |
 | Addresses | GET, POST `/addresses`; GET, PATCH/PUT, DELETE `/addresses/{id}`; PATCH `/addresses/{id}/default` | Current user only; one default address; checkout accepts only an owned address |
 | Public shops/categories | GET `/shops`, `/shops/{slug}`, `/categories`, `/categories/{slug}` | Public active catalog/ancestor and owner visibility rules |
@@ -57,4 +58,17 @@ Throttle groups include register (5/hour/IP), login (5/minute/email+IP and 20/mi
 
 ## Boundaries
 
-No notification/chat/auction/refund/payout/commission endpoints, password reset/email verification, public admin role assignment or admin fulfillment override are implemented. No production account/secret is shown here. Production and Sandbox ZaloPay setup are separate; see [demo guide](demo-guide.md) and [deployment guide](deployment-guide.md).
+Refund/payout/commission endpoints, email verification, public admin role assignment and admin fulfillment overrides are not implemented. No production account/secret is shown here. Production and Sandbox ZaloPay setup are separate; see [demo guide](demo-guide.md) and [deployment guide](deployment-guide.md).
+
+## Persistent notifications (A5)
+
+All routes below require an active Sanctum cookie session. Writes retain the existing CSRF and domain-write throttling rules. Notification UUIDs identify only the current user's records; another owner's UUID returns 404.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| GET | `/api/v1/notifications` | Newest-first paginated safe resources; `page`, `per_page` (1–100), `filter=all/unread/auction/orders`; root `unread_count` |
+| GET | `/api/v1/notifications/unread-count` | `data.unread_count` |
+| POST | `/api/v1/notifications/{uuid}/read` | Owned resource with `read_at`; repeated read preserves the original timestamp |
+| POST | `/api/v1/notifications/read-all` | Marks only this owner's unread rows; returns `data.unread_count` |
+
+Types: OUTBID, AUCTION_WON, AUCTION_ENDED, AUCTION_CANCELLED, WINNER_CHECKOUT_EXPIRING, AUCTION_ORDER_CREATED. Resources expose `id`, type, auction/product IDs, product name, plain-text message, local target route, timestamps and, where applicable, decimal winning amount and checkout deadline. No payment metadata, private credentials, recipient identifiers or deduplication key is exposed. `NotificationCreated` uses the existing private `user.{id}` channel after database commit. See [A5 verification](auction-a5-notifications-verification.md).

@@ -95,7 +95,9 @@ onBeforeUnmount(() => {
     >
       Tải lại đánh giá
     </button>
-    <p v-if="result && !result.data.length" class="text-secondary">Chưa có đánh giá công khai.</p>
+    <p v-if="result && !result.data.length && !busy && !error" class="text-secondary">
+      Chưa có đánh giá công khai.
+    </p>
     <article
       v-for="review in result?.data || []"
       :id="`review-${review.id}`"

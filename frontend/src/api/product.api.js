@@ -24,3 +24,5 @@ export const deleteProductImage = (id, image) =>
   mutate('delete', `seller/products/${id}/images/${image}`)
 export const reorderProductImages = async (id, images) =>
   (await mutate('patch', `seller/products/${id}/images/reorder`, { image_ids: images })).data
+
+export const productSuggestions = (q) => read('products/suggestions', { q })

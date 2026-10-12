@@ -6,7 +6,7 @@ export const conditions = [
 ]
 export const statuses = ['DRAFT', 'PENDING', 'ACTIVE', 'REJECTED', 'HIDDEN', 'SOLD']
 export const conditionLabel = (value) =>
-  conditions.find((item) => item.value === value)?.label || value
+  conditions.find((item) => item.value === value)?.label || 'Không xác định'
 export function formatPrice(value) {
   const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(String(value))
   if (!match) return '—'

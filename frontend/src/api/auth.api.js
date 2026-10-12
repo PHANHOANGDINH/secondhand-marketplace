@@ -17,10 +17,19 @@ export async function me() {
 }
 export function authError(error) {
   const status = error.response?.status
-  if (status === 419) return 'Phiên bảo mật đã hết hạn. Vui lòng thử lại để lấy phiên CSRF mới.'
+  if (status === 419) return 'Phiên bảo mật đã hết hạn. Vui lòng thử lại.'
   if (status === 429) return 'Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.'
   if (status === 403) return 'Tài khoản hiện không hoạt động. Vui lòng liên hệ quản trị viên.'
   if (status === 422) return 'Vui lòng kiểm tra thông tin đã nhập.'
   if (status === 409) return 'Bạn đã đăng nhập. Hãy tải lại trang để cập nhật phiên.'
   return 'Không thể kết nối máy chủ. Vui lòng thử lại.'
+}
+
+export async function forgotPassword(details) {
+  await getCsrfCookie()
+  return (await api.post('/api/v1/auth/forgot-password', details)).data
+}
+export async function resetPassword(details) {
+  await getCsrfCookie()
+  return (await api.post('/api/v1/auth/reset-password', details)).data
 }

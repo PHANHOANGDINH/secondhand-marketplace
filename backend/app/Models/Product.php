@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Enums\ProductCondition;
 use App\Enums\ProductStatus;
+use App\Services\FixedPriceEligibility;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
@@ -42,6 +44,21 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    public function wishlistEntries(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(ProductVideo::class);
+    }
+
+    public function auctionClaim(): HasOne
+    {
+        return $this->hasOne(Auction::class)->whereIn('id', app(FixedPriceEligibility::class)->claims()->select('id'));
     }
 
     public function cartItems(): HasMany

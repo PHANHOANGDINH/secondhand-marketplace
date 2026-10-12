@@ -1,5 +1,7 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { localizeValidationErrors } from '../utils/validationLabels'
+
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { listProducts } from '../api/product.api'
 import { categoryOptions, shopOptions } from '../api/catalogOptions'
@@ -9,6 +11,12 @@ import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import ProductCard from '../components/ProductCard.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+import ProductSearch from '../components/ProductSearch.vue'
+import ProductFilters from '../components/ProductFilters.vue'
+import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
+import { normalizeDiscoveryQuery } from '../utils/discoveryQuery'
 const route = useRoute(),
   router = useRouter()
 const form = reactive({
@@ -18,6 +26,8 @@ const form = reactive({
   min_price: '',
   max_price: '',
   shop: '',
+  has_video: '',
+  sale_type: '',
   sort: 'newest',
 })
 const rows = ref([]),
@@ -28,22 +38,40 @@ const rows = ref([]),
   categories = ref([]),
   shops = ref([]),
   optionError = ref('')
-const all = [{ value: '', label: 'Tất cả' }]
+const drawer = ref(false)
+const keywordKey = computed(() => (typeof route.query.q === 'string' ? 'q' : 'search'))
 const sorts = [
   { value: 'newest', label: 'Mới nhất' },
+  { value: 'oldest', label: 'Cũ nhất' },
+  { value: 'rating', label: 'Đánh giá cao nhất' },
+  { value: 'relevance', label: 'Phù hợp nhất' },
   { value: 'price_asc', label: 'Giá tăng dần' },
   { value: 'price_desc', label: 'Giá giảm dần' },
 ]
 let sequence = 0
 async function load() {
   const current = ++sequence
+  const normalized = normalizeDiscoveryQuery(route.query)
+  if (JSON.stringify(normalized) !== JSON.stringify(route.query)) {
+    await router.replace({ path: '/products', query: normalized })
+    return
+  }
   for (const key of Object.keys(form))
     form[key] =
-      typeof route.query[key] === 'string' ? route.query[key] : key === 'sort' ? 'newest' : ''
+      typeof route.query[key === 'search' ? keywordKey.value : key] === 'string'
+        ? route.query[key === 'search' ? keywordKey.value : key]
+        : key === 'sort'
+          ? 'newest'
+          : ''
   const params = {
     ...Object.fromEntries(Object.entries(form).filter(([, value]) => value !== '')),
     page: route.query.page || '1',
   }
+  if (keywordKey.value === 'q') {
+    params.q = params.search
+    delete params.search
+  }
+  if (route.query.per_page) params.per_page = route.query.per_page
   busy.value = true
   error.value = ''
   errors.value = {}
@@ -58,7 +86,7 @@ async function load() {
   } catch (failure) {
     if (current === sequence) {
       error.value = domainError(failure)
-      errors.value = failure.response?.data?.errors || {}
+      errors.value = localizeValidationErrors(failure.response?.data?.errors)
     }
   } finally {
     if (current === sequence) busy.value = false
@@ -66,11 +94,20 @@ async function load() {
 }
 async function apply() {
   const query = Object.fromEntries(Object.entries(form).filter(([, value]) => value !== ''))
-  await router.push({ path: '/products', query })
+  if (keywordKey.value === 'q') {
+    query.q = query.search
+    delete query.search
+  }
+  if (route.query['quick-listing']) query['quick-listing'] = route.query['quick-listing']
+  drawer.value = false
+  await router.push({ path: '/products', query: normalizeDiscoveryQuery(query) })
 }
 const page = (value) =>
   router.push({ path: '/products', query: { ...route.query, page: String(value) } })
 watch(() => route.query, load, { immediate: true })
+onUnmounted(() => {
+  ++sequence
+})
 onMounted(async () => {
   try {
     ;[categories.value, shops.value] = await Promise.all([categoryOptions(), shopOptions()])
@@ -80,66 +117,15 @@ onMounted(async () => {
 })
 </script>
 <template>
-  <section>
-    <h1 class="h3">Sản phẩm thanh lý</h1>
+  <section class="buyer-flow">
+    <PageHeader
+      title="Sản phẩm thanh lý"
+      description="Khám phá những món đồ còn giá trị. Tìm theo nhu cầu, tình trạng và ngân sách của bạn."
+    />
     <p v-if="optionError" role="alert" class="alert alert-warning">{{ optionError }}</p>
-    <form class="row g-2 my-3" @submit.prevent="apply">
-      <div class="col-md-6">
-        <DomainField
-          v-model="form.search"
-          name="search"
-          label="Tìm theo tên hoặc mô tả"
-          :maxlength="100"
-          :errors="errors.search"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="form.category"
-          name="category"
-          label="Danh mục"
-          type="select"
-          :options="[...all, ...categories]"
-          :errors="errors.category"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="form.condition"
-          name="condition"
-          label="Tình trạng"
-          type="select"
-          :options="[...all, ...conditions]"
-          :errors="errors.condition"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="form.min_price"
-          name="min_price"
-          label="Giá từ (VND)"
-          :errors="errors.min_price"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="form.max_price"
-          name="max_price"
-          label="Giá đến (VND)"
-          :errors="errors.max_price"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="form.shop"
-          name="shop"
-          label="Gian hàng"
-          type="select"
-          :options="[...all, ...shops]"
-          :errors="errors.shop"
-        />
-      </div>
-      <div class="col-md-3">
+    <form class="my-3 buyer-filter discovery-toolbar" @submit.prevent="apply">
+      <div class="discovery-top">
+        <ProductSearch v-model="form.search" @submit="apply" />
         <DomainField
           v-model="form.sort"
           name="sort"
@@ -148,22 +134,164 @@ onMounted(async () => {
           :options="sorts"
           :errors="errors.sort"
         />
+        <button type="submit" class="btn btn-primary" :disabled="busy">Tìm / Lọc</button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary mobile-filters"
+          aria-controls="discovery-dialog"
+          :aria-expanded="drawer"
+          @click="drawer = true"
+        >
+          Bộ lọc
+        </button>
       </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" :disabled="busy">Tìm / Lọc</button
-        ><RouterLink to="/products" class="btn btn-outline-secondary">Xóa bộ lọc</RouterLink
-        ><button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
+      <p v-if="errors.q || errors.search" role="alert" class="text-danger small">
+        {{ (errors.q || errors.search)[0] }}
+      </p>
+      <div v-if="!drawer" class="desktop-filters">
+        <ProductFilters
+          :model-value="form"
+          @update:model-value="(value) => Object.assign(form, value)"
+          :categories="categories"
+          :shops="shops"
+          :errors="errors"
+        />
+      </div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+        <p class="mb-0 me-auto text-muted" role="status">
+          {{
+            busy
+              ? 'Đang tìm sản phẩm…'
+              : meta
+                ? `${meta.total} sản phẩm phù hợp`
+                : 'Khám phá sản phẩm'
+          }}
+        </p>
+        <RouterLink to="/products" class="btn btn-outline-secondary">Xóa bộ lọc</RouterLink>
+        <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
           Tải lại
         </button>
       </div>
     </form>
-    <DomainFeedback :busy="busy" :error="error" />
-    <p v-if="!busy && !error && !rows.length">Không tìm thấy sản phẩm.</p>
-    <div class="row g-3">
-      <div v-for="product in rows" :key="product.id" class="col-sm-6 col-lg-3">
+    <AccessibleDialog
+      v-if="drawer"
+      id="discovery-dialog"
+      title="Lọc sản phẩm"
+      @dismiss="drawer = false"
+    >
+      <form @submit.prevent="apply">
+        <ProductFilters
+          :model-value="form"
+          @update:model-value="(value) => Object.assign(form, value)"
+          :categories="categories"
+          :shops="shops"
+          :errors="errors"
+        />
+        <button class="btn btn-primary mt-3 w-100" type="submit">Áp dụng bộ lọc</button>
+      </form>
+    </AccessibleDialog>
+    <div
+      v-if="
+        Object.keys(route.query).some(
+          (key) =>
+            key !== 'page' && key !== 'sort' && key !== 'quick-listing' && key !== 'per_page',
+        )
+      "
+      class="buyer-filter-active"
+      aria-label="Bộ lọc đang áp dụng"
+    >
+      <template v-for="(value, key) in route.query" :key="key"
+        ><span
+          v-if="key !== 'page' && key !== 'sort' && key !== 'quick-listing' && key !== 'per_page'"
+          >{{
+            {
+              search: 'Tìm kiếm',
+              q: 'Tìm kiếm',
+              has_video: 'Video',
+              sale_type: 'Hình thức bán',
+              category: 'Danh mục',
+              condition: 'Tình trạng',
+              min_price: 'Giá từ',
+              max_price: 'Giá đến',
+              shop: 'Gian hàng',
+            }[key] || 'Bộ lọc'
+          }}:
+          {{
+            key === 'category'
+              ? categories.find((option) => String(option.value) === String(value))?.label || value
+              : key === 'shop'
+                ? shops.find((option) => String(option.value) === String(value))?.label || value
+                : key === 'condition'
+                  ? conditions.find((option) => option.value === value)?.label || 'Không xác định'
+                  : key === 'has_video'
+                    ? value === '1'
+                      ? 'Có video'
+                      : 'Không có video'
+                    : key === 'sale_type'
+                      ? value === 'auction'
+                        ? 'Đấu giá'
+                        : 'Bán thường'
+                      : value
+          }}</span
+        ></template
+      >
+    </div>
+    <DomainFeedback :error="error" />
+    <div v-if="busy" class="row g-4" aria-label="Đang tải sản phẩm" aria-busy="true">
+      <div v-for="index in 8" :key="index" class="col-6 col-lg-3">
+        <div class="card p-3 placeholder-glow" aria-hidden="true">
+          <div class="placeholder rounded w-100" style="aspect-ratio: 1" />
+          <span class="placeholder col-9 mt-3" /><span class="placeholder col-6 mt-2" />
+        </div>
+      </div>
+    </div>
+    <EmptyState
+      v-if="!busy && !error && !rows.length"
+      title="Không tìm thấy sản phẩm phù hợp"
+      description="Thử một từ khóa khác hoặc mở rộng bộ lọc để tìm thêm món đồ phù hợp."
+      ><RouterLink to="/products" class="btn btn-outline-primary"
+        >Xem tất cả sản phẩm</RouterLink
+      ></EmptyState
+    >
+    <div class="row g-4">
+      <div v-for="product in rows" :key="product.id" class="col-6 col-lg-3">
         <ProductCard :product="product" />
       </div>
     </div>
     <CollectionPager :meta="meta" :busy="busy" @page="page" />
   </section>
 </template>
+
+<style scoped>
+.discovery-top {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.discovery-top :deep(.product-search) {
+  min-width: 200px;
+}
+.desktop-filters {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+.mobile-filters {
+  display: none;
+}
+@media (max-width: 767px) {
+  .desktop-filters {
+    display: none;
+  }
+  .mobile-filters {
+    display: inline-block;
+  }
+  .discovery-top :deep(.product-search) {
+    flex-basis: 100%;
+  }
+  .discovery-top {
+    gap: 0.65rem;
+  }
+}
+</style>

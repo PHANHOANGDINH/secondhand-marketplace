@@ -1,5 +1,5 @@
 <script setup>
-import { getPaymentMethodLabel } from '../utils/labels'
+import { formatCancellationReason, getPaymentMethodLabel } from '../utils/labels'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -148,7 +148,7 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
             <StatusBadge :status="part.status" :label="orderStatuses[part.status]" />
             <strong class="ms-2">{{ formatPrice(part.total_amount) }}</strong>
           </p>
-          <p v-if="part.cancellation_reason">Lý do hủy: {{ part.cancellation_reason }}</p>
+          <p v-if="part.cancellation_reason">Lý do hủy: {{ formatCancellationReason(part.cancellation_reason) }}</p>
           <OrderItems
             :items="part.items"
             :allow-reviews="!seller"

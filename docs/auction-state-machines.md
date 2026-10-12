@@ -23,22 +23,24 @@ Server now must satisfy `starts_at <= now < ends_at` and status LIVE for a bid. 
 
 ## Derived settlement, not a column
 
-The requested conceptual labels map to actual `Auction::settlementState()` / Resource values:
+Settlement is a **computed value, not a database column and not an enum**: `Auction::settlementState()` derives it on every read from `status`, `winner_user_id`, `winner_order_id` and `winner_checkout_expires_at`. The only values the API returns are:
 
-| Conceptual label | Actual API value | Derivation |
-| --- | --- | --- |
-| NONE, not ended | `null` | Lifecycle is not ENDED |
-| NONE, ended without winner | `NO_WINNER` | ENDED and winner_user_id is null |
-| PENDING_CHECKOUT | `AWAITING_CHECKOUT` | ENDED winner, no winner_order_id, future winner_checkout_expires_at |
-| ORDER_CREATED | `ORDER_CREATED` | ENDED winner and winner_order_id set |
-| EXPIRED | `CHECKOUT_EXPIRED` | ENDED winner, no Order, deadline not future |
+| API value | Derivation |
+| --- | --- |
+| `null` | Lifecycle is not ENDED |
+| `NO_WINNER` | ENDED and winner_user_id is null |
+| `AWAITING_CHECKOUT` | ENDED winner, no winner_order_id, future winner_checkout_expires_at |
+| `ORDER_CREATED` | ENDED winner and winner_order_id set |
+| `CHECKOUT_EXPIRED` | ENDED winner, no Order, deadline not future |
+
+Earlier planning text used other names for the same ideas; they do not exist in code, the API or the database.
 
 ```mermaid
 stateDiagram-v2
-    state "null (not ENDED)" as NONE
-    [*] --> NONE
-    NONE --> NO_WINNER: finalize without accepted bids
-    NONE --> AWAITING_CHECKOUT: finalize with winner and deadline
+    state "null (not ENDED)" as NOT_ENDED
+    [*] --> NOT_ENDED
+    NOT_ENDED --> NO_WINNER: finalize without accepted bids
+    NOT_ENDED --> AWAITING_CHECKOUT: finalize with winner and deadline
     AWAITING_CHECKOUT --> ORDER_CREATED: winner checkout transaction commits
     AWAITING_CHECKOUT --> CHECKOUT_EXPIRED: deadline reached without Order
     NO_WINNER --> [*]
@@ -46,7 +48,7 @@ stateDiagram-v2
     CHECKOUT_EXPIRED --> [*]
 ```
 
-Diagram displays actual settlement API labels; NONE is only the diagram alias for null before ENDED. The conceptual-to-API mapping remains above. Expiry is time-derived, not a scheduler update to a stored enum. Default claim window is `AUCTION_WINNER_CHECKOUT_HOURS=24`, starting at actual finalization. The one reminder threshold is `AUCTION_CHECKOUT_REMINDER_MINUTES=60`; reminder locks/rechecks no Order and unexpired deadline and persists its sent timestamp. No reminder after checkout.
+Diagram displays actual settlement API values; NOT_ENDED is only the diagram alias for `null` before ENDED. Expiry is time-derived, not a scheduler update to a stored enum. Default claim window is `AUCTION_WINNER_CHECKOUT_HOURS=24`, starting at actual finalization. The one reminder threshold is `AUCTION_CHECKOUT_REMINDER_MINUTES=60`; reminder locks/rechecks no Order and unexpired deadline and persists its sent timestamp. No reminder after checkout.
 
 Only ACTIVE winner, not Seller, may checkout. Service revalidates ENDED/result/product/shop/bid/address/stock under locks, uses **winning bid price**, reserves **one unit**, and creates ordinary Order/ShopOrder/OrderItem plus COD or ZaloPay attempt. Unique auction-linked item and winner Order references plus payload checks make retries return the existing Order. Conflicting retry payload gets 409. Once Order exists, its cancellation/payment outcome does not reopen settlement or grant another winner attempt.
 

@@ -62,4 +62,13 @@ C3 changed only:
 - Full ERD intentionally dense/reference-only. C3 dry-run preserves data, so fresh write/realtime execution and observed live presentation timing are not newly claimed.
 - Git checkpoint remains pending; documentation QA PASS must not be presented as a clean/tagged release already created.
 
+### Known functional limits (audit of 2026-10-12)
+
+- **No ZaloPay refund flow.** `REFUNDED` exists only as a schema value; a paid online order cannot be cancelled in the application.
+- **`reconciliation_required` has no handling UI.** The flag is raised for late or unsafe verified money and must be resolved manually outside the application.
+- **Admins cannot cancel an auction** (planned for D5). Only the Seller can, and only before the first bid.
+- **An Admin hiding a product that is being auctioned does not cancel the auction** (planned for D5). Seller-side hide/delete/edit/image changes are blocked while an auction claim exists; Admin moderation is intentionally unchanged.
+- **Every write transaction locks the whole `categories` table** (bids, cart writes, checkout, product edits, video comments). Correct, but it serialises writes and will not scale to high concurrency.
+- **Scheduler dependency.** Auctions become LIVE/ENDED and ZaloPay attempts are reconciled only while `php artisan schedule:work` (or cron) is running.
+
 **Decision: PASS for C3 documentation/visual QA and local-demo freeze documentation. Clean Git release checkpoint is NOT COMPLETE until the reviewed snapshot is committed/tagged.** No new application defect requiring a code fix was discovered in this scope.

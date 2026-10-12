@@ -21,6 +21,28 @@ The browser makes same-origin API requests through Vite. This avoids cross-site 
 
 Prerequisites: XAMPP MySQL/MariaDB, a compatible **PHP 8.4 CLI** for the installed lockfile, Composer 2, Node **22.18+ (22.x) or 24.12+**, and npm. Enable PHP PDO MySQL, fileinfo, GD, OpenSSL, DOM/XML and the other extensions checked by Composer. XAMPP's bundled PHP can be older than Laravel supports: check `php --version` and `composer check-platform-reqs`; use a compatible separate CLI instead of downgrading the application. Apache is not needed for Artisan/Vite.
 
+### PHP runtime: 8.4.1 or newer is required
+
+The installed `composer.lock` resolves packages that need **PHP ≥ 8.4.1**; `vendor/composer/platform_check.php` stops every Artisan command on anything older. `composer.json` still says `^8.3`, but the lockfile is what runs.
+
+- **XAMPP's bundled PHP 8.0 cannot run this backend.** `php artisan …` fails immediately with "Your Composer dependencies require a PHP version >= 8.4.1".
+- Recommended: use the PHP 8.4 CLI shipped with Laravel Herd and call it explicitly when `php` on PATH is the XAMPP one, for example `& "$env:USERPROFILE\.config\herd\bin\php84\php.exe" artisan serve --host=127.0.0.1 --port=8000`. `backend/serve.ps1 -PhpExecutable <path>` accepts the same executable.
+- Alternative: replace XAMPP's `php` directory with a PHP 8.4 build (keep the required extensions enabled) so that `php --version` reports 8.4.1 or newer.
+- **MySQL can stay on XAMPP** (or any existing local MySQL service on `127.0.0.1:3306`); only the PHP CLI has to be 8.4.
+
+### The four processes
+
+A working local system needs MySQL plus these four long-running processes, each in its own terminal:
+
+| # | Directory | Command | Purpose |
+| --- | --- | --- | --- |
+| 1 | `backend/` | `php artisan serve --host=127.0.0.1 --port=8000` | JSON API |
+| 2 | `backend/` | `php artisan reverb:start` | WebSocket server for auctions, notifications and video comments |
+| 3 | `backend/` | `php artisan schedule:work` | Runs `auctions:sync` and `zalopay:reconcile` every minute |
+| 4 | `frontend/` | `npm run dev` | Vue SPA and development proxy |
+
+> **`schedule:work` is not optional.** Without it, auctions never switch to LIVE or ENDED on their own (no winner is finalized, no checkout reminder is sent) and unresolved ZaloPay attempts are never reconciled. Bids outside the time window are still rejected by the API, but the stored auction status stays stale until the scheduler runs.
+
 ### First-time setup
 
 Start XAMPP MySQL. Create `secondhand_marketplace` only if it does not exist. Configure a local database user with access to this database; keep its username/password in private `backend/.env`. Do not replace an existing database or existing env/key.
@@ -174,6 +196,8 @@ php artisan config:clear
 php artisan db:seed --class=FinalDemoSeeder --no-interaction
 ```
 
+The older `DatabaseSeeder` / `DemoUserSeeder` accounts (`admin@example.com`, `seller@example.com`, …) read the same private `DEMO_PASSWORD`; no password literal is committed, seeding stops with a clear error when the variable is missing or shorter than 12 characters, and accounts that already exist keep their current password.
+
 The pack contains two ACTIVE shops, 18 dedicated products using current categories/local owned artwork, valid auctions/bids and winner settlement, COD Orders with lawful fulfillment, published purchase-linked reviews, small local demo videos/comments, persistent notifications and Buyer/Seller conversations. Older catalog listings remain in place. The media is labeled test-pattern demo footage, not an authentic review. The earlier catalog-only DemoMarketplaceSeeder remains available for its original deficit-filling use.
 
 Keep four terminals running (start MySQL first):
@@ -220,6 +244,8 @@ npm run build
 Implemented: registration/login/logout/session/profile, forgot/reset password, owned addresses, public product/shop/category discovery, seller shop/product/image workflows, moderation, cart, transactional idempotent checkout, COD, ZaloPay V2 Sandbox integration, buyer/seller orders, reviews, Seller/Admin dashboards and administration. Buyer/seller text messaging, persistent in-app auction notifications and auction backend/realtime infrastructure are also available. Homepage Video Review discovery, Theater mode and persistent realtime plain-text comments are implemented. The realtime auction Arena and Seller auction management are implemented. Winner checkout creates one ordinary Order/ShopOrder/OrderItem at the winning bid price and reuses COD/ZaloPay payment attempts; refund, payout and commission remain out of scope.
 
 ## Status and limitations
+
+Extension status: D1 search/filter ✅, D2 wishlist ✅, D3 reports ✅, **D4 Seller Inventory & Action Center ✅** (`/seller/inventory`, action center on the Seller dashboard; see [D4 verification](docs/extension-d4-seller-inventory-verification.md)). The post-audit fix waves are recorded in [fix wave 1–2 verification](docs/fix-wave-1-2-verification.md). Planned for D5: Admin cancellation of auctions and automatic handling of an auction when an Admin hides its product.
 
 Current setup is Windows/local development. [Local setup and troubleshooting](docs/deployment-guide.md), [API summary](docs/api-summary.md), and [local verification](docs/xampp-local-verification.md) are current references. Previous deployment/phase reports are historical; their removed infrastructure commands are not current setup instructions. Archived container data volumes were retained during removal to avoid deleting previously seeded data.
 

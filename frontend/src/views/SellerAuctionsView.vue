@@ -8,6 +8,7 @@ import { useFeedback } from '../composables/useFeedback'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { formatPrice } from '../composables/productPresentation'
 import { auctionLabels, parseBidInput } from '../composables/auctionPresentation'
+import { createAuctionClock } from '../composables/auctionTimeSync'
 import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
@@ -62,15 +63,18 @@ const eligible = computed(() =>
       !reservedIds.value.has(String(p.id)),
   ),
 )
+// Display only: the server-synchronised clock keeps the button honest when the device clock drifts.
+const clock = createAuctionClock()
 const canCancel = (row) =>
   ['LIVE', 'SCHEDULED'].includes(row.status) &&
   row.bid_count === 0 &&
-  Date.parse(row.ends_at) > Date.now()
+  Date.parse(row.ends_at) > clock.now()
 async function refresh(page = 1) {
   const result = await api.listSellerAuctions({
     page,
     ...(auctionFilter.value === 'all' ? {} : { [auctionFilter.value]: 1 }),
   })
+  clock.sync(result.server_time || result.data[0]?.server_time)
   rows.value = result.data
   meta.value = result.meta
 }

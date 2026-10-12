@@ -33,7 +33,8 @@ Original requirements/database-design/use-cases/state-transitions are historical
 
 ## Reconciliation notes
 
-- Conceptual settlement NONE/PENDING_CHECKOUT/EXPIRED maps to actual nullable/NO_WINNER/AWAITING_CHECKOUT/CHECKOUT_EXPIRED values. No settlement column invented.
+- Settlement values are exactly `null` / `NO_WINNER` / `AWAITING_CHECKOUT` / `ORDER_CREATED` / `CHECKOUT_EXPIRED`, computed by `Auction::settlementState()` on every read. They are not a database column or enum; older planning names for these states are not used anywhere in code or API.
+- Extensions D1 search, D2 wishlist, D3 reports and **D4 Seller Inventory & Action Center are delivered ✅** ([D4 verification](extension-d4-seller-inventory-verification.md)). Post-audit corrections: [fix wave 1–2 verification](fix-wave-1-2-verification.md). D5 (planned): Admin auction cancellation and auction handling when an Admin hides a product.
 - VNPAY/REFUNDED and video PROCESSING/FAILED schema values do not prove delivered VNPAY/refund/transcoding workflows.
 - Messaging polls; Reverb serves auctions/notifications/comments. Expiry is derived rather than a scheduler-written settlement enum.
 - Admin Orders read-only; Seller fulfills. Older planning text calling delivered moderation future is superseded. Comment authors can also hide their own comments, alongside authorized Seller/Admin moderation.

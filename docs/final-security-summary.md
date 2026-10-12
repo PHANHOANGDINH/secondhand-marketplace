@@ -41,3 +41,12 @@ Controls inspected during C2; evidence is [C1](final-demo-verification.md) and [
 C1 tested representative Admin/resource IDOR, self-bid/loser checkout, tampered amount, hidden Product/Video, logout and missing-CSRF HTTP attacks. Automated suites cover broader races/payment/token/visibility. [Testing summary](final-testing-summary.md) records exact evidence.
 
 Production needs HTTPS/proxy/cookie/CORS planning, secret management, monitoring, protected logs, backups/restore and traffic/load testing. Static public uploaded files remain accessible to someone holding their URL after metadata is hidden: API visibility is not byte-level revocation. Public bidder labels contain pseudonymous IDs, not names/emails; this is not strong anonymity. No malware scanner, formal penetration test or full WCAG audit is claimed.
+
+### Known functional limits (audit of 2026-10-12)
+
+- **No ZaloPay refund flow.** `REFUNDED` exists only as a schema value; a paid online order cannot be cancelled in the application.
+- **`reconciliation_required` has no handling UI.** The flag is raised for late or unsafe verified money and must be resolved manually outside the application.
+- **Admins cannot cancel an auction** (planned for D5). Only the Seller can, and only before the first bid.
+- **An Admin hiding a product that is being auctioned does not cancel the auction** (planned for D5). Seller-side hide/delete/edit/image changes are blocked while an auction claim exists; Admin moderation is intentionally unchanged.
+- **Every write transaction locks the whole `categories` table** (bids, cart writes, checkout, product edits, video comments). Correct, but it serialises writes and will not scale to high concurrency.
+- **Scheduler dependency.** Auctions become LIVE/ENDED and ZaloPay attempts are reconciled only while `php artisan schedule:work` (or cron) is running.

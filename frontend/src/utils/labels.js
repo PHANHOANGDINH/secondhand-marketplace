@@ -44,3 +44,14 @@ export const getSettlementLabel = (value) =>
 const paymentMethods = { COD: 'Thanh toán khi nhận hàng', ZALOPAY: 'ZaloPay', VNPAY: 'VNPay' }
 export const getPaymentMethodLabel = (value) =>
   Object.hasOwn(paymentMethods, value) ? paymentMethods[value] : unknownLabel
+const cancellationCategories = {
+  OUT_OF_STOCK: 'Hết hàng', DAMAGED: 'Hư hỏng', UNFULFILLABLE: 'Không giao được',
+}
+// Sellers store "<FAILURE_CATEGORY>: <reason>"; buyers and sellers read the Vietnamese label.
+export function formatCancellationReason(text) {
+  if (typeof text !== 'string') return ''
+  const match = /^(OUT_OF_STOCK|DAMAGED|UNFULFILLABLE):\s*/.exec(text)
+  if (!match) return text
+  const reason = text.slice(match[0].length)
+  return reason ? `${cancellationCategories[match[1]]} — ${reason}` : cancellationCategories[match[1]]
+}

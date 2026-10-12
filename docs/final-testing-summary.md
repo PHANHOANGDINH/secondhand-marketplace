@@ -12,6 +12,8 @@ Verified **FINAL C1 on 2026-10-09**, reused for documentation-only C2. No applic
 | Pint / lint / production build | PASS / PASS / PASS |
 | Seeder/data/cleanup | Identical rerun across 22 business tables; original rows unchanged; temporary records/uploads removed |
 
+**Current automated totals — fix wave 1–2, run on 2026-10-12 with PHP 8.4.25:** backend **420 tests / 4,523 assertions PASS** (pre-fix baseline on the same day: 399 / 3,948), frontend **431 tests / 35 files PASS** (baseline 413 / 33), Pint, oxlint, ESLint and production build PASS. The development database was hashed before and after (25 tables, 416 rows) and is unchanged. No new browser pass was run for these waves; the 166 browser checks above remain C1 evidence. Details: [fix wave 1–2 verification](fix-wave-1-2-verification.md).
+
 Do not add the three focused tests again to 352. Browser checks are assertions across journeys/viewports, not 166 independently isolated E2E cases.
 
 ## Representative coverage

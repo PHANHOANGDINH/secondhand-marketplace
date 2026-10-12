@@ -60,7 +60,7 @@ C3 changed only:
 - Local file sessions/uploads and browser-native codecs; no video transcoding/CDN. Demo videos are explicitly tiny test-pattern clips.
 - Exact bundled XAMPP MariaDB/older PHP compatibility remains unverified; current demo uses compatible PHP 8.4 and the existing local MySQL service.
 - Full ERD intentionally dense/reference-only. C3 dry-run preserves data, so fresh write/realtime execution and observed live presentation timing are not newly claimed.
-- Git checkpoint remains pending; documentation QA PASS must not be presented as a clean/tagged release already created.
+- Git checkpoint: a local checkpoint commit and the two fix-wave commits now exist (2026-10-12, see [fix wave 1–2 verification](fix-wave-1-2-verification.md)); nothing is pushed or tagged, so this is still not a published/tagged release.
 
 ### Known functional limits (audit of 2026-10-12)
 

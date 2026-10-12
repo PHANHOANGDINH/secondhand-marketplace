@@ -148,3 +148,21 @@ Sáu fixture tạm được tạo qua service của ứng dụng, không sửa r
 ## Kết luận
 
 **PASS — D4 sẵn sàng demo.** Full backend/frontend, Pint, lint, production build và browser checks đều PASS; dữ liệu phát triển được bảo toàn. Pack demo mở rộng được kiểm thử idempotent trên DB test, có thể chủ động seed local theo hướng dẫn ở trên.
+
+## Cập nhật sau audit — fix wave 2 (12/10/2026)
+
+Quy tắc "ACTIVE/SOLD đổi tồn kho dương → PENDING" ở trên **đã được thay thế**. Khi thay đổi duy nhất là `stock_quantity`:
+
+| Trạng thái hiện tại | Tồn kho mới | Kết quả |
+| --- | --- | --- |
+| ACTIVE | > 0 | Giữ ACTIVE |
+| ACTIVE | 0 | SOLD |
+| SOLD | > 0 | ACTIVE nếu đủ điều kiện mở bán lại, ngược lại PENDING |
+| SOLD | 0 | Giữ SOLD (không ghi gì) |
+| DRAFT, PENDING, REJECTED, HIDDEN | bất kỳ | Giữ nguyên trạng thái |
+
+Điều kiện SOLD → ACTIVE: `published_at` khác null; gian hàng và chủ gian hàng ACTIVE; toàn bộ chuỗi danh mục ACTIVE (`OrderLocks::eligible`); và không có chỉnh sửa nội dung/ảnh nào sau lần Admin duyệt gần nhất (sản phẩm SOLD cho sửa nội dung và ảnh mà không qua duyệt, nên nhập hàng không được phép công khai các chỉnh sửa đó).
+
+Tồn kho đổi cùng lúc với nội dung vẫn theo quy tắc duyệt lại cũ. `expected_updated_at` vẫn bắt buộc (409 khi lệch). Audit ghi `product.stock_adjusted` với lý do `stock: <cũ> → <mới>`.
+
+Khi sản phẩm đang bị phiên đấu giá giữ, **mọi** thao tác của Seller trên sản phẩm và ảnh (không chỉ tồn kho) trả 409; riêng video vẫn thao tác được. Resource trả thêm `auction_locked`. Chi tiết: [fix wave 1–2](fix-wave-1-2-verification.md).

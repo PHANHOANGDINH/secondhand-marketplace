@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ProductStatus;
 use App\Enums\ShopStatus;
 use App\Enums\UserStatus;
+use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -16,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
-    public function __construct(private ProductLocks $locks, private SlugGenerator $slugs, private AuditService $audit) {}
+    public function __construct(private ProductLocks $locks, private SlugGenerator $slugs, private AuditService $audit, private FixedPriceEligibility $claims) {}
 
     public function create(User $user, array $data): Product
     {
@@ -43,6 +44,7 @@ class ProductService
     {
         return DB::transaction(function () use ($user, $product, $data): Product {
             $locked = $this->locks->lock($user, $product, 'update');
+            $this->claims->assertAvailable($locked->id);
             if (array_key_exists('stock_quantity', $data)) {
                 abort_unless(isset($data['expected_updated_at']) && CarbonImmutable::parse($data['expected_updated_at'])->equalTo($locked->updated_at), 409, 'Product changed. Reload before adjusting stock.');
             }
@@ -54,14 +56,24 @@ class ProductService
                 $data['price'] = bcadd($data['price'], '0', 2);
             }
             $from = $locked->status;
+            $previousStock = $locked->stock_quantity;
             $locked->fill($data);
             if (! $locked->isDirty()) {
                 return $locked;
             }
             $content = $locked->isDirty(['name', 'description', 'category_id', 'price', 'condition']);
             $stock = $locked->isDirty('stock_quantity');
-            if ($stock) {
-                app(FixedPriceEligibility::class)->assertAvailable($locked->id);
+            if ($stock && ! $content) {
+                // Restocking alone keeps a listing on sale; only an unsafe reopening returns to review.
+                if ($from === ProductStatus::ACTIVE && $locked->stock_quantity === 0) {
+                    $locked->status = ProductStatus::SOLD;
+                } elseif ($from === ProductStatus::SOLD && $locked->stock_quantity > 0) {
+                    $locked->status = $this->restockable($locked) ? ProductStatus::ACTIVE : ProductStatus::PENDING;
+                }
+                $locked->save();
+                $this->audit->record($user, 'products', $locked->id, 'product.stock_adjusted', $from->value, $locked->status->value, 'stock: '.$previousStock.' → '.$locked->stock_quantity);
+
+                return $locked;
             }
             if ($from === ProductStatus::ACTIVE && $stock && $locked->stock_quantity === 0) {
                 $locked->status = ProductStatus::SOLD;
@@ -73,6 +85,20 @@ class ProductService
 
             return $locked;
         }, 3);
+    }
+
+    /** A sold-out listing reopens without review only when it was approved and nothing reviewable changed since. */
+    private function restockable(Product $product): bool
+    {
+        $shop = $product->shop;
+        if ($product->published_at === null || ! $shop->owner || ! app(OrderLocks::class)->eligible($shop, $shop->owner, Category::orderBy('id')->get()->keyBy('id'), $product->category_id)) {
+            return false;
+        }
+        $history = fn () => AuditLog::where('entity_type', 'products')->where('entity_id', $product->id);
+        $approved = (int) $history()->where('action', 'product.moderated')->where('to_status', ProductStatus::ACTIVE->value)->max('id');
+
+        // SOLD listings accept content and image edits without review, so those must be re-approved first.
+        return ! $history()->where('id', '>', $approved)->whereIn('action', ['product.updated', 'product.images_uploaded', 'product.image_updated', 'product.images_reordered', 'product.image_deleted'])->exists();
     }
 
     public function requirePublishable(Product $product): void
@@ -98,6 +124,7 @@ class ProductService
     {
         return DB::transaction(function () use ($user, $product, $action): Product {
             $locked = $this->locks->lock($user, $product, $action === 'submit' ? 'submit' : ($action === 'hide' ? 'hide' : 'update'));
+            $this->claims->assertAvailable($locked->id);
             $from = $locked->status;
             $allowed = ['submit' => ['DRAFT', 'HIDDEN'], 'withdraw' => ['PENDING'], 'revise' => ['REJECTED'], 'hide' => ['ACTIVE', 'SOLD']];
             abort_unless(in_array($from->value, $allowed[$action], true), 409, 'This action is not allowed in the current product status.');
@@ -138,6 +165,7 @@ class ProductService
     {
         DB::transaction(function () use ($user, $product): void {
             $locked = $this->locks->lock($user, $product, 'delete');
+            $this->claims->assertAvailable($locked->id);
             $this->audit->record($user, 'products', $locked->id, 'product.deleted', $locked->status->value, $locked->status->value, null);
             $locked->delete();
         }, 3);

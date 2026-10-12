@@ -20,6 +20,7 @@ import DomainFeedback from '../DomainFeedback.vue'
 import ProductImagesEditor from '../ProductImagesEditor.vue'
 import ProductVideosEditor from '../ProductVideosEditor.vue'
 import ProductPhoto from '../ProductPhoto.vue'
+import AuctionLockNotice from './AuctionLockNotice.vue'
 const props = defineProps({ embedded: Boolean })
 const emit = defineEmits(['busy-change'])
 const internalId = ref(null),
@@ -49,6 +50,8 @@ const { busy, error, errors, success, run } = useFeedback()
 const editable = computed(() =>
   creating.value ? ['PENDING', 'ACTIVE'].includes(shop.value?.status) : product.value?.can_edit,
 )
+// Videos stay editable during an auction; content, stock and images do not.
+const auctionLocked = computed(() => !!product.value?.auction_locked)
 const categoryChoices = computed(() => {
   const choices = [...categories.value]
   if (product.value?.category && !choices.some((row) => row.value === product.value.category.id))
@@ -177,15 +180,16 @@ defineExpose({ hasUnsavedChanges })
         Kiểm duyệt: {{ product.moderation_reason }}
       </p>
       <p v-if="!editable" class="alert alert-warning">Gian hàng hiện chỉ được xem sản phẩm.</p>
-      <p v-if="product?.status === 'ACTIVE'" class="alert alert-info">
-        Sửa nội dung hoặc tồn kho dương sẽ gửi duyệt lại. Đặt tồn kho bằng 0 chuyển sản phẩm sang
-        trạng thái đã bán.
+      <AuctionLockNotice v-if="product" :product="product" />
+      <p v-if="product?.status === 'ACTIVE' && !auctionLocked" class="alert alert-info">
+        Sửa nội dung hoặc hình ảnh sẽ gửi duyệt lại. Chỉ thay đổi tồn kho thì sản phẩm vẫn tiếp tục
+        được bán; đặt tồn kho bằng 0 chuyển sản phẩm sang trạng thái đã bán.
       </p>
       <div class="listing-layout">
         <div class="listing-main">
           <ProductImagesEditor
             :product="imageProduct"
-            :disabled="busy || videoBusy || !editable"
+            :disabled="busy || videoBusy || !editable || auctionLocked"
             :input-id="embedded ? 'quick-product-images' : 'product_images'"
             :heading-level="embedded ? 3 : 2"
             @changed="refreshImages"
@@ -197,7 +201,7 @@ defineExpose({ hasUnsavedChanges })
             class="seller-form"
             @submit.prevent="save"
           >
-            <fieldset :disabled="combinedBusy || !editable">
+            <fieldset :disabled="combinedBusy || !editable || auctionLocked">
               <section class="workspace-panel">
                 <div class="workspace-panel-heading">
                   <span class="workspace-step">02</span
@@ -278,7 +282,7 @@ defineExpose({ hasUnsavedChanges })
                 </div>
               </section>
               <div class="seller-submit-bar">
-                <button v-if="editable" type="submit" class="btn btn-primary">
+                <button v-if="editable && !auctionLocked" type="submit" class="btn btn-primary">
                   {{ creating ? 'Tạo bản nháp' : 'Lưu thay đổi' }}</button
                 ><span class="text-secondary"
                   >Lưu bản nháp trước khi tải ảnh lên. Gửi duyệt là bước riêng.</span

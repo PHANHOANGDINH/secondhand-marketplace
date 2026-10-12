@@ -18,7 +18,7 @@ use Throwable;
 
 class ProductImageService
 {
-    public function __construct(private ProductLocks $locks, private AuditService $audit) {}
+    public function __construct(private ProductLocks $locks, private AuditService $audit, private FixedPriceEligibility $claims) {}
 
     private function storeImage(Product $product, UploadedFile $file, int $index): string
     {
@@ -106,6 +106,7 @@ class ProductImageService
 
             return DB::transaction(function () use ($user, $product, $paths): Product {
                 $locked = $this->locks->lock($user, $product, 'update');
+                $this->claims->assertAvailable($locked->id);
                 $count = $locked->images()->count();
                 if ($count + count($paths) > 8) {
                     throw ValidationException::withMessages(['images' => ['A product may have at most 8 images.']]);
@@ -129,6 +130,7 @@ class ProductImageService
     {
         return DB::transaction(function () use ($user, $product, $image, $data): ProductImage {
             $locked = $this->locks->lock($user, $product, 'update');
+            $this->claims->assertAvailable($locked->id);
             abort_unless($image->product_id === $locked->id, 404);
             $image = $locked->images()->whereKey($image->id)->firstOrFail();
             $image->setRelation('product', $locked);
@@ -163,6 +165,7 @@ class ProductImageService
     {
         return DB::transaction(function () use ($user, $product, $ids): Product {
             $locked = $this->locks->lock($user, $product, 'update');
+            $this->claims->assertAvailable($locked->id);
             $actual = $locked->images()->pluck('id')->map(fn ($id) => (string) $id)->all();
             $requested = array_map('strval', $ids);
             $sorted = $requested;
@@ -183,6 +186,7 @@ class ProductImageService
     {
         DB::transaction(function () use ($user, $product, $image): void {
             $locked = $this->locks->lock($user, $product, 'update');
+            $this->claims->assertAvailable($locked->id);
             abort_unless($image->product_id === $locked->id, 404);
             $image = $locked->images()->whereKey($image->id)->firstOrFail();
             $image->setRelation('product', $locked);

@@ -14,8 +14,15 @@ export function formatPrice(value) {
   const fraction = (match[2] || '').padEnd(2, '0')
   return `${integer}${fraction !== '00' ? ',' + fraction : ''} ₫`
 }
+export const auctionLockMessage =
+  'Sản phẩm đang được giữ cho đấu giá nên tạm thời không thể chỉnh sửa.'
+export const auctionLockRoute = (product) =>
+  product?.auction_locked && /^[1-9][0-9]*$/.test(String(product.auction?.id ?? ''))
+    ? `/seller/auctions/${product.auction.id}`
+    : null
 export function sellerActions(product) {
-  if (!product.can_edit || product.archived) return []
+  // The API rejects every Seller change while an auction holds the product.
+  if (!product.can_edit || product.archived || product.auction_locked) return []
   const actions = {
     DRAFT: ['submit', 'delete'],
     PENDING: ['withdraw'],

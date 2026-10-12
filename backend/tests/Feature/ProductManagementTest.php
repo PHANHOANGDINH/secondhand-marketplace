@@ -175,10 +175,12 @@ class ProductManagementTest extends TestCase
         $product->refresh()->update(['status' => ProductStatus::ACTIVE]);
         $this->patchJson($url, ['stock_quantity' => 9])->assertUnprocessable();
         $this->patchJson($url, ['stock_quantity' => 9, 'expected_updated_at' => '2000-01-01T00:00:00Z'])->assertConflict();
-        $this->patchJson($url, ['stock_quantity' => 9, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'PENDING');
-        $product->refresh()->update(['status' => ProductStatus::ACTIVE]);
+        // Stock alone no longer sends an approved ACTIVE listing back to review.
+        $this->patchJson($url, ['stock_quantity' => 9, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $product->refresh();
         $this->patchJson($url, ['stock_quantity' => 0, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'SOLD');
         $product->refresh();
+        // The earlier name change was never approved by an Admin, so reopening still needs review.
         $this->patchJson($url, ['stock_quantity' => 2, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'PENDING');
     }
 

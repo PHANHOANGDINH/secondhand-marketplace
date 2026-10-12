@@ -1,5 +1,6 @@
 <script setup>
 import InventoryBadge from '../components/seller/InventoryBadge.vue'
+import AuctionLockNotice from '../components/seller/AuctionLockNotice.vue'
 import { getStatusLabel } from '../utils/labels'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import PageHeader from '../components/ui/PageHeader.vue'
@@ -143,7 +144,7 @@ useSellerIdentity(() => shop.value)
                 <RouterLink
                   :to="`/seller/products/${product.id}/edit`"
                   class="btn btn-sm btn-outline-primary"
-                  >{{ product.can_edit ? 'Xem / Sửa' : 'Xem' }}</RouterLink
+                  >{{ product.can_edit && !product.auction_locked ? 'Xem / Sửa' : 'Xem' }}</RouterLink
                 ><button
                   v-for="target in sellerActions(product)"
                   :key="target"
@@ -155,6 +156,7 @@ useSellerIdentity(() => shop.value)
                   {{ actionLabels[target] }}
                 </button>
               </div>
+              <AuctionLockNotice :product="product" compact class="mt-2" />
             </td>
           </tr>
         </tbody>

@@ -163,14 +163,24 @@ class SellerInventoryTest extends TestCase
         $this->patchJson('/api/v1/seller/products/'.$product->id, ['stock_quantity' => 1, 'expected_updated_at' => $product->updated_at->toISOString()])->assertForbidden();
     }
 
-    public function test_quick_stock_reuses_existing_moderation_and_conflict_guards(): void
+    public function test_quick_stock_keeps_approved_listings_on_sale_and_keeps_conflict_guards(): void
     {
         $shop = $this->shop();
-        $product = $this->product($shop, 'ACTIVE', 3);
-        $version = $product->updated_at->toISOString();
-        $this->patchJson('/api/v1/seller/products/'.$product->id, ['stock_quantity' => 0, 'expected_updated_at' => $version])->assertOk()->assertJsonPath('data.status', 'SOLD');
-        $this->patchJson('/api/v1/seller/products/'.$product->id, ['stock_quantity' => 2, 'expected_updated_at' => $version])->assertConflict();
-        $this->patchJson('/api/v1/seller/products/'.$product->id, ['stock_quantity' => 2, 'expected_updated_at' => $product->refresh()->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $url = fn (Product $product): string => '/api/v1/seller/products/'.$product->id;
+        $fresh = fn (Product $product): string => $product->refresh()->updated_at->toISOString();
+
+        // Approved listing: restocking never leaves the marketplace, selling out and reopening need no review.
+        $approved = $this->product($shop, 'ACTIVE', 3, ['published_at' => now()]);
+        $version = $approved->updated_at->toISOString();
+        $this->patchJson($url($approved), ['stock_quantity' => 6, 'expected_updated_at' => $version])->assertOk()->assertJsonPath('data.status', 'ACTIVE')->assertJsonPath('data.inventory_state', 'NORMAL');
+        $this->patchJson($url($approved), ['stock_quantity' => 2, 'expected_updated_at' => $version])->assertConflict();
+        $this->patchJson($url($approved), ['stock_quantity' => 0, 'expected_updated_at' => $fresh($approved)])->assertOk()->assertJsonPath('data.status', 'SOLD');
+        $this->patchJson($url($approved), ['stock_quantity' => 2, 'expected_updated_at' => $fresh($approved)])->assertOk()->assertJsonPath('data.status', 'ACTIVE')->assertJsonPath('data.inventory_state', 'LOW_STOCK');
+
+        // A listing that was never approved still returns to review when it reopens from SOLD.
+        $unapproved = $this->product($shop, 'ACTIVE', 3);
+        $this->patchJson($url($unapproved), ['stock_quantity' => 0, 'expected_updated_at' => $fresh($unapproved)])->assertOk()->assertJsonPath('data.status', 'SOLD');
+        $this->patchJson($url($unapproved), ['stock_quantity' => 2, 'expected_updated_at' => $fresh($unapproved)])->assertOk()->assertJsonPath('data.status', 'PENDING');
     }
 
     public function test_stock_validation_and_idor(): void

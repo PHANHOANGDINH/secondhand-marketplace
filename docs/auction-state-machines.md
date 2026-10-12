@@ -71,3 +71,17 @@ stateDiagram-v2
 ```
 
 Available/AuctionClaim/WinnerClaim/RemainingStock are conceptual eligibility states, not Product enum values. Auction ending alone does **not** change Product to SOLD. Fixed-price Cart/Checkout and new Auction creation reject SCHEDULED/LIVE and unexpired unconsumed winner claims; current public cards/details link to Arena. After Order creation, remaining ACTIVE stock can sell normally. Moderation/deletion/owner/category activity independently overrides public/purchase eligibility. Valid Order cancellation restores stock once under existing rules; it does not erase Auction history.
+
+### Seller changes while an auction holds the product
+
+A product is *held* while `FixedPriceEligibility::claims()` matches it: a SCHEDULED or LIVE auction, or an ENDED auction whose winner has no Order yet and whose checkout deadline is still in the future. While held, every Seller write on the product returns **409 "Sản phẩm đang được giữ cho đấu giá."** and changes nothing:
+
+- `hide`, `submit`, `withdraw`, `revise` and soft delete;
+- any update of name, description, price, category, condition or stock;
+- image upload, delete, reorder and set-primary.
+
+The check runs inside the transaction after `ProductLocks::lock`, so the lock order stays users → shop → categories → product → auction, the same order used by bidding, auction start and winner checkout. Seller list/detail resources expose `auction_locked` so the UI disables these controls and links to the auction.
+
+**Deliberate exceptions.** Product videos (upload, metadata, hide/show, delete) remain available: they never change the product status and adding a review clip during an auction is legitimate. Admin moderation is unchanged in this wave: an Admin can still hide a held product, which does not cancel the auction. Admin auction cancellation and automatic handling of that case are planned for D5.
+
+The hold ends by itself when the auction is cancelled, ends without a winner, the winner creates the Order, or the checkout deadline passes.

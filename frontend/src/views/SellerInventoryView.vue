@@ -12,6 +12,7 @@ import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import InventoryBadge from '../components/seller/InventoryBadge.vue'
+import AuctionLockNotice from '../components/seller/AuctionLockNotice.vue'
 const route = useRoute(),
   router = useRouter()
 const result = ref(null),
@@ -103,6 +104,7 @@ async function save() {
   stockError.value = ''
   success.value = ''
   try {
+    const previousStatus = editing.value.status
     const updated = await updateProduct(editing.value.id, {
       stock_quantity: Number(quantity.value),
       expected_updated_at: editing.value.updated_at,
@@ -111,7 +113,9 @@ async function save() {
     success.value =
       updated.status === 'PENDING'
         ? 'Đã cập nhật tồn kho. Sản phẩm được chuyển sang chờ duyệt theo quy định hiện có.'
-        : 'Đã cập nhật tồn kho.'
+        : previousStatus === 'SOLD' && updated.status === 'ACTIVE'
+          ? 'Đã cập nhật tồn kho. Sản phẩm đã mở bán lại.'
+          : 'Đã cập nhật tồn kho.'
     await load()
   } catch (failure) {
     const message = failure.response?.data?.message
@@ -194,7 +198,9 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
           aria-describedby="inventory-help inventory-error"
         />
         <p id="inventory-help" class="small text-muted mt-2">
-          Thay đổi tồn kho có thể chuyển sản phẩm sang chờ duyệt theo quy định hiện có.
+          Chỉ thay đổi tồn kho thì sản phẩm đang bán vẫn tiếp tục được bán. Sản phẩm đã bán hết sẽ mở
+          bán lại ngay nếu đã được duyệt và không có chỉnh sửa nào chưa duyệt; nếu không sẽ chuyển sang
+          chờ duyệt.
         </p>
         <p id="inventory-error" v-if="stockError" class="text-danger" role="alert">
           {{ stockError }}
@@ -265,6 +271,7 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
               >
                 Cập nhật tồn kho
               </button>
+              <AuctionLockNotice v-else-if="product.auction_locked" :product="product" compact />
               <p v-else class="small text-muted mb-0">{{ product.stock_edit_reason }}</p>
               <RouterLink :to="`/seller/products/${product.id}/edit`" class="d-block small mt-2"
                 >Xem sản phẩm</RouterLink

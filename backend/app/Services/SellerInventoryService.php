@@ -55,7 +55,7 @@ class SellerInventoryService
             ->whereHas('shop', fn (Builder $q): Builder => $q->where('status', 'ACTIVE'))
             ->whereHas('order', fn (Builder $q): Builder => $q->where('payment_method', 'COD')->orWhere(fn (Builder $online): Builder => $online->where('payment_method', 'ZALOPAY')
                 ->whereHas('payments', fn (Builder $p): Builder => $p->where('status', 'PAID'))
-                ->whereDoesntHave('payments', fn (Builder $p): Builder => $p->where('reconciliation_required', true))));
+                ->whereDoesntHave('payments', fn (Builder $p): Builder => $p->where('reconciliation_required', true)->whereNull('reconciliation_resolved_at'))));
     }
 
     public function liveAuctions(Builder $query, bool $endingSoon = false): Builder

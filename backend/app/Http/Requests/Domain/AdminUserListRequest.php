@@ -10,6 +10,6 @@ class AdminUserListRequest extends DomainRequest
 {
     public function rules(): array
     {
-        return ['search' => ['sometimes', 'nullable', 'string', 'max:100'], 'status' => ['sometimes', Rule::enum(UserStatus::class)], 'role' => ['sometimes', Rule::enum(UserRole::class)], 'page' => ['sometimes', 'integer', 'min:1'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100']];
+        return ['search' => ['sometimes', 'nullable', 'string', 'max:100'], 'status' => ['sometimes', Rule::enum(UserStatus::class)], 'role' => ['sometimes', Rule::enum(UserRole::class)], 'flagged' => ['sometimes', 'boolean'], 'page' => ['sometimes', 'integer', 'min:1'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100']];
     }
 }

@@ -59,7 +59,7 @@ class ShopOrderService
             $products = Product::withTrashed()->whereIn('id', $rows->pluck('product_id'))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $payments = $order->payments()->orderBy('id')->lockForUpdate()->get();
             if ($order->payment_method === PaymentMethod::ZALOPAY) {
-                abort_if($payments->contains('reconciliation_required', true), 409, 'Payment requires reconciliation.');
+                abort_if($payments->contains(fn ($payment): bool => $payment->awaitsReconciliation()), 409, 'Payment requires reconciliation.');
                 $paid = $payments->contains('status', PaymentStatus::PAID);
                 abort_if($target === Status::CANCELLED && $paid, 409, 'Paid online orders cannot be cancelled without a refund process.');
                 abort_if($target !== Status::CANCELLED && ! $paid, 409, 'Online payment must be verified before fulfillment.');

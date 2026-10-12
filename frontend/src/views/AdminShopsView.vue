@@ -19,7 +19,12 @@ const rows = ref([]),
   meta = ref(null),
   page = ref(1),
   search = ref(''),
-  status = ref(''),
+  // The Action Center links here with the list already filtered.
+  status = ref(
+    ['PENDING', 'ACTIVE', 'SUSPENDED', 'REJECTED'].includes(route.query.status)
+      ? route.query.status
+      : '',
+  ),
   selected = ref(null),
   reason = ref('')
 const { busy, error, errors, success, run } = useFeedback()

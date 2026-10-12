@@ -64,10 +64,10 @@ C3 changed only:
 
 ### Known functional limits (audit of 2026-10-12)
 
-- **No ZaloPay refund flow.** `REFUNDED` exists only as a schema value; a paid online order cannot be cancelled in the application.
-- **`reconciliation_required` has no handling UI.** The flag is raised for late or unsafe verified money and must be resolved manually outside the application.
-- **Admins cannot cancel an auction** (planned for D5). Only the Seller can, and only before the first bid.
-- **An Admin hiding a product that is being auctioned does not cancel the auction** (planned for D5). Seller-side hide/delete/edit/image changes are blocked while an auction claim exists; Admin moderation is intentionally unchanged.
+- **No automatic ZaloPay refund.** The application never calls a refund API. Since D5 an Admin records the outcome of a manual refund (`REFUNDED_OUTSIDE` → payment `REFUNDED`); the money itself is returned outside the application. A paid, unflagged online order still cannot be cancelled in the application.
+- **Reconciliation is a recorded decision, not an automated process (D5).** `/admin/payments` lists flagged payments and stores `REFUNDED_OUTSIDE` or `KEEP_PAID` with a mandatory note; partial refunds and re-opening a resolved payment are not modelled.
+- **Admin auction cancellation exists since D5** for SCHEDULED/LIVE auctions, including after bids. An ENDED auction cannot be cancelled; a winner who is still inside the checkout window keeps that right unless the product is hidden.
+- **Hiding a product never cancels an auction implicitly (D5).** A SCHEDULED/LIVE auction blocks hiding until an Admin cancels it explicitly; a product awaiting winner checkout can be hidden, which notifies the winner and makes checkout fail. Suspending a shop does cancel its SCHEDULED/LIVE auctions in the same transaction.
 - **Every write transaction locks the whole `categories` table** (bids, cart writes, checkout, product edits, video comments). Correct, but it serialises writes and will not scale to high concurrency.
 - **Scheduler dependency.** Auctions become LIVE/ENDED and ZaloPay attempts are reconciled only while `php artisan schedule:work` (or cron) is running.
 

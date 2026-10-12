@@ -34,18 +34,26 @@ const rows = ref([]),
   status = ref(''),
   confirmHide = ref(false),
   detailHeading = ref(null)
+// The Action Center links here with the list already filtered.
 const filters = reactive({
-  status: '',
-  target_type: '',
+  status: Object.hasOwn(reportStatuses, route.query.status) ? route.query.status : '',
+  target_type: Object.hasOwn(reportTypes, route.query.target_type) ? route.query.target_type : '',
   reason: '',
   sort: 'newest',
   from: '',
   to: '',
 })
 const actions = computed(() => reportActions[selected.value?.status] || [])
+// Admins never rule on reports against their own shop, product or comment.
+const canModerate = computed(() => props.admin && selected.value?.can_moderate !== false)
+// Keeping the current status is a note-only edit; it is always offered first for closed reports.
+const choices = computed(() =>
+  selected.value ? [...actions.value, selected.value.status] : [],
+)
+const noteOnly = computed(() => status.value === selected.value?.status)
 const canHide = computed(
   () =>
-    props.admin &&
+    canModerate.value &&
     selected.value?.target.type === 'VIDEO_COMMENT' &&
     selected.value.target.available &&
     selected.value.target.status === 'PUBLISHED',
@@ -93,7 +101,7 @@ async function show(id) {
     if (!disposed && current === detailSequence && auth.user?.id === owner) {
       selected.value = result
       note.value = result.admin_note || ''
-      status.value = reportActions[result.status]?.[0] || ''
+      status.value = reportActions[result.status]?.[0] || result.status
       await nextTick()
       detailHeading.value?.focus()
     }
@@ -105,9 +113,11 @@ async function show(id) {
   }
 }
 async function processReport() {
-  if (!auth.isAdmin || actionBusy.value || !actions.value.includes(status.value)) return
+  if (!auth.isAdmin || !canModerate.value || actionBusy.value || !choices.value.includes(status.value))
+    return
   const owner = auth.user.id,
-    id = selected.value.id
+    id = selected.value.id,
+    onlyNote = noteOnly.value
   actionBusy.value = true
   actionError.value = ''
   success.value = ''
@@ -119,8 +129,9 @@ async function processReport() {
     })
     if (!disposed && auth.user?.id === owner && selected.value?.id === id) {
       selected.value = result
-      status.value = reportActions[result.status]?.[0] || ''
-      success.value = 'Đã cập nhật kết quả xử lý báo cáo.'
+      note.value = result.admin_note || ''
+      status.value = reportActions[result.status]?.[0] || result.status
+      success.value = onlyNote ? 'Đã lưu ghi chú nội bộ.' : 'Đã cập nhật kết quả xử lý báo cáo.'
       await load(meta.value?.current_page || 1)
     }
   } catch (failure) {
@@ -383,7 +394,11 @@ function openReport(id) {
           <p class="small text-muted">
             Xử lý báo cáo không tự ẩn nội dung. Thao tác kiểm duyệt ở trên dùng quy tắc hiện có.
           </p>
-          <form v-if="actions.length" class="border-top pt-3" @submit.prevent="processReport">
+          <p v-if="!canModerate" class="alert alert-secondary" data-own-report>
+            Báo cáo này nhắm vào nội dung của chính bạn nên bạn không thể xử lý. Một quản trị viên
+            khác sẽ tiếp nhận.
+          </p>
+          <form v-if="canModerate" class="border-top pt-3" @submit.prevent="processReport">
             <label for="report-next-status" class="form-label">Bước xử lý tiếp theo</label
             ><select
               id="report-next-status"
@@ -393,8 +408,12 @@ function openReport(id) {
               :disabled="actionBusy"
               required
             >
-              <option v-for="value in actions" :key="value" :value="value">
-                {{ reportStatuses[value] }}
+              <option v-for="value in choices" :key="value" :value="value">
+                {{
+                  value === selected.status
+                    ? `Giữ "${reportStatuses[value]}" — chỉ lưu ghi chú`
+                    : reportStatuses[value]
+                }}
               </option>
             </select>
             <label for="report-admin-note" class="form-label"
@@ -408,7 +427,7 @@ function openReport(id) {
               maxlength="1000"
               :disabled="actionBusy"
             /><button class="btn btn-primary" :disabled="actionBusy">
-              {{ actionBusy ? 'Đang lưu…' : 'Xác nhận xử lý' }}
+              {{ actionBusy ? 'Đang lưu…' : noteOnly ? 'Lưu ghi chú' : 'Xác nhận xử lý' }}
             </button>
           </form>
           <p v-else-if="selected.admin_note" class="report-text">

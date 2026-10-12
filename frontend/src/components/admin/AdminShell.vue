@@ -10,16 +10,21 @@ const route = useRoute(),
   open = ref(false),
   toggle = ref(null)
 const links = [
-  ['/admin/dashboard', 'Tổng quan', '01'],
-  ['/admin/users', 'Người dùng', '02'],
-  ['/admin/shops', 'Gian hàng', '03'],
-  ['/admin/products', 'Sản phẩm', '04'],
-  ['/admin/categories', 'Danh mục', '05'],
-  ['/admin/orders', 'Đơn hàng', '06'],
-  ['/admin/reviews', 'Đánh giá', '07'],
-  ['/admin/reports', 'Báo cáo vi phạm', '08'],
+  ['/admin', 'Việc cần xử lý', '01'],
+  ['/admin/dashboard', 'Tổng quan', '02'],
+  ['/admin/users', 'Người dùng', '03'],
+  ['/admin/shops', 'Gian hàng', '04'],
+  ['/admin/products', 'Sản phẩm', '05'],
+  ['/admin/categories', 'Danh mục', '06'],
+  ['/admin/orders', 'Đơn hàng', '07'],
+  ['/admin/auctions', 'Phiên đấu giá', '08'],
+  ['/admin/payments', 'Đối soát thanh toán', '09'],
+  ['/admin/reviews', 'Đánh giá', '10'],
+  ['/admin/reports', 'Báo cáo vi phạm', '11'],
 ]
-const active = (path) => route.path === path || route.path.startsWith(`${path}/`)
+// "/admin" is the Action Center itself, not a prefix that every admin page shares.
+const active = (path) =>
+  route.path === path || (path !== '/admin' && route.path.startsWith(`${path}/`))
 watch(
   () => route.fullPath,
   () => {

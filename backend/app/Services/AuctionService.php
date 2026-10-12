@@ -151,12 +151,48 @@ class AuctionService
                 return $locked;
             }
             abort_unless(in_array($locked->status, [AuctionStatus::SCHEDULED, AuctionStatus::LIVE], true) && now()->lessThan($locked->ends_at) && ! $locked->bids()->lockForUpdate()->first(['id']), 409, 'Auction cannot be cancelled after bidding or expiry.');
-            $locked->forceFill(['status' => AuctionStatus::CANCELLED])->save();
-            app(AuctionNotificationService::class)->cancelled($locked);
-            $this->statusChanged($locked);
+            $this->close($locked, null, false);
 
             return $locked;
         }, 3);
+    }
+
+    /** Admin cancellation: allowed after bids, which stay in history; every participant is told why. */
+    public function cancelByAdmin(User $admin, Auction $auction, array $data): Auction
+    {
+        return DB::transaction(function () use ($admin, $auction, $data): Auction {
+            $actor = User::whereKey($admin->id)->lockForUpdate()->firstOrFail();
+            // Bidding locks this same row before it reads or writes bids, so the two can never interleave.
+            $locked = Auction::whereKey($auction->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($actor)->authorize('cancelAsAdmin', $locked);
+            $from = $locked->status;
+            abort_unless($from->value === $data['expected_status'] && in_array($from, [AuctionStatus::SCHEDULED, AuctionStatus::LIVE], true), 409, 'Trạng thái phiên đã thay đổi hoặc phiên không còn hủy được. Vui lòng tải lại.');
+            $this->close($locked, $data['reason'], true);
+            app(AuditService::class)->record($actor, 'auctions', $locked->id, 'auction.cancelled_by_admin', $from->value, AuctionStatus::CANCELLED->value, $data['reason']);
+
+            return $locked;
+        }, 3);
+    }
+
+    /** Runs inside the shop moderation transaction, after the accounts and the shop are locked. */
+    public function cancelForSuspendedShop(User $admin, Shop $shop, string $reason): int
+    {
+        $auctions = Auction::whereIn('status', [AuctionStatus::SCHEDULED, AuctionStatus::LIVE])->whereIn('product_id', Product::withTrashed()->where('shop_id', $shop->id)->select('id'))->orderBy('id')->lockForUpdate()->get();
+        foreach ($auctions as $locked) {
+            $from = $locked->status;
+            $this->close($locked, $reason, true);
+            app(AuditService::class)->record($admin, 'auctions', $locked->id, 'auction.cancelled_shop_suspended', $from->value, AuctionStatus::CANCELLED->value, $reason);
+        }
+
+        return $auctions->count();
+    }
+
+    /** The single place an auction becomes CANCELLED; the generated active_product_id frees the product. */
+    private function close(Auction $locked, ?string $reason, bool $notifyBidders): void
+    {
+        $locked->forceFill(['status' => AuctionStatus::CANCELLED])->save();
+        app(AuctionNotificationService::class)->cancelled($locked, $reason, $notifyBidders);
+        $this->statusChanged($locked);
     }
 
     public function finalize(Auction $auction): Auction

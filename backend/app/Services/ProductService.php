@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\AuctionStatus;
 use App\Enums\ProductStatus;
 use App\Enums\ShopStatus;
 use App\Enums\UserStatus;
+use App\Models\Auction;
 use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\Product;
@@ -148,6 +150,15 @@ class ProductService
             $from = $locked->status->value;
             $allowed = ['PENDING' => ['ACTIVE', 'REJECTED'], 'ACTIVE' => ['HIDDEN'], 'SOLD' => ['HIDDEN']];
             abort_unless($data['expected_status'] === $from && in_array($data['status'], $allowed[$from] ?? [], true), 409, 'Product status changed or transition is invalid.');
+            $winnerClaim = null;
+            if ($data['status'] === ProductStatus::HIDDEN->value) {
+                // A running auction must be cancelled first so bidders are told; an ended one only loses its checkout.
+                $running = Auction::where('product_id', $locked->id)->whereIn('status', [AuctionStatus::SCHEDULED, AuctionStatus::LIVE])->lockForUpdate()->first();
+                if ($running) {
+                    abort(response()->json(['message' => 'Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.', 'auction_id' => (string) $running->id], 409));
+                }
+                $winnerClaim = $this->claims->claims()->where('product_id', $locked->id)->lockForUpdate()->first();
+            }
             if ($data['status'] === 'ACTIVE') {
                 $this->requirePublishable($locked);
                 $locked->published_at = now();
@@ -156,6 +167,9 @@ class ProductService
             $locked->moderation_reason = $data['reason'];
             $locked->save();
             $this->audit->record($user, 'products', $locked->id, 'product.moderated', $from, $locked->status->value, $data['reason']);
+            if ($winnerClaim) {
+                app(AuctionNotificationService::class)->checkoutUnavailable($winnerClaim->setRelation('product', $locked));
+            }
 
             return $locked;
         }, 3);

@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\UserStatus;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\ReportService;
 
 class ReportPolicy
 {
@@ -23,8 +24,9 @@ class ReportPolicy
         return (new UserPolicy)->viewAny($user);
     }
 
+    /** An Admin cannot rule on a report against their own shop, product or comment. */
     public function moderate(User $user, Report $report): bool
     {
-        return $this->viewAdmin($user);
+        return $this->viewAdmin($user) && (app(ReportService::class)->targetOwners(collect([$report]))[$report->id] ?? null) !== $user->id;
     }
 }

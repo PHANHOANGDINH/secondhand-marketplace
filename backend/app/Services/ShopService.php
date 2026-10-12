@@ -46,7 +46,13 @@ class ShopService
             $owner = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
             $locked = Shop::whereKey($shop->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($owner)->authorize('update', $locked);
-            $locked->update($data);
+            $locked->fill($data);
+            $changed = array_keys($locked->getDirty());
+            if ($changed) {
+                $locked->save();
+                // Editing shop details does not trigger re-moderation; the audit names the fields, not their text.
+                $this->audit->record($owner, 'shops', $locked->id, 'shop.updated', $locked->status->value, $locked->status->value, 'fields: '.implode(', ', $changed));
+            }
 
             return $locked;
         }, 3);
@@ -81,6 +87,10 @@ class ShopService
             }
             $locked->update(['status' => $data['status'], 'moderation_reason' => $data['reason']]);
             $this->audit->record($accounts[$user->id], 'shops', $locked->id, 'shop.moderated', $from, $data['status'], $data['reason']);
+            if ($data['status'] === ShopStatus::SUSPENDED->value) {
+                // Resolved lazily: AuctionService depends on this service through ProductQuery.
+                app(AuctionService::class)->cancelForSuspendedShop($accounts[$user->id], $locked, 'Gian hàng bị tạm đình chỉ');
+            }
 
             return $locked;
         }, 3);

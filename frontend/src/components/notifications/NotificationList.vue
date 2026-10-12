@@ -13,7 +13,9 @@ const actionLabel = (type) =>
         ? 'Hoàn tất mua hàng'
         : type === 'AUCTION_ORDER_CREATED'
           ? 'Xem đơn hàng'
-          : 'Xem phiên'
+          : type === 'AUCTION_CHECKOUT_UNAVAILABLE'
+            ? 'Xem các phiên khác'
+            : 'Xem phiên'
 </script>
 <template>
   <ul class="notification-list">

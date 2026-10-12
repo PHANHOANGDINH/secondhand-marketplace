@@ -42,4 +42,15 @@ class AuctionPolicy
     {
         return $this->active($user) && $user->id !== $auction->seller_id;
     }
+
+    public function viewAdmin(User $user): bool
+    {
+        return (new UserPolicy)->viewAny($user);
+    }
+
+    /** Admins may stop an auction even after bids, but never one they sell themselves. */
+    public function cancelAsAdmin(User $user, Auction $auction): bool
+    {
+        return $this->viewAdmin($user) && $user->id !== $auction->seller_id;
+    }
 }

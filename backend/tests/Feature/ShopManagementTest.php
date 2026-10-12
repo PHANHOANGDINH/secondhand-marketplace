@@ -108,7 +108,9 @@ class ShopManagementTest extends TestCase
             }
             $this->patchJson('/api/v1/admin/shops/'.$shop->id.'/status', ['expected_status' => $from, 'status' => $to, 'reason' => 'Reviewed evidence'])->assertOk()->assertJsonPath('data.status', $to);
         }
-        $this->assertDatabaseCount('audit_logs', 5);
+        // Four moderation steps, one resubmission, and (D5) the owner's description edit as shop.updated.
+        $this->assertDatabaseCount('audit_logs', 6);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shop.updated', 'reason' => 'fields: description']);
         $this->assertSame($shop->owner_id, $shop->refresh()->owner_id);
         $this->assertDatabaseHas('audit_logs', ['actor_id' => $admin->id, 'entity_id' => $shop->id, 'from_status' => 'SUSPENDED', 'to_status' => 'ACTIVE']);
     }

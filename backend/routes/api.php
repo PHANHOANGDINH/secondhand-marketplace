@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AddressController;
+use App\Http\Controllers\Api\V1\AdminActionCenterController;
+use App\Http\Controllers\Api\V1\AdminAuctionController;
 use App\Http\Controllers\Api\V1\AdminCategoryController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\AdminOrderController;
+use App\Http\Controllers\Api\V1\AdminPaymentController;
 use App\Http\Controllers\Api\V1\AdminProductController;
 use App\Http\Controllers\Api\V1\AdminReviewController;
 use App\Http\Controllers\Api\V1\AdminShopController;
@@ -219,4 +222,13 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
         Route::get('/reports/{report}', [ReportController::class, 'show'])->whereNumber('report');
         Route::patch('/reports/{report}/status', [ReportController::class, 'updateStatus'])->whereNumber('report');
     });
+});
+
+Route::prefix('admin')->middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, EnsureAdmin::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/action-center', AdminActionCenterController::class);
+    Route::get('/payments', [AdminPaymentController::class, 'index']);
+    Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->whereNumber('payment');
+    Route::post('/payments/{payment}/reconciliation', [AdminPaymentController::class, 'resolve'])->whereNumber('payment');
+    Route::get('/auctions', [AdminAuctionController::class, 'index']);
+    Route::post('/auctions/{auction}/cancel', [AdminAuctionController::class, 'cancel'])->whereNumber('auction');
 });

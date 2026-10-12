@@ -117,6 +117,40 @@ class AuctionConcurrencyTest extends TestCase
         }
     }
 
+    public function test_real_mysql_admin_cancel_racing_bids_never_leaves_a_half_state(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $cancelledFirst = $bidFirst = 0;
+        for ($round = 0; $round < 4; $round++) {
+            $auction = Auction::factory()->create();
+            [$a, $b] = User::factory()->count(2)->create();
+            $jobs = [
+                ['action' => 'bid', 'user' => $a->id, 'auction' => $auction->id, 'amount' => '100.00'],
+                ['action' => 'admin-cancel', 'user' => $admin->id, 'auction' => $auction->id, 'reason' => 'Vi phạm chính sách', 'expected_status' => 'LIVE'],
+                ['action' => 'bid', 'user' => $b->id, 'auction' => $auction->id, 'amount' => '110.00'],
+            ];
+            $statuses = array_column($this->race($jobs), 'status');
+            $auction->refresh();
+            // The Admin always wins eventually; each bid either committed before the cancellation or was refused.
+            $this->assertSame(200, $statuses[1]);
+            $this->assertSame(AuctionStatus::CANCELLED, $auction->status);
+            $this->assertNull($auction->active_product_id);
+            $accepted = count(array_filter([$statuses[0], $statuses[2]], fn (int $status): bool => $status === 201));
+            $this->assertSame($accepted, $auction->bids()->count());
+            foreach ([$statuses[0], $statuses[2]] as $status) {
+                $this->assertContains($status, [201, 409, 422]);
+            }
+            $this->assertSame($accepted === 0 ? '100.00' : (string) $auction->bids()->max('amount'), $auction->current_price);
+            // Every bidder whose bid was stored is told exactly once; refused bidders are not.
+            foreach ([[$a, $statuses[0]], [$b, $statuses[2]]] as [$bidder, $status]) {
+                $this->assertSame($status === 201 ? 1 : 0, $bidder->notifications()->where('type', 'AUCTION_CANCELLED')->count());
+            }
+            $this->assertSame(1, User::findOrFail($auction->seller_id)->notifications()->where('type', 'AUCTION_CANCELLED')->count());
+            $accepted === 0 ? $cancelledFirst++ : $bidFirst++;
+        }
+        $this->assertSame(4, $cancelledFirst + $bidFirst);
+    }
+
     public function test_real_mysql_finalization_retries_choose_the_same_winner(): void
     {
         $auction = Auction::factory()->create();

@@ -73,6 +73,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/admin',
+      name: 'admin-action-center',
+      component: () => import('../views/AdminActionCenterView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/payments',
+      name: 'admin-payments',
+      component: () => import('../views/AdminPaymentsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/auctions',
+      name: 'admin-auctions',
+      component: () => import('../views/AdminAuctionsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: '/admin/dashboard',
       name: 'admin-dashboard',
       component: () => import('../views/AdminDashboardView.vue'),

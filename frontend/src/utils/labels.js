@@ -44,6 +44,11 @@ export const getSettlementLabel = (value) =>
 const paymentMethods = { COD: 'Thanh toán khi nhận hàng', ZALOPAY: 'ZaloPay', VNPAY: 'VNPay' }
 export const getPaymentMethodLabel = (value) =>
   Object.hasOwn(paymentMethods, value) ? paymentMethods[value] : unknownLabel
+const reconciliationOutcomes = {
+  REFUNDED_OUTSIDE: 'Đã hoàn tiền ngoài hệ thống', KEEP_PAID: 'Giữ khoản thanh toán',
+}
+export const getReconciliationOutcomeLabel = (value) =>
+  Object.hasOwn(reconciliationOutcomes, value) ? reconciliationOutcomes[value] : unknownLabel
 const cancellationCategories = {
   OUT_OF_STOCK: 'Hết hàng', DAMAGED: 'Hư hỏng', UNFULFILLABLE: 'Không giao được',
 }

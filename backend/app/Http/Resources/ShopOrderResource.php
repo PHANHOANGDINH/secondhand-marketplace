@@ -26,7 +26,7 @@ class ShopOrderResource extends JsonResource
 
         $online = $this->order->payment_method === PaymentMethod::ZALOPAY;
         $paid = $online && $this->order->payments->contains('status', PaymentStatus::PAID);
-        $review = $online && $this->order->payments->contains('reconciliation_required', true);
+        $review = $online && $this->order->payments->contains(fn ($payment): bool => $payment->awaitsReconciliation());
 
         return ['payment_method' => $this->order->payment_method->value, 'can_cancel_payment' => ! $online || (! $paid && ! $review), 'payment_ready' => ! $online || ($paid && ! $review), 'id' => (string) $this->id, 'order_id' => (string) $this->order_id, 'status' => $this->status->value, 'shop' => ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug], 'subtotal' => $this->subtotal, 'shipping_fee' => $this->shipping_fee, 'discount_amount' => $this->discount_amount, 'total_amount' => $this->total_amount, 'items' => OrderItemResource::collection($this->orderItems), 'cancellation_reason' => $this->cancellation_reason, 'created_at' => $this->created_at?->toISOString(), 'confirmed_at' => $this->confirmed_at?->toISOString(), 'processing_at' => $this->processing_at?->toISOString(), 'shipping_at' => $this->shipping_at?->toISOString(), 'completed_at' => $this->completed_at?->toISOString(), 'cancelled_at' => $this->cancelled_at?->toISOString(), 'order_code' => $this->when($seller, fn () => $this->order->order_code), 'shipping_address' => $this->when($seller, fn () => OrderSummary::shipping($this->order)), 'can_update' => $this->when($seller, fn () => ! $this->shop->trashed() && $this->shop->status === ShopStatus::ACTIVE)];
     }

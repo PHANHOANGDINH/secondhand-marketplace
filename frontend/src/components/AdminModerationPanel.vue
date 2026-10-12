@@ -6,6 +6,7 @@ import EmptyState from './ui/EmptyState.vue'
 import AdminRecordHeader from './admin/AdminRecordHeader.vue'
 import AdminRating from './admin/AdminRating.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import * as api from '../api/admin.api'
 import { useAuthStore } from '../stores/auth'
 import { useFeedback } from '../composables/useFeedback'
@@ -19,7 +20,16 @@ const rows = ref([]),
   page = ref(1),
   selected = ref(null),
   reason = ref('')
-const filters = reactive({ search: '', status: '', role: '', product: '', rating: '' })
+const route = useRoute()
+// "flagged" narrows users to accounts with several open reports; the Action Center links here with it set.
+const filters = reactive({
+  search: '',
+  status: '',
+  role: '',
+  product: '',
+  rating: '',
+  flagged: props.kind === 'users' && route?.query?.flagged === '1',
+})
 const { busy, error, errors, success, run } = useFeedback()
 const states = computed(() => (isUser.value ? ['ACTIVE', 'SUSPENDED'] : ['PUBLISHED', 'HIDDEN']))
 const action = computed(() =>
@@ -47,6 +57,7 @@ async function refresh() {
   const allowed = isUser.value ? ['search', 'status', 'role'] : ['status', 'product', 'rating']
   const params = { page: page.value, per_page: 20 }
   for (const key of allowed) if (filters[key] !== '') params[key] = filters[key]
+  if (isUser.value && filters.flagged) params.flagged = 1
   const result = await calls.value.list(params)
   if (auth.isAdmin && auth.user.id === actor) {
     rows.value = result.data
@@ -121,6 +132,19 @@ onMounted(() => load())
           <option value="ADMIN">{{ getRoleLabel('ADMIN') }}</option>
         </select></label
       >
+      <div v-if="isUser" class="col-md-3">
+        <div class="form-check mb-2">
+          <input
+            id="users-flagged"
+            v-model="filters.flagged"
+            class="form-check-input"
+            type="checkbox"
+            name="flagged"
+          /><label class="form-check-label" for="users-flagged"
+            >Chỉ tài khoản bị báo cáo nhiều</label
+          >
+        </div>
+      </div>
       <template v-else
         ><label class="col-md-3"
           >Mã sản phẩm<input

@@ -25,6 +25,9 @@ class AdminUserService
             $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
             $query->where(fn (Builder $q) => $q->whereRaw("name LIKE ? ESCAPE '!'", [$pattern])->orWhereRaw("email LIKE ? ESCAPE '!'", [$pattern]));
         }
+        if (filter_var($filters['flagged'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $query->whereIn('id', app(AdminActionCenterService::class)->flaggedOwners());
+        }
 
         return $query->orderByDesc('id');
     }

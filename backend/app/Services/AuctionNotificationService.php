@@ -54,10 +54,26 @@ class AuctionNotificationService
         }
     }
 
-    public function cancelled(Auction $auction): void
+    /** Seller cancellation happens before any bid; an Admin cancellation also tells every distinct bidder why. */
+    public function cancelled(Auction $auction, ?string $reason = null, bool $bidders = false): void
     {
-        // Existing rules allow cancellation only before accepted bids; Seller is the relevant participant.
-        $this->persist($auction->seller_id, $auction, 'AUCTION_CANCELLED', 'auction:'.$auction->id, 'Phiên đấu giá '.$auction->product->name.' đã được hủy.', '/seller/auctions/'.$auction->id);
+        $message = 'Phiên đấu giá '.$auction->product->name.' đã được hủy.'.($reason === null ? '' : ' Lý do: '.Str::limit(trim($reason), 120));
+        $this->persist($auction->seller_id, $auction, 'AUCTION_CANCELLED', 'auction:'.$auction->id, $message, '/seller/auctions/'.$auction->id);
+        if (! $bidders) {
+            return;
+        }
+        foreach ($auction->bids()->where('user_id', '!=', $auction->seller_id)->distinct()->orderBy('user_id')->pluck('user_id') as $id) {
+            $this->persist($id, $auction, 'AUCTION_CANCELLED', 'auction:'.$auction->id, $message, '/auctions');
+        }
+    }
+
+    /** The winner still holds an unexpired claim, but the listing was taken down by moderation. */
+    public function checkoutUnavailable(Auction $auction): void
+    {
+        if (! $auction->winner_user_id) {
+            return;
+        }
+        $this->persist($auction->winner_user_id, $auction, 'AUCTION_CHECKOUT_UNAVAILABLE', 'auction:'.$auction->id, 'Phiên đấu giá '.$auction->product->name.' không thể hoàn tất vì sản phẩm đã bị gỡ khỏi sàn. Bạn không cần thanh toán.', '/auctions');
     }
 
     public function orderCreated(Auction $auction, Order $order): void

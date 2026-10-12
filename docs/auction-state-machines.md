@@ -82,6 +82,18 @@ A product is *held* while `FixedPriceEligibility::claims()` matches it: a SCHEDU
 
 The check runs inside the transaction after `ProductLocks::lock`, so the lock order stays users → shop → categories → product → auction, the same order used by bidding, auction start and winner checkout. Seller list/detail resources expose `auction_locked` so the UI disables these controls and links to the auction.
 
-**Deliberate exceptions.** Product videos (upload, metadata, hide/show, delete) remain available: they never change the product status and adding a review clip during an auction is legitimate. Admin moderation is unchanged in this wave: an Admin can still hide a held product, which does not cancel the auction. Admin auction cancellation and automatic handling of that case are planned for D5.
+**Deliberate exception.** Product videos (upload, metadata, hide/show, delete) remain available: they never change the product status and adding a review clip during an auction is legitimate.
 
 The hold ends by itself when the auction is cancelled, ends without a winner, the winner creates the Order, or the checkout deadline passes.
+
+### Admin actions on auctions (D5)
+
+| Action | Rule |
+| --- | --- |
+| `POST /admin/auctions/{id}/cancel` | SCHEDULED or LIVE only, **also after bids**; needs `reason` and `expected_status` (409 when stale); never on ENDED/CANCELLED; an Admin cannot cancel an auction they sell. Bids stay in history. Seller, and every distinct bidder, receive one `AUCTION_CANCELLED` notification carrying a shortened public reason. |
+| Admin hides a product (`ACTIVE`/`SOLD` → `HIDDEN`) | Rejected with 409 "Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn." while a SCHEDULED/LIVE auction exists (response carries `auction_id`). Allowed while a winner awaits checkout: the winner gets `AUCTION_CHECKOUT_UNAVAILABLE` and checkout is refused because the product is no longer ACTIVE. |
+| Admin suspends a shop | Every SCHEDULED/LIVE auction of that shop is cancelled in the same transaction with the reason "Gian hàng bị tạm đình chỉ"; ENDED auctions are left alone. |
+
+All three reuse one private `AuctionService::close()`: status becomes CANCELLED, the generated `active_product_id` frees the product, notifications are written inside the transaction and `AuctionStatusChanged` / `NotificationCreated` are dispatched only after commit. The Seller rule is unchanged: a Seller can cancel only before the first bid.
+
+Lock order: Admin user → auction for cancellation; accounts → shop → auctions (ascending id) for suspension; users → shop → categories → product → auction for moderation. None of them locks an auction before a product, so they cannot deadlock with bidding (users → shop → categories → product → auction).

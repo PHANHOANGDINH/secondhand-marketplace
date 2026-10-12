@@ -55,6 +55,9 @@ try {
         } elseif ($data['action'] === 'create') {
             $auction = $service->create($user, $data['data']);
             echo json_encode(['status' => 201, 'auction' => $auction->id]);
+        } elseif ($data['action'] === 'admin-cancel') {
+            $service->cancelByAdmin($user, Auction::findOrFail($data['auction']), ['reason' => $data['reason'], 'expected_status' => $data['expected_status']]);
+            echo json_encode(['status' => 200]);
         } elseif ($data['action'] === 'cancel') {
             $service->cancel($user, Auction::findOrFail($data['auction']));
             echo json_encode(['status' => 200]);

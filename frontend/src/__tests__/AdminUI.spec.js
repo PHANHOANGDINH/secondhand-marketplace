@@ -39,7 +39,9 @@ async function shell() {
 }
 it('Admin shell retains existing sections and adds the report workflow and active state for query-linked orders', async () => {
   const { wrapper } = await shell()
-  expect(wrapper.findAll('nav a')).toHaveLength(8)
+  // D5 adds the Action Center, auctions and payment reconciliation to the eight original sections.
+  expect(wrapper.findAll('nav a')).toHaveLength(11)
+  expect(wrapper.get('nav a[href="/admin"]').classes()).not.toContain('active')
   expect(wrapper.get('a[href="/admin/reports"]').text()).toContain('Báo cáo vi phạm')
   expect(wrapper.get('nav a.active').attributes('href')).toBe('/admin/orders')
   expect(wrapper.get('nav a.active').attributes('aria-current')).toBe('page')

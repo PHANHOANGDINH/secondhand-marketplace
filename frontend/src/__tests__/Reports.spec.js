@@ -259,9 +259,11 @@ it('filters admin reports and executes only valid transitions with private note'
   expect(wrapper.get('a[href="/admin/products?inspect=5"]').text()).toContain(
     'Mở kiểm duyệt sản phẩm',
   )
+  // D5: the current status is offered last as a note-only edit; real transitions keep their order.
   expect(wrapper.findAll('[name="next_status"] option').map((o) => o.attributes('value'))).toEqual([
     'IN_REVIEW',
     'DISMISSED',
+    'PENDING',
   ])
   await wrapper.get('[name="admin_note"]').setValue('Ghi chú nội bộ')
   await wrapper.get('article form').trigger('submit')

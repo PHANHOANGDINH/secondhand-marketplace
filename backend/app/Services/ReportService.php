@@ -53,6 +53,14 @@ class ReportService
             $locked = Report::whereKey($report->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($actor)->authorize('moderate', $locked);
             if ($locked->status->value === $data['status']) {
+                // A repeated transition (stale expected_status) stays an idempotent no-op; only a request that
+                // names the current status as both expected and target is a deliberate note edit.
+                $note = $data['admin_note'] ?? null;
+                if ($data['expected_status'] === $data['status'] && $note !== $locked->admin_note) {
+                    $locked->forceFill(['admin_note' => $note])->save();
+                    $this->audit->record($actor, 'reports', $locked->id, 'report.note_updated', $locked->status->value, $locked->status->value, null);
+                }
+
                 return $locked;
             }
             $allowed = ['PENDING' => ['IN_REVIEW', 'DISMISSED'], 'IN_REVIEW' => ['RESOLVED', 'DISMISSED'], 'RESOLVED' => [], 'DISMISSED' => []];
@@ -81,9 +89,44 @@ class ReportService
         }
     }
 
+    /**
+     * Who answers for each reported target: the shop owner for products and shops, the author for comments.
+     *
+     * @return array<int, int> report id => owner user id
+     */
+    public function targetOwners(Collection $reports): array
+    {
+        $owners = [];
+        foreach (ReportTargetType::cases() as $type) {
+            $group = $reports->filter(fn (Report $r) => $r->target_type === $type);
+            if ($group->isEmpty()) {
+                continue;
+            }
+            $ids = $group->pluck('target_id')->unique()->all();
+            $byTarget = match ($type) {
+                ReportTargetType::Product => DB::table('products')->join('shops', 'shops.id', '=', 'products.shop_id')->whereIn('products.id', $ids)->pluck('shops.owner_id', 'products.id'),
+                ReportTargetType::Shop => DB::table('shops')->whereIn('id', $ids)->pluck('owner_id', 'id'),
+                ReportTargetType::VideoComment => DB::table('video_comments')->whereIn('id', $ids)->pluck('user_id', 'id'),
+            };
+            foreach ($group as $report) {
+                if (isset($byTarget[$report->target_id])) {
+                    $owners[$report->id] = (int) $byTarget[$report->target_id];
+                }
+            }
+        }
+
+        return $owners;
+    }
+
     /** Batch target lookups per type; user resources never contain hidden target context. */
     public function decorate(Collection $reports, bool $admin): void
     {
+        if ($admin) {
+            $owners = $this->targetOwners($reports);
+            foreach ($reports as $report) {
+                $report->setAttribute('target_owner_id', $owners[$report->id] ?? null);
+            }
+        }
         foreach (ReportTargetType::cases() as $type) {
             $group = $reports->filter(fn (Report $r) => $r->target_type === $type);
             if ($group->isEmpty()) {

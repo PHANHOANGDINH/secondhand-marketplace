@@ -15,12 +15,19 @@ import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import ProductGallery from '../components/ProductGallery.vue'
-const filters = reactive({ search: '', status: '', shop: '', category: '' })
+// The Action Center links here with the list already filtered.
+const filters = reactive({
+  search: '',
+  status: statuses.includes(route.query.status) ? route.query.status : '',
+  shop: '',
+  category: '',
+})
 const rows = ref([]),
   meta = ref(null),
   page = ref(1),
   selected = ref(null),
-  reason = ref('')
+  reason = ref(''),
+  auctionConflict = ref(null)
 const { busy, error, errors, success, run } = useFeedback()
 const transitions = { PENDING: ['ACTIVE', 'REJECTED'], ACTIVE: ['HIDDEN'], SOLD: ['HIDDEN'] }
 const actions = computed(() =>
@@ -47,16 +54,26 @@ const load = (target = 1) =>
   })
 const show = (id) =>
   run(async () => {
+    auctionConflict.value = null
     selected.value = await productsApi.getAdminProduct(id)
     reason.value = ''
   })
 const moderate = (status) =>
   run(async () => {
-    selected.value = await productsApi.moderateProduct(selected.value.id, {
-      expected_status: selected.value.status,
-      status,
-      reason: reason.value,
-    })
+    auctionConflict.value = null
+    try {
+      selected.value = await productsApi.moderateProduct(selected.value.id, {
+        expected_status: selected.value.status,
+        status,
+        reason: reason.value,
+      })
+    } catch (failure) {
+      // A running auction blocks hiding; point the Admin at the auction instead of a generic conflict.
+      const auctionId = String(failure.response?.data?.auction_id ?? '')
+      if (failure.response?.status === 409 && /^[1-9]\d*$/.test(auctionId))
+        auctionConflict.value = auctionId
+      throw failure
+    }
     reason.value = ''
     await refresh()
   }, 'Đã ghi nhận kiểm duyệt và nhật ký quản lý.')
@@ -202,6 +219,12 @@ onMounted(async () => {
           >
             Tải lại chi tiết
           </button>
+          <p v-if="auctionConflict" class="alert alert-warning" role="alert" data-auction-conflict>
+            Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.
+            <RouterLink :to="{ path: '/admin/auctions', query: { auction: auctionConflict } }"
+              >Mở phiên đấu giá số {{ auctionConflict }}</RouterLink
+            >
+          </p>
           <div v-if="actions.length" class="admin-moderation">
             <p class="admin-moderation-title">Xác nhận kiểm duyệt</p>
             <p class="text-secondary">Ghi rõ lý do trước khi thay đổi trạng thái sản phẩm.</p>

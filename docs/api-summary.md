@@ -38,6 +38,7 @@ Methods/paths below are relative to `/api/v1`, except the CSRF endpoint. All non
 | Admin shops/products | GET `/admin/shops`, `/admin/shops/{id}`, `/admin/products`, `/admin/products/{id}`; PATCH corresponding `/{id}/status` | ADMIN moderation, reason/expected_status, no self-approval; historical detail can include soft-deleted records |
 | Admin users/reviews | GET `/admin/users`, `/admin/users/{id}`, `/admin/reviews`, `/admin/reviews/{id}`; PATCH corresponding `/{id}/status` | ADMIN status/moderation only; reason/expected_status, self/last-admin guards; no arbitrary role change or review-text editing |
 | Admin overview | GET `/admin/dashboard`, `/admin/orders`, `/admin/orders/{id}` | ADMIN read-only summaries/history; no fulfillment override/refund/payment-management endpoint |
+| Admin action center (D5) | GET `/admin/action-center`; GET `/admin/payments`, `/admin/payments/{id}`; POST `/admin/payments/{id}/reconciliation`; GET `/admin/auctions`; POST `/admin/auctions/{id}/cancel`; `/admin/users?flagged=1` | ADMIN; aggregate counts; reconciliation `outcome` (`REFUNDED_OUTSIDE`/`KEEP_PAID`) + `note` + `expected_status`; auction cancel `reason` + `expected_status`; no gateway URL/MAC/payload in responses; no refund API is ever called |
 
 For the image row, complete child paths are `/seller/products/{id}/images/reorder` and `/seller/products/{id}/images/{imageId}`. Slugs are public catalog identifiers; numeric IDs identify managed/owned records. Buyer Order ID and seller ShopOrder ID are different resources and must not be interchanged.
 

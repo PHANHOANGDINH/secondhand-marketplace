@@ -6,7 +6,7 @@ export const notificationsKey = Symbol('marketplace-notifications')
 export const useNotifications = () => inject(notificationsKey, null)
 export function safeNotificationTarget(value) {
   return typeof value === 'string' &&
-    /^\/(?:reports|auctions\/[1-9]\d*(?:\/checkout)?|seller\/reports|auctions\/[1-9]\d*|orders\/[1-9]\d*|seller\/orders\/[1-9]\d*)$/.test(
+    /^\/(?:reports|auctions|auctions\/[1-9]\d*(?:\/checkout)?|seller\/reports|auctions\/[1-9]\d*|orders\/[1-9]\d*|seller\/orders\/[1-9]\d*)$/.test(
       value,
     )
     ? value

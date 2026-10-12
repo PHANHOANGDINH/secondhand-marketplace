@@ -216,11 +216,17 @@ class AuctionClaimGuardTest extends TestCase
         $this->assertSame($before, $this->state($product));
     }
 
-    public function test_admin_moderation_of_a_claimed_product_is_unchanged_in_this_wave(): void
+    public function test_admin_moderation_follows_the_d5_rule_for_claimed_products(): void
     {
-        $product = $this->product($this->shop(), 'LIVE');
+        // D5: a running auction must be cancelled before the product is hidden; a winner claim does not block hiding.
+        $shop = $this->shop();
+        $running = $this->product($shop, 'LIVE');
+        $awaiting = $this->product($shop, 'AWAITING_CHECKOUT');
         $this->login(User::factory()->create(['role' => 'ADMIN']));
-        $this->patchJson('/api/v1/admin/products/'.$product->id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Kiểm duyệt'])->assertOk()->assertJsonPath('data.status', 'HIDDEN');
+        $hide = fn (Product $product) => $this->patchJson('/api/v1/admin/products/'.$product->id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Kiểm duyệt']);
+        $hide($running)->assertConflict();
+        $this->assertSame('ACTIVE', $running->refresh()->status->value);
+        $hide($awaiting)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
     }
 
     public function test_seller_resources_expose_the_lock_without_per_product_queries(): void

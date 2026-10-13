@@ -1,0 +1,12 @@
+# Quy tắc dự án (bắt buộc cho mọi task)
+- PHP: C:\Users\axyz5\.config\herd\bin\php84\php.exe (không dùng PHP XAMPP 8.0).
+- Cấm: migrate:fresh/refresh, db:wipe, db:seed, push, sửa git config global.
+- Migration chỉ additive, down() phải rollback được. Trước khi migrate DB dev: mysqldump vào .runtime/, snapshot hash bảng trước/sau.
+- Test backend chỉ chạy trên secondhand_marketplace_test.
+- Tiền: DECIMAL + BCMath, server tính lại. Ghi DB: transaction + lockForUpdate, giữ thứ tự khóa hiện có.
+- Hành động trạng thái: expected_status (409), reason, audit log, broadcast/notification sau commit.
+- UI tiếng Việt, DB/API giữ enum. Không in/commit secret.
+- Không refactor ngoài phạm vi. Gặp quyết định nghiệp vụ chưa rõ: dừng và hỏi.
+- Kiểm chứng: backend test + pint; vitest + oxlint + eslint (không --fix) + build.
+- Đọc file có chọn lọc (grep trước), không dump cả thư mục.
+- Báo cáo: docs/<phase>-verification.md ≤ 150 dòng; tin nhắn cuối ≤ 15 dòng: PASS/FAIL, số test, commit hash, câu hỏi mở.

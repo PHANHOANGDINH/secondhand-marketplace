@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import * as paymentApi from '../api/payment.api'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
 import { listAddresses } from '../api/address.api'
@@ -10,7 +10,8 @@ import { useFeedback } from '../composables/useFeedback'
 import { formatPrice } from '../composables/productPresentation'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-const router = useRouter(),
+const route = useRoute(),
+  router = useRouter(),
   auth = useAuthStore(),
   cart = useCartStore()
 const addresses = ref([]),
@@ -50,9 +51,30 @@ function persist(value) {
     /* Keep retry key in memory. */
   }
 }
+// "Mua ngay" arrives with ?items=<cart item ids>: only those lines are ordered, the rest stay in the cart.
+const selected = computed(() =>
+  String(route?.query?.items || '')
+    .split(',')
+    .filter((id) => /^[1-9]\d*$/.test(id)),
+)
+const lines = computed(() => {
+  const items = cart.data?.items || []
+  return selected.value.length
+    ? items.filter((item) => selected.value.includes(String(item.id)))
+    : items
+})
+// Display only: the server recalculates every amount. Summed in whole cents to avoid float drift.
+const cents = (value) => {
+  const [whole, fraction = ''] = String(value ?? '0').split('.')
+  return BigInt(whole || '0') * 100n + BigInt((fraction + '00').slice(0, 2))
+}
+const selectedTotal = computed(() => {
+  const sum = lines.value.reduce((total, item) => total + cents(item.subtotal), 0n)
+  return `${sum / 100n}.${String(sum % 100n).padStart(2, '0')}`
+})
 const groups = computed(() => {
   const map = new Map()
-  for (const item of cart.data?.items || []) {
+  for (const item of lines.value) {
     const id = item.shop?.id
     if (!map.has(id)) map.set(id, { shop: item.shop, items: [] })
     map.get(id).items.push(item)
@@ -64,7 +86,10 @@ const canSubmit = computed(
     !busy.value &&
     !cart.busy &&
     (attempt.value ||
-      (addressId.value && cart.data?.items.length && !cart.data.has_unavailable_items)),
+      (addressId.value &&
+        (selected.value.length
+          ? lines.value.length === selected.value.length && lines.value.every((item) => item.available)
+          : cart.data?.items.length && !cart.data.has_unavailable_items))),
 )
 async function load() {
   await run(async () => {
@@ -84,6 +109,7 @@ async function submit() {
         payload: {
           address_id: addressId.value,
           payment_method: paymentMethod.value,
+          ...(selected.value.length ? { cart_item_ids: selected.value.map(Number) } : {}),
           ...(paymentMethod.value === 'ZALOPAY'
             ? {
                 preferred_payment_method:
@@ -135,7 +161,17 @@ onMounted(load)
       Có yêu cầu chưa nhận được kết quả. Bấm kiểm tra lại để lấy đúng đơn đã tạo; địa chỉ được giữ
       nguyên.
     </p>
-    <p v-if="cart.data?.has_unavailable_items" class="alert alert-warning">
+    <p v-if="selected.length" class="alert alert-info" data-checkout-selection>
+      Mua ngay: chỉ đặt {{ lines.length }} sản phẩm đã chọn. Các sản phẩm khác vẫn ở trong giỏ.
+      <RouterLink to="/checkout">Đặt cả giỏ hàng</RouterLink>
+    </p>
+    <p
+      v-if="selected.length && cart.data && (lines.length !== selected.length || lines.some((item) => !item.available))"
+      class="alert alert-warning"
+    >
+      Sản phẩm đã chọn không còn mua được. Hãy kiểm tra lại giỏ hàng.
+    </p>
+    <p v-else-if="!selected.length && cart.data?.has_unavailable_items" class="alert alert-warning">
       Giỏ có sản phẩm không thể mua. Hãy sửa giỏ trước khi đặt toàn bộ đơn.
     </p>
     <p v-if="cart.data && !cart.data.items.length" class="alert alert-info">Giỏ hàng đang trống.</p>
@@ -222,7 +258,7 @@ onMounted(load)
         <h2>Xác nhận đơn mua</h2>
         <p>Phí giao hàng: 0 ₫. Giảm giá: 0 ₫.</p>
         <p class="buyer-summary-total" data-checkout-total>
-          Tổng tạm tính: {{ formatPrice(cart.data?.subtotal) }}
+          Tổng tạm tính: {{ formatPrice(selected.length ? selectedTotal : cart.data?.subtotal) }}
         </p>
         <p class="buyer-summary-note">
           Giá và tồn kho được kiểm tra lại khi xác nhận. Đơn hàng lưu giá tại thời điểm đặt.

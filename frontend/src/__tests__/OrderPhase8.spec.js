@@ -397,3 +397,79 @@ it('order timeline marks reached steps from API timestamps and shows a cancellat
   expect(cancelled.findAll('li')).toHaveLength(3)
   expect(cancelled.get('.is-cancelled').attributes('aria-current')).toBe('step')
 })
+
+it('buy-now checkout orders only the selected cart line and keeps the rest of the cart', async () => {
+  // The other line is unavailable: it must not block buying the selected one.
+  cartApi.getCart.mockResolvedValue({
+    ...cartData,
+    has_unavailable_items: true,
+    items: [cartData.items[0], { ...cartData.items[1], available: false }],
+  })
+  const { wrapper, router } = await setup(CheckoutView, { path: '/checkout?items=1' })
+  expect(wrapper.findAll('[data-checkout-shop]')).toHaveLength(1)
+  expect(wrapper.get('[data-checkout-total]').text()).toContain('0,20 ₫')
+  expect(wrapper.get('[data-checkout-selection]').text()).toContain('chỉ đặt 1 sản phẩm')
+  expect(wrapper.get('[data-checkout-selection] a').attributes('href')).toBe('/checkout')
+  expect(button(wrapper, 'Xác nhận').element.disabled).toBe(false)
+  await wrapper.get('form').trigger('submit')
+  await flushPromises()
+  expect(api.checkout).toHaveBeenCalledWith(
+    { address_id: '10', payment_method: 'COD', cart_item_ids: [1] },
+    expect.stringMatching(/^[0-9a-f-]{36}$/),
+  )
+  expect(router.currentRoute.value.path).toBe('/orders/7')
+
+  // A selected line that is unavailable or no longer in the cart cannot be submitted.
+  api.checkout.mockClear()
+  for (const path of ['/checkout?items=2', '/checkout?items=99']) {
+    const blocked = await setup(CheckoutView, { path })
+    expect(button(blocked.wrapper, 'Xác nhận').element.disabled).toBe(true)
+    expect(blocked.wrapper.text()).toContain('không còn mua được')
+  }
+  // Anything that is not a list of ids is ignored: the page is the normal whole-cart checkout.
+  cartApi.getCart.mockResolvedValue(structuredClone(cartData))
+  const whole = await setup(CheckoutView, { path: '/checkout?items=abc' })
+  expect(whole.wrapper.find('[data-checkout-selection]').exists()).toBe(false)
+  expect(whole.wrapper.findAll('[data-checkout-shop]')).toHaveLength(2)
+  expect(api.checkout).not.toHaveBeenCalled()
+})
+it('buy now adds the product to the cart and opens checkout for that line only', async () => {
+  const { default: AddToCart } = await import('../components/AddToCart.vue')
+  const { mount } = await import('@vue/test-utils')
+  const mountBuy = async (guest = false) => {
+    const pinia = createPinia()
+    piniaInstances.push(pinia)
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    auth.initialized = true
+    auth.user = guest ? null : { id: '4', role: 'USER', status: 'ACTIVE' }
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: ['/', '/checkout', '/cart', '/products/:slug'].map((path) => ({ path, component: { template: '<div />' } })).concat([{ path: '/login', name: 'login', component: { template: '<div />' } }]),
+    })
+    await router.push('/')
+    const wrapper = mount(AddToCart, {
+      props: { product: { id: '1', slug: 'phone', stock_quantity: 3 } },
+      global: { plugins: [pinia, router] },
+    })
+    wrappers.push(wrapper)
+    await flushPromises()
+    return { wrapper, router }
+  }
+  vi.spyOn(cartApi, 'addCartItem').mockResolvedValue({})
+  const { wrapper, router } = await mountBuy()
+  await wrapper.get('[data-buy-now]').trigger('click')
+  await flushPromises()
+  expect(cartApi.addCartItem).toHaveBeenCalledWith('1', 1)
+  expect(router.currentRoute.value.fullPath).toBe('/checkout?items=1')
+
+  cartApi.addCartItem.mockClear()
+  const guest = await mountBuy(true)
+  await guest.wrapper.get('[data-buy-now]').trigger('click')
+  await flushPromises()
+  expect(cartApi.addCartItem).not.toHaveBeenCalled()
+  expect(guest.router.currentRoute.value.path).toBe('/login')
+  const sold = mount(AddToCart, { props: { product: { id: '1', slug: 'phone', stock_quantity: 0 } }, global: { plugins: [createPinia(), guest.router] } })
+  wrappers.push(sold)
+  expect(sold.find('[data-buy-now]').exists()).toBe(false)
+})

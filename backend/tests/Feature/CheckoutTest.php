@@ -207,4 +207,53 @@ class CheckoutTest extends TestCase
         $this->patchJson('/api/v1/seller/orders/'.$foreign['id'].'/status', ['expected_status' => 'PENDING', 'status' => 'CONFIRMED'])->assertForbidden();
         $this->getJson('/api/v1/seller/orders?status=bogus')->assertUnprocessable();
     }
+
+    public function test_selected_items_are_ordered_and_the_rest_of_the_cart_is_kept(): void
+    {
+        [$buyer, $address, $cart, $products] = $this->fixture(3);
+        $items = $cart->items()->orderBy('id')->get();
+        // An unavailable item that is not selected does not block the purchase of the others.
+        $products[2]->update(['status' => ProductStatus::HIDDEN]);
+        $key = (string) Str::uuid();
+        $response = $this->checkout($address, $key, ['cart_item_ids' => [$items[0]->id]])->assertCreated();
+        $response->assertJsonPath('data.total_amount', '0.20')->assertJsonCount(1, 'data.shop_orders')->assertJsonCount(1, 'data.shop_orders.0.items');
+        $this->assertSame([$items[1]->id, $items[2]->id], $cart->items()->orderBy('id')->pluck('id')->all());
+        $this->assertSame(0, $products[0]->fresh()->stock_quantity);
+        $this->assertSame(2, $products[1]->fresh()->stock_quantity);
+        $this->assertSame(1, Order::count());
+
+        // Same key, same selection: the same order, nothing else changes.
+        $this->checkout($address, $key, ['cart_item_ids' => [$items[0]->id]])->assertOk()->assertJsonPath('data.id', $response->json('data.id'));
+        // Same key with another selection, or with the whole cart, is a different request.
+        $this->checkout($address, $key, ['cart_item_ids' => [$items[1]->id]])->assertConflict();
+        $this->checkout($address, $key)->assertConflict();
+        $this->assertSame(1, Order::count());
+        $this->assertSame(2, $cart->items()->count());
+
+        // The selection order does not matter for idempotency.
+        $pair = (string) Str::uuid();
+        $products[2]->update(['status' => ProductStatus::ACTIVE]);
+        $first = $this->checkout($address, $pair, ['cart_item_ids' => [$items[2]->id, $items[1]->id]])->assertCreated();
+        $this->checkout($address, $pair, ['cart_item_ids' => [$items[1]->id, $items[2]->id]])->assertOk()->assertJsonPath('data.id', $first->json('data.id'));
+        $this->assertSame(0, $cart->items()->count());
+        $this->assertSame(2, Order::count());
+    }
+
+    public function test_selection_must_be_valid_cart_items_of_the_buyer(): void
+    {
+        [, $address, $cart, $products] = $this->fixture(2);
+        $mine = $cart->items()->orderBy('id')->first();
+        $foreign = CartItem::factory()->create();
+        foreach ([[], 'x', [0], ['a'], [$mine->id, $mine->id]] as $bad) {
+            $this->checkout($address, null, ['cart_item_ids' => $bad])->assertUnprocessable();
+        }
+        $this->checkout($address, null, ['cart_item_ids' => [$foreign->id]])->assertUnprocessable()->assertJsonValidationErrors('cart_item_ids');
+        $this->checkout($address, null, ['cart_item_ids' => [$mine->id, 999999]])->assertUnprocessable()->assertJsonValidationErrors('cart_item_ids');
+        // A selected item that became unavailable still rejects the request, exactly like a whole-cart checkout.
+        $products[0]->update(['stock_quantity' => 1]);
+        $this->checkout($address, null, ['cart_item_ids' => [$mine->id]])->assertConflict();
+        $this->assertSame(0, Order::count());
+        $this->assertSame(2, $cart->items()->count());
+        $this->assertDatabaseHas('cart_items', ['id' => $foreign->id]);
+    }
 }

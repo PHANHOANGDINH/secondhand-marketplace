@@ -18,20 +18,31 @@ class CheckoutService
 {
     public function __construct(private OrderLocks $locks) {}
 
-    /** @return array{order: Order, created: bool} */
-    public function checkout(User $user, int $addressId, string $key, PaymentMethod $method = PaymentMethod::COD, array $channels = []): array
+    /**
+     * Checks out the whole cart, or only `$itemIds` (cart item ids) when given: the other items stay in the cart.
+     *
+     * @return array{order: Order, created: bool}
+     */
+    public function checkout(User $user, int $addressId, string $key, PaymentMethod $method = PaymentMethod::COD, array $channels = [], array $itemIds = []): array
     {
         sort($channels);
+        $itemIds = array_values(array_unique(array_map('intval', $itemIds)));
+        sort($itemIds);
         $payload = ['address_id' => (string) $addressId, 'payment_method' => $method->value];
         if ($method === PaymentMethod::ZALOPAY) {
             app(ZaloPayGateway::class)->configured();
             $payload['preferred_payment_method'] = $channels;
         }
+        // The selection is part of the request identity: the same key with another selection is a conflict.
+        // A whole-cart checkout keeps the hash it always had.
+        if ($itemIds !== []) {
+            $payload['cart_item_ids'] = array_map('strval', $itemIds);
+        }
         $hash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
         for ($plan = 0; $plan < 3; $plan++) {
-            $owners = DB::table('cart_items')->join('carts', 'carts.id', '=', 'cart_items.cart_id')->join('products', 'products.id', '=', 'cart_items.product_id')->join('shops', 'shops.id', '=', 'products.shop_id')->where('carts.user_id', $user->id)->pluck('shops.owner_id')->all();
+            $owners = DB::table('cart_items')->join('carts', 'carts.id', '=', 'cart_items.cart_id')->join('products', 'products.id', '=', 'cart_items.product_id')->join('shops', 'shops.id', '=', 'products.shop_id')->where('carts.user_id', $user->id)->when($itemIds !== [], fn ($query) => $query->whereIn('cart_items.id', $itemIds))->pluck('shops.owner_id')->all();
             try {
-                return $this->locks->transaction(function () use ($user, $addressId, $key, $hash, $owners, $method, $channels): array {
+                return $this->locks->transaction(function () use ($user, $addressId, $key, $hash, $owners, $method, $channels, $itemIds): array {
                     $accounts = $this->locks->accounts([...$owners, $user->id]);
                     $buyer = $accounts[$user->id];
                     $this->locks->active($buyer);
@@ -46,7 +57,10 @@ class CheckoutService
                     if (! $address) {
                         throw ValidationException::withMessages(['address_id' => ['Choose an address belonging to your account.']]);
                     }
-                    $items = $cart?->items()->orderBy('id')->lockForUpdate()->get();
+                    $items = $cart?->items()->when($itemIds !== [], fn ($query) => $query->whereIn('id', $itemIds))->orderBy('id')->lockForUpdate()->get();
+                    if ($itemIds !== [] && (! $items || $items->count() !== count($itemIds))) {
+                        throw ValidationException::withMessages(['cart_item_ids' => ['A selected item is no longer in your cart.']]);
+                    }
                     if (! $items || $items->isEmpty()) {
                         throw ValidationException::withMessages(['cart' => ['Your cart is empty.']]);
                     }
@@ -80,7 +94,7 @@ class CheckoutService
                         ZaloPayGateway::amount($total);
                     }
                     $order = app(OrderCreator::class)->create($buyer, $address, $key, $hash, $method, $channels, $groups, $products, $total);
-                    $cart->items()->delete();
+                    $cart->items()->whereIn('id', $items->pluck('id'))->delete();
                     $cart->touch();
 
                     return ['order' => $order->load(OrderSummary::RELATIONS), 'created' => true];

@@ -11,7 +11,7 @@ class CheckoutRequest extends DomainRequest
 {
     public function rules(): array
     {
-        return ['address_id' => ['required', 'integer', 'min:1'], 'payment_method' => ['required', 'in:COD,ZALOPAY'], 'preferred_payment_method' => ['prohibited_unless:payment_method,ZALOPAY', 'sometimes', 'array', 'max:5'], 'preferred_payment_method.*' => ['required', 'string', 'distinct', Rule::in(ZaloPayGateway::CHANNELS)]];
+        return ['address_id' => ['required', 'integer', 'min:1'], 'payment_method' => ['required', 'in:COD,ZALOPAY'], 'preferred_payment_method' => ['prohibited_unless:payment_method,ZALOPAY', 'sometimes', 'array', 'max:5'], 'preferred_payment_method.*' => ['required', 'string', 'distinct', Rule::in(ZaloPayGateway::CHANNELS)], 'cart_item_ids' => ['sometimes', 'array', 'min:1', 'max:100'], 'cart_item_ids.*' => ['required', 'integer', 'min:1', 'distinct']];
     }
 
     public function after(): array

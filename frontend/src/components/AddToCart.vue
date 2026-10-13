@@ -19,6 +19,22 @@ async function add() {
   }
   await run(() => cart.add(props.product.id, quantity.value), 'Đã thêm sản phẩm vào giỏ hàng.')
 }
+// Buy now = the normal cart and checkout, narrowed to this one cart line. Nothing else is ordered.
+async function buyNow() {
+  if (props.product.auction) return
+  if (!auth.isAuthenticated) {
+    await router.push({ name: 'login', query: { redirect: `/products/${props.product.slug}` } })
+    return
+  }
+  await run(async () => {
+    await cart.add(props.product.id, quantity.value)
+    const line = cart.data?.items?.find(
+      (item) => String(item.product?.id) === String(props.product.id),
+    )
+    if (line) await router.push({ path: '/checkout', query: { items: String(line.id) } })
+    else await router.push('/cart')
+  })
+}
 </script>
 <template>
   <div v-if="product.auction" class="border-top pt-3">
@@ -33,7 +49,7 @@ async function add() {
       {{ messages.join(' ') }}
     </div>
     <label for="add-cart-quantity" class="form-label">Số lượng</label>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
       <input
         id="add-cart-quantity"
         v-model.number="quantity"
@@ -53,6 +69,16 @@ async function add() {
         :disabled="busy || cart.writing || auth.loading || product.stock_quantity < 1"
       >
         {{ product.stock_quantity < 1 ? 'Tạm hết hàng' : 'Thêm vào giỏ' }}
+      </button>
+      <button
+        v-if="product.stock_quantity >= 1"
+        type="button"
+        class="btn btn-outline-primary"
+        data-buy-now
+        :disabled="busy || cart.writing || auth.loading"
+        @click="buyNow"
+      >
+        Mua ngay
       </button>
     </div>
     <RouterLink v-if="success" to="/cart" class="d-inline-block mt-2">Xem giỏ hàng</RouterLink>

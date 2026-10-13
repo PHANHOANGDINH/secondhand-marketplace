@@ -61,3 +61,19 @@ Không có test nào bị sửa để che một thay đổi hành vi.
 - Chưa đo contrast tự động; mới kiểm tay các cặp màu token.
 - Font vẫn nạp từ Google Fonts.
 - `backend/CLAUDE.md` vẫn mâu thuẫn với `CLAUDE.md` gốc, chưa xử lý.
+
+## Bổ sung 2026-10-14: rà trang đăng nhập, thẻ người bán, Mua ngay
+
+| Phần | Commit | Kết quả |
+| --- | --- | --- |
+| A – tour mở ở mọi lần vào trang; rà trang đăng nhập | `a4c67f7` | PASS |
+| B – `shop.rating_avg`, `rating_count`, `joined_at` | `7ccbbde` | PASS |
+| C – Mua ngay (`cart_item_ids` ở checkout) | `018c5d4` | PASS |
+| D – D6 Voucher | — | **CHƯA LÀM**: chưa có đề bài D6 |
+
+- Số liệu cuối: backend **460 test / 5.137 assertions PASS**, Pint PASS; frontend **472 test / 38 file PASS**; oxlint, ESLint, build PASS.
+- Rà trang đăng nhập: stack riêng (PHP :8001 với `APP_ENV=testing`, Vite :5174, Edge headless), fixture tạo bằng script chỉ chạy trên DB test. 27 trang × 2 bề rộng: không tràn ngang, 0 lỗi JS. Tour: focus nằm trong hộp thoại, ESC đóng và lưu cờ, tải lại không mở lại.
+- Lỗi hiển thị tìm thấy và đã sửa: nút "Điều hướng gian hàng/quản trị" hiện sai trên desktop; logo trong shell bị viết hoa và xám; nhãn top bar, giá đơn và tổng tiền bị xuống dòng trên điện thoại.
+- Dọn dẹp: đã dừng ba tiến trình của stack, xóa fixture trong DB test, xóa 16 file session tạo sau mốc bắt đầu. DB dev: 24 bảng nghiệp vụ không đổi mã băm.
+- Mua ngay: checkout cũ chỉ đặt cả giỏ, nên thêm tham số tùy chọn `cart_item_ids`. Hash idempotency có danh sách item (đã sắp xếp); yêu cầu đặt cả giỏ giữ nguyên hash cũ. Item không chọn, kể cả item đang không mua được, không chặn đơn và vẫn nằm trong giỏ.
+- Các quyết định 1, 2 và 8 ở trên đã được thay thế: có "Mua ngay", thẻ người bán có sao và tháng tham gia, tour mở ở mọi lần vào trang cho tới khi xem xong hoặc bỏ qua.

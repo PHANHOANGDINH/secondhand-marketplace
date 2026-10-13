@@ -12,7 +12,9 @@ Verified **FINAL C1 on 2026-10-09**, reused for documentation-only C2. No applic
 | Pint / lint / production build | PASS / PASS / PASS |
 | Seeder/data/cleanup | Identical rerun across 22 business tables; original rows unchanged; temporary records/uploads removed |
 
-**Current automated totals — D7, run on 2026-10-13 with PHP 8.4.25:** backend **455 tests / 5,059 assertions PASS**, frontend **456 tests / 37 files PASS**, Pint, oxlint, ESLint and production build PASS. No browser pass was run for D7. Details: [recommendation scoring](recommendation-scoring.md).
+**Current automated totals — UI redesign, seller card stats, buy now; run on 2026-10-14 with PHP 8.4.25:** backend **460 tests / 5,137 assertions PASS**, frontend **472 tests / 38 files PASS**, Pint, oxlint, ESLint and production build PASS. Browser pass at 1440/390 px: public pages as a guest on the dev server, signed-in pages (cart, checkout, orders, account, seller, admin, first-time tour) on an isolated stack bound to the test database, fixtures removed afterwards. Details: [UI redesign verification](ui-redesign-verification.md).
+
+**Previous totals — D7, run on 2026-10-13 with PHP 8.4.25:** backend **455 tests / 5,059 assertions PASS**, frontend **456 tests / 37 files PASS**, Pint, oxlint, ESLint and production build PASS. No browser pass was run for D7. Details: [recommendation scoring](recommendation-scoring.md).
 
 **Previous totals — D5, run on 2026-10-13 with PHP 8.4.25:** backend **444 tests / 4,950 assertions PASS**, frontend **449 tests / 36 files PASS**, Pint, oxlint, ESLint and production build PASS; a D5 browser pass (4 viewports, 9 flows, zero JS exceptions) ran on an isolated stack bound to the test database. Details: [D5 verification](extension-d5-admin-action-center-verification.md).
 

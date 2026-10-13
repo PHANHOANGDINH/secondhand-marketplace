@@ -43,6 +43,14 @@ A working local system needs MySQL plus these four long-running processes, each 
 
 > **`schedule:work` is not optional.** Without it, auctions never switch to LIVE or ENDED on their own (no winner is finalized, no checkout reminder is sent) and unresolved ZaloPay attempts are never reconciled. Bids outside the time window are still rejected by the API, but the stored auction status stays stale until the scheduler runs.
 
+### One command on Windows
+
+`start-dev.ps1` in the repository root checks that MySQL answers on port 3306, then opens the four processes above in four PowerShell windows using the Herd PHP 8.4 CLI and opens `http://localhost:5173`. Edit the two paths at the top of the script if the repository or Herd is installed elsewhere.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
+```
+
 ### First-time setup
 
 Start XAMPP MySQL. Create `secondhand_marketplace` only if it does not exist. Configure a local database user with access to this database; keep its username/password in private `backend/.env`. Do not replace an existing database or existing env/key.
@@ -200,6 +208,17 @@ The older `DatabaseSeeder` / `DemoUserSeeder` accounts (`admin@example.com`, `se
 
 The pack contains two ACTIVE shops, 18 dedicated products using current categories/local owned artwork, valid auctions/bids and winner settlement, COD Orders with lawful fulfillment, published purchase-linked reviews, small local demo videos/comments, persistent notifications and Buyer/Seller conversations. Older catalog listings remain in place. The media is labeled test-pattern demo footage, not an authentic review. The earlier catalog-only DemoMarketplaceSeeder remains available for its original deficit-filling use.
 
+Demo accounts (all use the private `DEMO_PASSWORD` set when they were first seeded):
+
+| Role | Email |
+| --- | --- |
+| Admin | `c1-admin@example.test` |
+| Seller 1 (C1 Demo · Góc Công Nghệ) | `c1-seller-1@example.test` |
+| Seller 2 (C1 Demo · Nhà & Phong Cách) | `c1-seller-2@example.test` |
+| Buyers | `c1-buyer-a@example.test`, `c1-buyer-b@example.test`, `c1-buyer-c@example.test` |
+
+Demo voucher codes created by the current seeder: **`PASSLAI10`** (platform, 10 %, at most 50,000 ₫, order from 200,000 ₫) and **`CONGNGHE20K`** (shop "Góc Công Nghệ", 20,000 ₫, shop order from 100,000 ₫). The seeder also adds one payment awaiting reconciliation and view/search signals so the admin payments page and "Gợi ý cho bạn" are not empty. A database seeded with an older version of the seeder does not have them until the seeder is run again.
+
 Keep four terminals running (start MySQL first):
 
 ```powershell
@@ -275,4 +294,4 @@ Start with the [final project index](docs/final-project-index.md). It separates 
 - [Security](docs/final-security-summary.md) and [testing summary](docs/final-testing-summary.md): controls, C1 totals and explicit external/production limits.
 - [7–10 minute defense demo](docs/demo-script.md) and [Q&A](docs/defense-qa.md): preparation, clicks/talking points/results and fallbacks.
 
-Current automated totals after D6 Vouchers (2026-10-14): **475 backend tests / 5,493 assertions**, **479 frontend tests / 39 files**, Pint/lint/build PASS. **D6 Vouchers ✅** (shop and platform codes at checkout, `/seller/vouchers`, `/admin/vouchers`; rules, lock order and tests in [D6 verification](docs/extension-d6-vouchers-verification.md)); it adds one additive migration, so run `php artisan migrate` after pulling. Before D6, after the UI redesign, seller card stats and buy now, the totals were 460 / 5,137 and 472 / 38, plus a browser pass at 1440/390 px (public pages on the dev server as a guest; signed-in pages on an isolated stack bound to the test database). See [UI redesign verification](docs/ui-redesign-verification.md). After D7 the totals were 455 / 5,059 and 456 / 37. After D5 the totals were 444 / 4,950 and 449 / 36, with a D5 browser pass at 1440/1024/768/390 px on an isolated test stack. Historical C1 local-demo baseline: **352 backend tests / 3,504 assertions**, **355 frontend tests / 28 files**, **166 actual browser checks**, Pint/lint/build PASS. C2 is documentation-only and does not imply another regression run or production certification. Sandbox creation is verified; completed real payment/callback remains unverified manually. No real password/secret is included in the defense material.
+Current automated totals after D8 Final Integration (2026-10-14): **475 backend tests / 5,502 assertions**, **479 frontend tests / 39 files**, Pint/lint/build PASS, the race suites re-run separately (21 tests), and **browser journeys A–H plus the voucher screens PASS** at 1440/390 px on an isolated stack bound to the test database ([D8 verification](docs/extension-d8-final-integration-verification.md), [how to run them](frontend/e2e/README.md)). **D8 ✅**; local tag `v1.0-defense`. **D6 Vouchers ✅** (shop and platform codes at checkout, `/seller/vouchers`, `/admin/vouchers`; rules, lock order and tests in [D6 verification](docs/extension-d6-vouchers-verification.md)); it adds one additive migration, so run `php artisan migrate` after pulling. Before D6, after the UI redesign, seller card stats and buy now, the totals were 460 / 5,137 and 472 / 38, plus a browser pass at 1440/390 px (public pages on the dev server as a guest; signed-in pages on an isolated stack bound to the test database). See [UI redesign verification](docs/ui-redesign-verification.md). After D7 the totals were 455 / 5,059 and 456 / 37. After D5 the totals were 444 / 4,950 and 449 / 36, with a D5 browser pass at 1440/1024/768/390 px on an isolated test stack. Historical C1 local-demo baseline: **352 backend tests / 3,504 assertions**, **355 frontend tests / 28 files**, **166 actual browser checks**, Pint/lint/build PASS. C2 is documentation-only and does not imply another regression run or production certification. Sandbox creation is verified; completed real payment/callback remains unverified manually. No real password/secret is included in the defense material.

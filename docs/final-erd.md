@@ -434,6 +434,83 @@ erDiagram
     users ||--o{ video_comments : author
 ```
 
+## Extensions D2–D7 and vouchers
+
+Tables added after the C2 diagrams above. All of them were added by additive migrations.
+
+```mermaid
+erDiagram
+    users ||--o{ wishlists : saves
+    products ||--o{ wishlists : saved_in
+    users ||--o{ reports : files
+    users ||--o{ product_views : views
+    products ||--o{ product_views : viewed
+    users ||--o{ search_logs : searches
+    shops ||--o{ vouchers : offers
+    users ||--o{ vouchers : created_by
+    vouchers ||--o{ voucher_redemptions : used_as
+    users ||--o{ voucher_redemptions : redeems
+    orders ||--o{ voucher_redemptions : on_order
+    shop_orders ||--o{ voucher_redemptions : on_part
+    wishlists {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        datetime created_at
+    }
+    reports {
+        bigint id PK
+        bigint reporter_id FK
+        string target_type
+        bigint target_id
+        string reason
+        string status
+    }
+    product_views {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        datetime viewed_at
+    }
+    search_logs {
+        bigint id PK
+        bigint user_id FK
+        string query
+        datetime created_at
+    }
+    vouchers {
+        bigint id PK
+        string code UK
+        string scope
+        bigint shop_id FK
+        string type
+        decimal value
+        decimal min_order
+        decimal max_discount
+        int usage_limit
+        int per_user_limit
+        int used_count
+        datetime starts_at
+        datetime ends_at
+        string status
+        bigint created_by FK
+    }
+    voucher_redemptions {
+        bigint id PK
+        bigint voucher_id FK
+        bigint user_id FK
+        bigint order_id FK
+        bigint shop_order_id FK
+        decimal discount_amount
+        datetime released_at
+    }
+```
+
+- `wishlists` is unique per (user, product). `reports.target_type` + `target_id` is a polymorphic pointer to a product, shop or video comment; status has a CHECK (D5).
+- `product_views` and `search_logs` (D7) exist only for signed-in users and store no IP address.
+- `vouchers.scope` is PLATFORM (`shop_id` null) or SHOP (`shop_id` required), enforced by a CHECK. `voucher_redemptions.shop_order_id` is null for a platform voucher; `released_at` marks a use given back after cancellation.
+- Columns added to existing tables: `payments.reconciliation_resolved_at / _by / _note` (D5); `shop_orders.discount_shop`, `discount_platform`, `voucher_code` with CHECK `discount_amount = discount_shop + discount_platform` (D6); `orders.platform_voucher_code` (D6). `orders.discount_amount` and `total_amount` already existed and now carry the voucher discount.
+
 ## Constraints and schema interpretation
 
 - Shop owner and Cart user are unique. Category parent is nullable; service enforces maximum three levels/cycle prevention. Address default is serialized by account locking, not a unique is_default index.

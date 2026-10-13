@@ -150,6 +150,24 @@ Two READY videos reuse the repository's tiny WebM test-pattern clip. They are ex
 2. Seller 1 opens **Tin nhắn**, selects the conversation and replies. Lightweight polling delivers the reply.
 3. Show product context, unread state and responsive drawer. Existing conversations also include Buyer B/Seller 2 (C1 Demo 11) and Buyer C/Seller 2 (C1 Demo 14).
 
+## Final run A–H (at most 10 minutes)
+
+The order below matches the browser journeys that were verified end to end ([D8 verification](extension-d8-final-integration-verification.md)). Use two browser profiles: profile 1 for buyers and sellers, profile 2 for the second bidder and the Admin. Times are targets.
+
+| Min | Journey | What to show |
+| --- | --- | --- |
+| 0:00 | H | Sign in as Buyer C: the welcome tour opens. Go through one step, press "Bỏ qua". Mention "Xem lại hướng dẫn" in the account menu. |
+| 0:45 | A | Sign out. As a guest search "Sony", filter by condition, open **C1 Demo 10**. "Thêm vào giỏ" sends you to sign in (Buyer B) and back. Cart → checkout → enter **PASSLAI10** → the total drops by 50,000 ₫ → COD. Show the code on the order. |
+| 2:15 | B | Open **C1 Demo 09**, press "Mua ngay". Checkout lists only that line. Enter **CONGNGHE20K** in the shop box → minus 20,000 ₫ → order. Open the cart: the other item is still there. |
+| 3:15 | C | Seller 1: "Đăng bán nhanh", fill the form, upload a photo, "Gửi duyệt". Profile 2, Admin → Sản phẩm → approve with a reason. Seller 1 → Tồn kho → change the stock → still active. Seller 1 → Đơn hàng → confirm the order from A. |
+| 5:00 | D | Buyer A (profile 1) and Buyer C (profile 2) open the same LIVE auction. A bids; the price changes in C's window without a reload. C bids higher; A gets the outbid toast. Explain that the scheduler ends the auction and only the winner gets the checkout form (show the already settled demo auction). |
+| 6:30 | E | Home → "Video đánh giá" → open a video in both profiles. Comment in one; it appears in the other. |
+| 7:15 | F | Buyer A: product page → "Nhắn người bán" → send a message; add to wishlist; "Báo cáo sản phẩm". Seller 2 sees the message in the chat drawer. |
+| 8:15 | G | Admin → Việc cần xử lý: the cards. Đối soát thanh toán → record "Đã hoàn tiền bên ngoài" with a note. Phiên đấu giá → cancel a LIVE auction with a reason. Gian hàng → suspend a shop; its public page is gone. Báo cáo vi phạm → take the report from F. |
+| 9:30 | — | Buffer and questions. |
+
+Before the run: the four processes are up (`start-dev.ps1`), the demo data is seeded with the current seeder (vouchers, a payment awaiting reconciliation, a LIVE auction) and both profiles are signed out. Journey D needs a LIVE auction with enough time left; the seeded ones run for three days from seeding. Suspending a shop in G hides its products, so do G last.
+
 ## Payment boundaries
 
 COD is fully reproducible locally. ZaloPay requires authorized **Sandbox** env credentials; selecting it creates a pending online payment and redirects to the Sandbox gateway. Do not treat the return URL as proof of payment. A remotely delivered callback needs a public HTTPS tunnel targeting the backend and the configured callback URL. Production merchant setup is separate.

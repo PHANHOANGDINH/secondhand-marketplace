@@ -57,6 +57,44 @@ sequenceDiagram
 
 Invalid state/stock/claim rejects without partial reservation; reused key with different payload returns 409. COD remains pending until Seller completion confirms collection under normal fulfillment rules.
 
+## B2. Checkout with vouchers (D6) and buy now
+
+```mermaid
+sequenceDiagram
+    participant Buyer as Buyer / Vue
+    participant API as Laravel
+    participant Checkout as CheckoutService
+    participant Vouchers as VoucherService
+    participant DB as MySQL
+    Buyer->>API: POST /checkout/preview<br/>codes, optional cart_item_ids
+    API->>Vouchers: plan (no locks)
+    Vouchers-->>Buyer: Per shop: subtotal, discount_shop,<br/>discount_platform, total + error per code
+    Buyer->>API: POST /checkout<br/>address, payment, codes, cart_item_ids, Idempotency-Key
+    API->>Checkout: Validated input
+    Checkout->>DB: BEGIN, lock accounts → cart → order key → address<br/>→ cart items → shops → categories → products → images
+    Checkout->>DB: Same key? hash covers codes and cart_item_ids
+    alt Same payload
+        DB-->>Checkout: Stored Order (200)
+    else Different payload
+        Checkout-->>Buyer: 409
+    else New purchase
+        Checkout->>Vouchers: plan with locks
+        Vouchers->>DB: Lock vouchers by ascending id (last lock)
+        Vouchers->>Vouchers: Re-check status, period, limits, scope, min_order<br/>BCMath, round down to whole dong, split platform discount
+        alt Any code unusable
+            Vouchers-->>Buyer: 422 on platform_voucher / shop_vouchers.SHOP_ID<br/>ROLLBACK, nothing written
+        else All codes valid
+            Checkout->>DB: Order + ShopOrders with discount and code snapshot<br/>Payment for the discounted total
+            Vouchers->>DB: voucher_redemptions + used_count + audit
+            Checkout->>DB: Remove only the ordered cart lines
+        end
+    end
+    Checkout->>DB: COMMIT
+    API-->>Buyer: Order resource
+```
+
+Buy now is the same endpoint with `cart_item_ids`: the unselected lines stay in the cart. Cancelling a shop order locks the vouchers last as well and releases its SHOP redemption; the PLATFORM redemption is released only when every shop order of the order is cancelled. Auction checkout rejects voucher fields.
+
 ## C. ZaloPay creation / callback
 
 ```mermaid

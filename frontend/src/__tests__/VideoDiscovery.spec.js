@@ -6,6 +6,18 @@ import * as api from '../api/productVideo.api'
 import * as auctions from '../api/auction.api'
 import Discovery from '../components/home/HomeDiscovery.vue'
 import Theater from '../components/home/VideoTheater.vue'
+// These tests count every matchMedia listener of the discovery area itself, so the shared
+// motion layer (which also reads matchMedia) is replaced by no-op presets here.
+vi.mock('../composables/useMotion', () => ({
+  fadeOutCopy: () => {},
+  useMotion: () => ({
+    fadeUp: () => {},
+    pressScale: () => {},
+    flashValue: () => {},
+    countPulse: () => {},
+    dialogIn: () => {},
+  }),
+}))
 const row = (id = '1', auction = null) => ({
   id,
   url: `/storage/${id}.webm`,

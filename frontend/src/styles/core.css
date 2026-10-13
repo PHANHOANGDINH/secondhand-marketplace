@@ -1,0 +1,314 @@
+/*
+ * Core component skin, built on styles/tokens.css. Loaded after the area stylesheets
+ * so the shared look wins; layout stays in buyer/seller/admin.css. Visual only.
+ */
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+.h1,
+.h2,
+.h3,
+.h4 {
+  letter-spacing: -0.02em;
+}
+.money-value,
+.product-card-price,
+.buyer-product-price,
+.auction-price,
+.auction-countdown,
+.auction-timer strong {
+  font-family: var(--font-money);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Buttons: one height, one radius, flat. */
+.btn {
+  --bs-btn-border-radius: var(--radius-sm);
+  --bs-btn-font-weight: 600;
+  --bs-btn-box-shadow: none;
+  --bs-btn-focus-box-shadow: none;
+  min-height: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  box-shadow: none !important;
+}
+.btn-sm {
+  --bs-btn-border-radius: 8px;
+  min-height: 36px;
+}
+.btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--primary-hover);
+  --bs-btn-hover-border-color: var(--primary-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--primary-ink);
+  --bs-btn-active-border-color: var(--primary-ink);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--primary);
+  --bs-btn-disabled-border-color: var(--primary);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--primary);
+  --bs-btn-hover-border-color: var(--primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--primary-ink);
+  --bs-btn-active-border-color: var(--primary-ink);
+  --bs-btn-disabled-color: var(--primary);
+  --bs-btn-disabled-border-color: var(--primary);
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--text);
+  --bs-btn-bg: var(--surface);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-bg: var(--surface-2);
+  --bs-btn-hover-border-color: var(--border);
+  --bs-btn-active-color: var(--text);
+  --bs-btn-active-bg: var(--surface-2);
+  --bs-btn-active-border-color: var(--muted);
+  --bs-btn-disabled-color: var(--muted);
+  --bs-btn-disabled-border-color: var(--border);
+}
+.btn-danger {
+  --bs-btn-bg: var(--danger);
+  --bs-btn-border-color: var(--danger);
+  --bs-btn-hover-bg: var(--danger-ink);
+  --bs-btn-hover-border-color: var(--danger-ink);
+  --bs-btn-active-bg: var(--danger-ink);
+  --bs-btn-active-border-color: var(--danger-ink);
+  --bs-btn-disabled-bg: var(--danger);
+  --bs-btn-disabled-border-color: var(--danger);
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--danger-ink);
+  --bs-btn-border-color: var(--danger);
+  --bs-btn-hover-bg: var(--danger);
+  --bs-btn-hover-border-color: var(--danger);
+  --bs-btn-active-bg: var(--danger-ink);
+  --bs-btn-active-border-color: var(--danger-ink);
+  --bs-btn-disabled-color: var(--danger-ink);
+  --bs-btn-disabled-border-color: var(--danger);
+}
+.btn-link {
+  --bs-btn-color: var(--primary);
+  --bs-btn-hover-color: var(--primary-hover);
+}
+
+/* Inputs */
+.form-control,
+.form-select {
+  min-height: var(--control-height);
+  border-color: var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+}
+.form-control::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.16);
+}
+.form-control:disabled,
+.form-select:disabled {
+  background-color: var(--surface-2);
+  color: var(--muted);
+}
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+.form-label {
+  font-weight: 600;
+  color: var(--text);
+}
+.form-text {
+  color: var(--muted);
+}
+
+/* Cards and panels: a border instead of a shadow. */
+.card,
+.buyer-flow .card,
+.buyer-panel {
+  --bs-card-border-color: var(--border);
+  --bs-card-border-radius: var(--radius-lg);
+  --bs-card-inner-border-radius: calc(var(--radius-lg) - 1px);
+  --bs-card-bg: var(--surface);
+  --bs-card-cap-bg: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: none;
+}
+.buyer-flow .btn-primary {
+  box-shadow: none;
+}
+.alert {
+  border-radius: var(--radius-md);
+}
+.badge {
+  --bs-badge-border-radius: var(--radius-pill);
+  --bs-badge-font-weight: 700;
+}
+.text-bg-primary {
+  background-color: var(--primary) !important;
+}
+
+/* StatusBadge */
+.buyer-status {
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.buyer-status::before {
+  width: 6px;
+  height: 6px;
+}
+.buyer-status-neutral {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--muted);
+}
+.buyer-status-primary {
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+
+/* EmptyState */
+.buyer-empty {
+  padding: var(--space-12) var(--space-6);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+.buyer-empty-icon {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.buyer-empty .h5 {
+  font-weight: 700;
+}
+
+/* Skeleton */
+.ui-skeleton,
+.buyer-skeleton-image,
+.buyer-skeleton-line {
+  background: var(--surface-skeleton);
+  border-radius: var(--radius-sm);
+}
+.ui-skeleton-image,
+.buyer-skeleton-image {
+  border-radius: var(--radius-lg);
+}
+.ui-skeleton-card,
+.buyer-skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Dialog */
+.ui-dialog-backdrop {
+  background: rgb(21 22 26 / 48%);
+}
+.ui-dialog {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-dialog);
+}
+.ui-dialog-header {
+  align-items: center;
+}
+.ui-dialog-header .h4 {
+  font-weight: 700;
+}
+.ui-dialog-footer {
+  background: var(--surface-2);
+}
+.ui-dialog .btn,
+.ui-dialog :is(.form-control, .form-select) {
+  border-radius: var(--radius-sm);
+}
+@media (max-width: 767px) {
+  .ui-dialog {
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+/* PageHeader */
+.buyer-page-header {
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+.buyer-eyebrow {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+.buyer-page-header h1,
+.buyer-flow > h1 {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+/* Pager */
+nav[aria-label='Phân trang'] {
+  justify-content: center;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+nav[aria-label='Phân trang'] > span {
+  font-family: var(--font-money);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Thin-stroke icons */
+.ui-icon {
+  flex: none;
+  display: inline-block;
+  vertical-align: -0.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

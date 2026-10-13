@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
+import './styles/tokens.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 

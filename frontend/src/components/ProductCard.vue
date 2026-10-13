@@ -1,6 +1,7 @@
 <script setup>
 import ProductPhoto from './ProductPhoto.vue'
 import FavoriteButton from './FavoriteButton.vue'
+import AppIcon from './ui/AppIcon.vue'
 import { formatPrice, conditionLabel } from '../composables/productPresentation'
 import { getStatusLabel } from '../utils/labels'
 defineProps({ product: { type: Object, required: true } })
@@ -31,7 +32,7 @@ defineProps({ product: { type: Object, required: true } })
       >
       <p class="product-card-condition">{{ conditionLabel(product.condition) }}</p>
       <p v-if="product.review_count" class="product-card-rating">
-        <span aria-hidden="true">★</span> {{ product.average_rating }} / 5 ·
+        <AppIcon name="star" filled :size="14" /> {{ product.average_rating }} / 5 ·
         {{ product.review_count }} đánh giá
       </p>
       <RouterLink
@@ -45,45 +46,64 @@ defineProps({ product: { type: Object, required: true } })
 </template>
 
 <style scoped>
-.product-card-favorite { position: absolute; top: .8rem; right: .8rem; z-index: 1; }
 .marketplace-product-card {
   position: relative;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border-color: var(--bs-border-color);
-  box-shadow: var(--shadow-card);
-  transition:
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  transition: border-color 0.2s ease;
 }
 .marketplace-product-card:hover,
 .marketplace-product-card:focus-within {
-  border-color: rgba(var(--bs-primary-rgb), 0.35);
-  box-shadow: var(--shadow-hover);
+  border-color: var(--primary);
+}
+.product-card-favorite {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
 }
 .product-card-image {
   display: block;
-  padding: 0.65rem;
-  background: var(--bs-tertiary-bg);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-2);
 }
 .product-card-image :deep(img) {
+  display: block;
+  width: 100%;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0 !important;
   background: transparent !important;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 .marketplace-product-card:hover .product-card-image :deep(img) {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 .card-body {
-  padding: 1.1rem;
+  padding: 0.85rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 0.5rem;
+}
+.card-body > * {
+  margin: 0;
+}
+.product-card-reason {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--primary);
+  overflow-wrap: anywhere;
 }
 h2 {
   font-size: 0.95rem;
-  line-height: 1.5;
-  font-weight: 650;
-  margin-bottom: 0.6rem;
+  line-height: 1.45;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 h2 a {
@@ -91,56 +111,51 @@ h2 a {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  color: var(--bs-body-color);
+  color: var(--text);
   text-decoration: none;
 }
 h2 a:hover {
-  color: var(--bs-primary);
+  color: var(--primary);
 }
 .product-card-price {
   font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--bs-primary);
-  margin-bottom: 0.6rem;
+  font-weight: 800;
+  color: var(--text);
 }
 .product-card-condition {
-  font-size: 0.7rem;
-  color: var(--bs-secondary-color);
-  margin-bottom: 0.75rem;
-  background: var(--bs-tertiary-bg);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.4rem;
-}
-.product-card-reason {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), 0.08);
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.4rem;
-  margin-bottom: 0.6rem;
-  overflow-wrap: anywhere;
 }
 .product-card-rating {
-  font-size: 0.7rem;
-  color: var(--bs-secondary-color);
-  margin-bottom: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--muted);
 }
-.product-card-rating span {
-  color: var(--bs-warning-text-emphasis);
+.product-card-rating :deep(svg) {
+  color: #b7791f;
 }
 .product-card-shop {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
   font-size: 0.75rem;
   text-decoration: none;
-  color: var(--bs-secondary-color);
-  margin-top: auto;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--bs-border-color);
-  width: 100%;
+  color: var(--muted);
   overflow-wrap: anywhere;
 }
+.product-card-shop:hover {
+  color: var(--primary);
+}
 a:focus-visible {
-  outline: 3px solid rgba(var(--bs-primary-rgb), 0.4);
+  outline: var(--focus-ring);
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {

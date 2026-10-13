@@ -10,6 +10,10 @@ import '../styles/ui.css'
 import '../styles/buyer.css'
 import '../styles/seller.css'
 import '../styles/admin.css'
+import '../styles/core.css'
+import BrandLogo from '../components/ui/BrandLogo.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
+import { useMotion } from '../composables/useMotion'
 import AdminShell from '../components/admin/AdminShell.vue'
 import SellerShell from '../components/seller/SellerShell.vue'
 import AccountNav from '../components/account/AccountNav.vue'
@@ -21,6 +25,7 @@ const searchKeyword = ref('')
 const searchProducts = () =>
   router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
 const auth = useAuthStore()
+const { pressScale } = useMotion()
 provideMessaging()
 provideNotifications()
 const route = useRoute(),
@@ -82,6 +87,7 @@ watch(
   },
 )
 onMounted(() => {
+  pressScale(document)
   updateScroll()
   window.addEventListener('scroll', updateScroll, { passive: true })
   document.addEventListener('pointerdown', outsideMenu)
@@ -110,10 +116,9 @@ function closeAccountMenu(event) {
     @keydown.esc="closeNavigation"
   >
     <nav class="container marketplace-nav" aria-label="Điều hướng chính">
-      <RouterLink to="/" class="marketplace-brand"
-        ><span class="marketplace-brand-mark" aria-hidden="true">↗</span
-        ><span>Secondhand <small>Sàn mua bán</small></span></RouterLink
-      >
+      <RouterLink to="/" class="marketplace-brand" aria-label="pass lại · Trang chủ"
+        ><BrandLogo
+      /></RouterLink>
       <form
         action="/products"
         method="get"
@@ -126,18 +131,7 @@ function closeAccountMenu(event) {
           v-model="searchKeyword"
           @submit="searchProducts"
         /><button class="btn" type="submit" aria-label="Tìm sản phẩm">
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <circle cx="10" cy="10" r="6" />
-            <path d="m15 15 5 5" />
-          </svg>
+          <AppIcon name="search" />
         </button>
       </form>
       <button
@@ -146,7 +140,7 @@ function closeAccountMenu(event) {
         :disabled="auth.loading"
         @click="openQuickListing"
       >
-        <span aria-hidden="true">＋</span> Đăng bán nhanh
+        <AppIcon name="plus" :size="18" /> Đăng bán nhanh
       </button>
       <button
         ref="menuToggle"
@@ -157,17 +151,7 @@ function closeAccountMenu(event) {
         aria-label="Điều hướng sàn mua bán"
         @click="menuOpen = !menuOpen"
       >
-        <svg
-          aria-hidden="true"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <AppIcon name="menu" />
       </button>
       <div id="marketplace-navigation" class="marketplace-links" :class="{ 'is-open': menuOpen }">
         <div class="marketplace-directory">
@@ -192,7 +176,7 @@ function closeAccountMenu(event) {
               <span class="marketplace-avatar" aria-hidden="true">{{ initials }}</span
               ><span class="visually-hidden">Tài khoản</span
               ><span class="marketplace-account-name">{{ auth.user?.name || 'Tài khoản' }}</span
-              ><span aria-hidden="true">⌄</span>
+              ><AppIcon name="chevronDown" :size="16" />
             </summary>
             <div class="marketplace-account-menu" @click="closeAccountMenu">
               <RouterLink to="/reports">Báo cáo của tôi</RouterLink>
@@ -253,13 +237,9 @@ function closeAccountMenu(event) {
   z-index: var(--layer-header);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  transition:
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
 }
 .marketplace-header.is-scrolled {
-  background: rgb(255 255 255 / 98%);
-  box-shadow: var(--shadow-hover);
+  border-bottom-color: #d4d3cc;
 }
 .marketplace-nav {
   display: grid;
@@ -267,39 +247,14 @@ function closeAccountMenu(event) {
   grid-template-areas: 'brand search sell actions';
   align-items: center;
   gap: 1rem;
-  padding-block: 0.9rem;
+  padding-block: 0.75rem;
 }
 .marketplace-brand {
   grid-area: brand;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
   text-decoration: none;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 750;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-}
-.marketplace-brand small {
-  display: block;
-  font-size: 0.6rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
-  color: var(--text-muted);
-}
-.marketplace-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: white;
-  font-size: 1.35rem;
-  font-weight: 400;
+  border-radius: var(--radius-sm);
 }
 .marketplace-search {
   grid-area: search;
@@ -308,46 +263,59 @@ function closeAccountMenu(event) {
 }
 .marketplace-search :deep(input) {
   min-height: 48px;
-  padding: 0.75rem 3rem 0.75rem 1rem;
-  border-radius: var(--radius-lg);
-  font-size: 0.85rem;
-  background: var(--surface-muted);
-  border: 1px solid var(--border);
+  padding: 0.75rem 3.25rem 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  background: var(--surface-2);
+  border: 1px solid transparent;
 }
 .marketplace-search :deep(input):focus {
   background: var(--surface);
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.12);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.16);
 }
 .marketplace-search button {
   position: absolute;
-  right: 6px;
-  top: 6px;
-  width: 36px;
-  height: 36px;
+  right: 2px;
+  top: 2px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
-  display: grid;
-  place-items: center;
+  border: 0;
+  color: var(--text);
+}
+.marketplace-search button:hover {
   color: var(--primary);
 }
 .marketplace-links {
   grid-area: actions;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  font-size: 0.8rem;
+  gap: 0.5rem;
+  font-size: 0.85rem;
 }
 .marketplace-links a {
   color: var(--text);
   text-decoration: none;
-  font-weight: 550;
+  font-weight: 600;
 }
 .marketplace-directory {
   display: flex;
-  gap: 0.65rem;
+  gap: 0.25rem;
+  margin-right: 0.25rem;
 }
 .marketplace-directory a {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.marketplace-directory a:hover {
+  background: var(--surface-2);
 }
 .marketplace-links a:hover,
 .marketplace-links a.router-link-active {
@@ -357,29 +325,27 @@ function closeAccountMenu(event) {
   grid-area: sell;
   white-space: nowrap;
   min-height: var(--control-height);
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  font-weight: 650;
-  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
 }
-.marketplace-notification {
+.marketplace-admin-entry {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  color: var(--text-muted);
-  opacity: 0.65;
+  min-height: 44px;
+  padding: 0 0.6rem;
 }
 .marketplace-avatar {
   display: inline-grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  color: var(--bs-primary-text-emphasis);
-  background: var(--bs-primary-bg-subtle);
-  font-weight: 700;
-  font-size: 0.7rem;
+  color: var(--accent-ink);
+  background: var(--accent);
+  font-weight: 800;
+  font-size: 0.72rem;
 }
 .marketplace-account {
   position: relative;
@@ -388,10 +354,15 @@ function closeAccountMenu(event) {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  min-height: 44px;
   cursor: pointer;
   list-style: none;
-  border-radius: var(--radius-md);
-  padding: 0.25rem;
+  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border: 1px solid var(--border);
+}
+.marketplace-account summary:hover {
+  background: var(--surface-2);
 }
 .marketplace-account summary::-webkit-details-marker {
   display: none;
@@ -402,6 +373,7 @@ function closeAccountMenu(event) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 600;
 }
 .marketplace-account-menu {
   position: absolute;
@@ -413,55 +385,74 @@ function closeAccountMenu(event) {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 0.6rem;
+  padding: 0.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-dialog);
 }
 .marketplace-account-menu :deep(a) {
-  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
   color: var(--text);
   text-decoration: none;
   border-radius: var(--radius-sm);
 }
 .marketplace-account-menu :deep(a:hover) {
-  background: var(--surface-muted);
+  background: var(--surface-2);
   color: var(--primary);
 }
 .marketplace-menu-toggle {
   display: none;
   grid-area: toggle;
-  padding: 0.5rem;
-  min-width: 40px;
-  min-height: 40px;
+  padding: 0;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
 }
-.marketplace-links :deep(.chat-launcher) {
-  position: relative;
-  padding: 0.4rem;
-  min-height: 38px;
-  min-width: 38px;
-  border-color: transparent;
-}
-.marketplace-links :deep(.chat-launcher .badge) {
-  position: absolute;
-  top: -4px;
-  right: -5px;
-  font-size: 0.6rem;
-}
-.marketplace-links :deep(.cart-icon-link) {
+/* Icon actions: one 44px hit area each, badge on the corner. */
+.marketplace-links :deep(.chat-launcher),
+.marketplace-links :deep(.cart-icon-link),
+.marketplace-links :deep(.notification-bell-button) {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 0.4rem;
-  min-width: 38px;
-  min-height: 38px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
 }
-.marketplace-links :deep(.cart-icon-link .badge) {
+.marketplace-links :deep(.chat-launcher:hover),
+.marketplace-links :deep(.cart-icon-link:hover),
+.marketplace-links :deep(.notification-bell-button:hover) {
+  background: var(--surface-2);
+  color: var(--primary);
+}
+.marketplace-links :deep(.chat-launcher .badge),
+.marketplace-links :deep(.cart-icon-link .badge),
+.marketplace-links :deep(.notification-badge) {
   position: absolute;
-  top: -4px;
-  right: -5px;
-  font-size: 0.6rem;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  margin: 0 !important;
+  padding: 2px 5px;
+  border: 2px solid var(--surface);
+  border-radius: var(--radius-pill);
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-family: var(--font-money);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 @media (min-width: 1400px) {
   .marketplace-account-name {
@@ -473,11 +464,13 @@ function closeAccountMenu(event) {
     grid-template-columns: 1fr auto auto;
     grid-template-areas: 'brand sell toggle' 'search search search' 'actions actions actions';
     gap: 0.6rem;
-    padding-block: 0.75rem;
+    padding-block: 0.6rem;
+  }
+  .marketplace-brand {
+    justify-self: start;
   }
   .marketplace-menu-toggle {
-    display: inline-grid;
-    place-items: center;
+    display: inline-flex;
   }
   .marketplace-links {
     display: none;
@@ -490,6 +483,7 @@ function closeAccountMenu(event) {
     display: flex;
   }
   .marketplace-directory {
+    flex-wrap: wrap;
     margin-right: auto;
   }
   .marketplace-account-name {
@@ -500,34 +494,25 @@ function closeAccountMenu(event) {
   .marketplace-nav {
     gap: 0.5rem;
   }
-  .marketplace-brand {
-    font-size: 0.87rem;
-    gap: 0.4rem;
+  .marketplace-brand :deep(.brand-logo-mark) {
+    width: 34px;
+    height: 34px;
   }
-  .marketplace-brand-mark {
-    width: 30px;
-    height: 30px;
+  .marketplace-brand :deep(.brand-logo-word) {
+    font-size: 1.05rem;
   }
   .marketplace-sell {
-    font-size: 0.72rem;
-    padding-inline: 0.55rem;
+    font-size: 0.78rem;
+    padding-inline: 0.7rem;
   }
   .marketplace-account-name {
     display: none;
-  }
-  .marketplace-links {
-    gap: 0.5rem;
   }
   .marketplace-search :deep(input) {
     min-height: 44px;
   }
   .marketplace-search button {
-    top: 4px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .marketplace-header {
-    transition: none;
+    top: 0;
   }
 }
 </style>

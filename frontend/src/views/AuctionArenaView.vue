@@ -9,6 +9,7 @@ import { useAuctionCountdown } from '../composables/useAuctionCountdown'
 import { listAuctionBids, placeAuctionBid, getSellerAuction } from '../api/auction.api'
 import { getProduct, getSellerProduct } from '../api/product.api'
 import { domainError } from '../api/domain.api'
+import { useMotion } from '../composables/useMotion'
 import { formatPrice, conditionLabel } from '../composables/productPresentation'
 import {
   auctionLabels,
@@ -48,7 +49,9 @@ const input = ref(''),
   feedback = ref(''),
   bidError = ref(''),
   highlighted = ref(false),
-  entered = ref(null)
+  entered = ref(null),
+  priceValue = ref(null)
+const { flashValue } = useMotion()
 let generation = 0,
   historyRequest = 0,
   flashTimer,
@@ -148,6 +151,7 @@ watch(
   (price, previous) => {
     if (!previous || !price || amountCents(price) <= amountCents(previous)) return
     highlighted.value = true
+    flashValue(priceValue.value)
     clearTimeout(flashTimer)
     flashTimer = setTimeout(() => {
       highlighted.value = false
@@ -279,6 +283,7 @@ onUnmounted(() => {
             auction.status === 'ENDED' ? 'Giá cuối phiên' : 'Giá hiện tại'
           }}</small
           ><strong
+            ref="priceValue"
             class="auction-price"
             :class="{ 'is-changed': highlighted }"
             aria-live="polite"

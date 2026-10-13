@@ -3,6 +3,7 @@ import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useWishlistStore } from '../stores/wishlist'
+import AppIcon from './ui/AppIcon.vue'
 const props = defineProps({ product: { type: Object, required: true }, compact: Boolean })
 const auth = useAuthStore(),
   wishlist = useWishlistStore(),
@@ -47,7 +48,7 @@ async function toggle() {
       :disabled="Boolean(wishlist.pending[product.id])"
       @click.stop="toggle"
     >
-      <span aria-hidden="true">{{ saved ? '♥' : '♡' }}</span>
+      <AppIcon name="heart" :filled="saved" :size="compact ? 20 : 18" />
       <span v-if="!compact">{{
         wishlist.pending[product.id] ? 'Đang lưu…' : saved ? 'Đã yêu thích' : 'Thêm vào yêu thích'
       }}</span>
@@ -67,14 +68,23 @@ async function toggle() {
   background: var(--bs-primary-bg-subtle);
 }
 .compact .btn {
-  padding: 0.35rem 0.65rem;
-  font-size: 1.3rem;
-  line-height: 1.2;
-  background: var(--bs-body-bg);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+.compact .btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--surface);
 }
 .compact .saved {
-  color: var(--bs-primary);
-  background: var(--bs-primary-bg-subtle);
+  color: var(--danger);
+  border-color: var(--border);
+  background: var(--surface);
 }
 .compact p {
   max-width: 200px;

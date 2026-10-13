@@ -1,46 +1,6 @@
-/* Semantic tokens derive from the existing Bootstrap brand palette. */
-:root {
-  --surface: #fff;
-  --surface-muted: #f8f9fa;
-  --surface-skeleton: #e9ecef;
-  --border: var(--bs-border-color, #dee2e6);
-  --text: var(--bs-body-color, #212529);
-  --text-muted: var(--bs-secondary-color, #495057);
-  --primary: var(--bs-primary, #0d6efd);
-  --success: var(--bs-success, #198754);
-  --warning: var(--bs-warning, #ffc107);
-  --danger: var(--bs-danger, #dc3545);
-  --auction-accent: #ff5a36;
-  --auction-accent-soft: #fff0eb;
-  --auction-accent-ink: #7a210d;
-  --font-ui: var(--bs-body-font-family);
-  --font-money: var(--bs-font-monospace);
-  --font-size-small: 0.8rem;
-  --font-size-body: 0.9rem;
-  --font-size-section: 1.15rem;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --shadow-card: 0 4px 18px rgb(0 0 0 / 3%);
-  --shadow-hover: 0 8px 24px rgb(0 0 0 / 7%);
-  --shadow-dialog: 0 20px 60px rgb(0 0 0 / 16%);
-  --control-height: 44px;
-  --focus-ring: 3px solid rgba(var(--bs-primary-rgb), 0.45);
-  --layer-header: 1020;
-  --layer-dialog: 1065;
-}
+/* Tokens live in tokens.css; this file keeps shared layout rules. */
 html {
   scrollbar-gutter: stable;
-}
-body {
-  font-family: var(--font-ui);
 }
 .money-value,
 .product-card-price,
@@ -187,7 +147,7 @@ body {
 }
 :is(.buyer-shell, .seller-shell, .admin-shell) .btn {
   border-radius: var(--ui-control-radius);
-  min-height: 42px;
+  min-height: var(--control-height);
   padding: 0.6rem 1rem;
   font-size: 0.88rem;
   font-weight: 600;

@@ -1,0 +1,139 @@
+/*
+ * Design tokens. Loaded right after Bootstrap; the --bs-* variables below re-skin
+ * Bootstrap utilities and every existing rule that already reads them.
+ * Bootstrap's "body background" is used across the app as the panel colour, so it maps
+ * to --surface; the page itself is painted with --bg.
+ */
+:root {
+  --bg: #f7f7f4;
+  --surface: #fff;
+  --surface-2: #f1f1ec;
+  --border: #e6e5df;
+  --text: #15161a;
+  --muted: #5b5d66;
+  --primary: #1e3be8;
+  --primary-rgb: 30, 59, 232;
+  --primary-hover: #1730c4;
+  --primary-ink: #14279b;
+  --primary-soft: #e8ecfe;
+  --accent: #c6ff3d;
+  --accent-ink: #15161a;
+  --danger: #e5243b;
+  --danger-rgb: 229, 36, 59;
+  /* #E5243B reaches 4.5:1 only on pure white; text on tinted backgrounds uses this. */
+  --danger-ink: #b3172b;
+  --success: var(--bs-success, #198754);
+  --warning: var(--bs-warning, #ffc107);
+
+  /* Names kept from the previous token set so existing rules keep working. */
+  --surface-muted: var(--surface-2);
+  --surface-skeleton: #e9e8e1;
+  --text-muted: var(--muted);
+  --auction-accent: #ff5a36;
+  --auction-accent-soft: #fff0eb;
+  --auction-accent-ink: #7a210d;
+
+  --font-ui: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-money: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-size-small: 0.8rem;
+  --font-size-body: 0.9rem;
+  --font-size-section: 1.15rem;
+
+  /* 4px spacing scale. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Borders carry the structure; shadows are reserved for floating layers. */
+  --shadow-card: none;
+  --shadow-hover: 0 1px 0 var(--border);
+  --shadow-dialog: 0 24px 64px rgb(21 22 26 / 18%);
+  --control-height: 44px;
+  --focus-ring: 3px solid rgba(var(--primary-rgb), 0.45);
+  --layer-header: 1020;
+  --layer-dialog: 1065;
+
+  --bs-body-font-family: var(--font-ui);
+  --bs-font-monospace: var(--font-money);
+  --bs-body-bg: var(--surface);
+  --bs-body-bg-rgb: 255, 255, 255;
+  --bs-body-color: var(--text);
+  --bs-body-color-rgb: 21, 22, 26;
+  --bs-emphasis-color: var(--text);
+  --bs-emphasis-color-rgb: 21, 22, 26;
+  --bs-heading-color: var(--text);
+  --bs-secondary-color: var(--muted);
+  --bs-secondary-color-rgb: 91, 93, 102;
+  --bs-secondary-bg: var(--surface-2);
+  --bs-tertiary-bg: var(--surface-2);
+  --bs-tertiary-color: var(--muted);
+  --bs-border-color: var(--border);
+  --bs-border-color-translucent: var(--border);
+  --bs-primary: var(--primary);
+  --bs-primary-rgb: var(--primary-rgb);
+  --bs-primary-text-emphasis: var(--primary-ink);
+  --bs-primary-bg-subtle: var(--primary-soft);
+  --bs-primary-border-subtle: #c3ccfb;
+  --bs-danger: var(--danger);
+  --bs-danger-rgb: var(--danger-rgb);
+  --bs-danger-text-emphasis: var(--danger-ink);
+  --bs-danger-bg-subtle: #fdeaec;
+  --bs-danger-border-subtle: #f7c2c9;
+  --bs-form-invalid-color: var(--danger-ink);
+  --bs-form-invalid-border-color: var(--danger);
+  --bs-link-color: var(--primary);
+  --bs-link-color-rgb: var(--primary-rgb);
+  --bs-link-hover-color: var(--primary-hover);
+  --bs-link-hover-color-rgb: 23, 48, 196;
+  --bs-border-radius: var(--radius-sm);
+  --bs-border-radius-sm: 8px;
+  --bs-border-radius-lg: var(--radius-md);
+  --bs-border-radius-xl: var(--radius-lg);
+  --bs-border-radius-xxl: var(--radius-xl);
+  --bs-box-shadow: var(--shadow-dialog);
+  --bs-box-shadow-sm: none;
+  --bs-focus-ring-color: rgba(var(--primary-rgb), 0.25);
+}
+
+/* Dark auction surface: a scope, so it can wrap one page or one card. */
+.theme-auction {
+  --bg: #0e0b1f;
+  --surface: #1e1a38;
+  --surface-2: #2a2550;
+  --border: #37315f;
+  --text: #fff;
+  --muted: #8b86b3;
+  --neon: #c6ff3d;
+  --live: #ff3d7f;
+  --surface-muted: var(--surface-2);
+  --text-muted: var(--muted);
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--text);
+  --bs-heading-color: var(--text);
+  --bs-secondary-color: var(--muted);
+  --bs-secondary-bg: var(--surface-2);
+  --bs-tertiary-bg: var(--surface-2);
+  --bs-border-color: var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

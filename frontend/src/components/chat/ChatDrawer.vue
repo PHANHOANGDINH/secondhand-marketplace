@@ -260,7 +260,7 @@ onUnmounted(release)
   position: fixed;
   inset: 0;
   z-index: 1060;
-  background: rgb(0 0 0 / 30%);
+  background: rgb(21 22 26 / 48%);
 }
 .chat-drawer {
   position: absolute;
@@ -274,8 +274,8 @@ onUnmounted(release)
   background: var(--bs-body-bg);
   color: var(--bs-body-color);
   border: 1px solid var(--bs-border-color);
-  border-radius: 1rem;
-  box-shadow: 0 1rem 3rem rgb(0 0 0 / 15%);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-dialog);
 }
 .chat-topbar,
 .chat-context {
@@ -313,9 +313,15 @@ onUnmounted(release)
   color: inherit;
   padding: 1rem;
 }
+.chat-conversation {
+  transition: background-color var(--transition-fast);
+}
+.chat-conversation:hover {
+  background: var(--surface-2);
+}
 .chat-conversation.selected {
-  background: var(--bs-primary-bg-subtle);
-  box-shadow: inset 3px 0 var(--bs-primary);
+  background: var(--primary-soft);
+  box-shadow: inset 3px 0 var(--primary);
 }
 .chat-context-name,
 .chat-preview {

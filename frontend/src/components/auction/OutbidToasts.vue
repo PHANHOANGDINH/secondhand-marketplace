@@ -62,7 +62,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <aside class="auction-toasts" aria-label="Thông báo đấu giá">
+  <aside class="auction-toasts theme-auction" aria-label="Thông báo đấu giá">
     <section
       v-for="notice in notices"
       :key="notice.id"

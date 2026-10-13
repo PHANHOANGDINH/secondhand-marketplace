@@ -35,7 +35,7 @@ onMounted(() => load())
 onUnmounted(() => request++)
 </script>
 <template>
-  <section class="auction-discovery">
+  <section class="auction-discovery theme-auction">
     <PageHeader
       title="Sàn đấu giá"
       eyebrow="Mỗi món đồ, một cơ hội mới"

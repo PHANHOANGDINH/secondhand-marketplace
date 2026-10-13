@@ -226,7 +226,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <section class="auction-arena">
+  <section class="auction-arena theme-auction">
     <RouterLink :to="seller ? '/seller/auctions' : '/auctions'" class="buyer-back-link"
       >← {{ seller ? 'Đấu giá của tôi' : 'Sàn đấu giá' }}</RouterLink
     >

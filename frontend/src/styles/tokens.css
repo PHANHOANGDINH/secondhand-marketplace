@@ -136,6 +136,11 @@
   --bs-secondary-bg: var(--surface-2);
   --bs-tertiary-bg: var(--surface-2);
   --bs-border-color: var(--border);
+  --bs-link-color: var(--neon);
+  --bs-link-color-rgb: 198, 255, 61;
+  --bs-link-hover-color: #fff;
+  --bs-link-hover-color-rgb: 255, 255, 255;
+  --focus-ring: 3px solid var(--neon);
   background: var(--bg);
   color: var(--text);
 }

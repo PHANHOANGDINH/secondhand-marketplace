@@ -9,10 +9,10 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--ui-border, #e2e8f0);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  color: var(--ui-text, #172033);
-  background: var(--ui-surface, #fff);
+  color: var(--text);
+  background: var(--surface);
 }
 .notification-badge {
   position: absolute;
@@ -32,9 +32,9 @@
   max-height: min(72vh, 650px);
   overflow-y: auto;
   z-index: 1060;
-  background: var(--ui-surface, #fff);
-  color: var(--ui-text, #172033);
-  border: 1px solid var(--ui-border, #e2e8f0);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
   padding: 16px;
@@ -52,7 +52,7 @@
 }
 .notification-list li {
   position: relative;
-  border-bottom: 1px solid var(--ui-border, #e2e8f0);
+  border-bottom: 1px solid var(--border);
   padding: 12px 0;
 }
 .notification-list li:last-child {

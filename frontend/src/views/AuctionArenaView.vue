@@ -1,4 +1,5 @@
 <script setup>
+import FirstTimeGuide from '../components/onboarding/FirstTimeGuide.vue'
 import { localizeValidationMessage } from '../utils/validationLabels'
 
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
@@ -233,6 +234,16 @@ onUnmounted(() => {
     <DomainFeedback
       :busy="seller ? sellerLoading : live.loading.value && !auction"
       :error="seller ? sellerError : live.error.value"
+    />
+    <FirstTimeGuide
+      v-if="auction && !seller"
+      name="auction-room"
+      title="Lần đầu vào phòng đấu giá"
+      :steps="[
+        { title: 'Giá:', text: 'giá hiện tại và giá tối thiểu do máy chủ xác nhận.' },
+        { title: 'Thời gian:', text: 'đồng hồ đếm theo giờ máy chủ, không theo máy của bạn.' },
+        { title: 'Thắng phiên:', text: 'người thắng thanh toán trong thời hạn được thông báo.' },
+      ]"
     />
     <template v-if="auction">
       <PageHeader

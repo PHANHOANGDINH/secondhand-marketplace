@@ -22,10 +22,34 @@ import CartLink from '../components/CartLink.vue'
 import ProductSearch from '../components/ProductSearch.vue'
 import { listCategories } from '../api/category.api'
 import { brand } from '../config/brand'
+import FirstTimeGuide from '../components/onboarding/FirstTimeGuide.vue'
+import { resetFirstTime } from '../composables/useFirstTime'
 const searchKeyword = ref('')
 const searchProducts = () =>
   router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
 const auth = useAuthStore()
+// The welcome tour opens right after a sign-in in this page session (not on a reload),
+// and again on request from the account menu.
+const welcomeActive = ref(false),
+  guideRun = ref(0)
+const welcomeSteps = [
+  { title: 'Tìm kiếm', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm ở đầu trang để xem gợi ý.' },
+  { title: 'Đăng bán nhanh', text: 'Nút "Đăng bán nhanh" mở biểu mẫu đăng tin ngay tại trang bạn đang xem.' },
+  { title: 'Đấu giá', text: 'Vào "Sàn đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
+]
+watch(
+  () => auth.user?.id,
+  (id, previous) => {
+    if (id && !previous && auth.initialized) welcomeActive.value = true
+    if (!id) welcomeActive.value = false
+  },
+)
+function replayGuides() {
+  accountMenu.value?.removeAttribute('open')
+  if (!resetFirstTime(auth.user?.id)) return
+  guideRun.value += 1
+  welcomeActive.value = true
+}
 // Top-level categories for the browse row; the row stays hidden if they cannot be loaded.
 const categories = ref([])
 provideMessaging()
@@ -212,6 +236,9 @@ function closeAccountMenu(event) {
                 ><RouterLink to="/admin/shops">Kiểm duyệt gian hàng</RouterLink
                 ><RouterLink to="/admin/products">Kiểm duyệt sản phẩm</RouterLink></template
               >
+              <button type="button" class="marketplace-menu-button" @click="replayGuides">
+                Xem lại hướng dẫn
+              </button>
               <LogoutButton />
             </div>
           </details>
@@ -238,6 +265,15 @@ function closeAccountMenu(event) {
     </ul>
   </nav>
   <QuickListingDialog v-if="quickOpen" @close="closeQuickListing" />
+  <FirstTimeGuide
+    v-if="auth.isAuthenticated && welcomeActive && !quickOpen"
+    :key="guideRun"
+    name="welcome"
+    tour
+    :title="`Chào mừng đến ${brand.name}`"
+    :steps="welcomeSteps"
+    @done="welcomeActive = false"
+  />
   <OutbidToasts v-if="auth.isAuthenticated" /><ChatDrawer v-if="auth.isAuthenticated" />
   <AdminShell v-if="adminPage"><slot /></AdminShell>
   <SellerShell v-else-if="sellerPage"><slot /></SellerShell>
@@ -461,6 +497,22 @@ function closeAccountMenu(event) {
   border-radius: var(--radius-sm);
 }
 .marketplace-account-menu :deep(a:hover) {
+  background: var(--surface-2);
+  color: var(--primary);
+}
+.marketplace-menu-button {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.marketplace-menu-button:hover {
   background: var(--surface-2);
   color: var(--primary);
 }

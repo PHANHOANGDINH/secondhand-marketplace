@@ -1,4 +1,5 @@
 <script setup>
+import FirstTimeGuide from '../components/onboarding/FirstTimeGuide.vue'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
@@ -46,6 +47,16 @@ useSellerIdentity(() => shop.value)
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">Tải lại</button>
     <template v-if="loaded">
+      <FirstTimeGuide
+        v-if="shop"
+        name="shop-created"
+        title="Gian hàng đã được tạo"
+        :steps="[
+          { title: 'Xét duyệt:', text: 'gian hàng cần được duyệt trước khi đăng sản phẩm công khai.' },
+          { title: 'Sản phẩm:', text: 'soạn tin ở mục Sản phẩm của tôi hoặc bằng Đăng bán nhanh.' },
+          { title: 'Đơn bán:', text: 'đơn mới xuất hiện ở mục Đơn bán và trên trang Thống kê.' },
+        ]"
+      />
       <div v-if="shop" class="workspace-panel">
         <h2 class="h4 mb-3">{{ shop.name }}</h2>
         <p>Trạng thái: <StatusBadge :status="shop.status" /></p>

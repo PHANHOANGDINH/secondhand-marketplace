@@ -2,6 +2,7 @@
 import { nextTick, ref } from 'vue'
 import AccessibleDialog from '../ui/AccessibleDialog.vue'
 import SellerProductEditor from './SellerProductEditor.vue'
+import FirstTimeGuide from '../onboarding/FirstTimeGuide.vue'
 const emit = defineEmits(['close'])
 const editor = ref(null),
   dialog = ref(null),
@@ -37,6 +38,15 @@ async function dismiss() {
     :busy="busy"
     @dismiss="dismiss"
   >
+    <FirstTimeGuide
+      name="quick-listing"
+      title="Lần đầu đăng bán"
+      :steps="[
+        { title: 'Ảnh:', text: 'ảnh vuông, đủ sáng hiển thị đẹp nhất.' },
+        { title: 'Bản nháp:', text: 'lưu trước, gửi duyệt khi đã sẵn sàng.' },
+        { title: 'Kiểm duyệt:', text: 'tin chỉ hiện công khai sau khi được duyệt.' },
+      ]"
+    />
     <SellerProductEditor ref="editor" embedded @busy-change="busy = $event" />
     <template v-if="confirmation" #footer
       ><div class="alert alert-warning mb-0" role="alert">

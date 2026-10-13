@@ -4,6 +4,7 @@ import api from '../api/axios'
 import HomeScrollStory from '../components/home/HomeScrollStory.vue'
 import HomeDiscovery from '../components/home/HomeDiscovery.vue'
 import ProductSuggestions from '../components/ProductSuggestions.vue'
+import { brandLine } from '../config/brand'
 
 const status = ref('checking')
 async function checkHealth() {
@@ -19,7 +20,7 @@ onMounted(checkHealth)
 </script>
 
 <template>
-  <h1 class="visually-hidden">Secondhand · Sàn mua bán</h1>
+  <h1 class="visually-hidden">{{ brandLine }}</h1>
   <HomeScrollStory />
   <HomeDiscovery />
   <ProductSuggestions class="home-recommendations" title="Gợi ý cho bạn" :limit="12" />

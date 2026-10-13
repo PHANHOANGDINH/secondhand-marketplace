@@ -99,7 +99,7 @@ onBeforeUnmount(resetFiles)
       <span class="listing-upload-icon" aria-hidden="true">＋</span>
       <label :for="inputId" class="form-label">Chọn ảnh sản phẩm</label>
       <p :id="`${inputId}-help`" class="text-muted">
-        Nhấn để chọn JPEG, PNG hoặc WebP · tối đa 8 ảnh
+        Nhấn để chọn JPEG, PNG hoặc WebP · tối đa 8 ảnh. Ảnh vuông hiển thị đẹp nhất.
       </p>
       <input
         :id="inputId"

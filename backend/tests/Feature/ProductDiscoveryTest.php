@@ -119,4 +119,52 @@ class ProductDiscoveryTest extends TestCase
         DB::disableQueryLog();
         $this->assertLessThanOrEqual($one + 1, $many);
     }
+
+    public function test_has_video_flag_is_true_only_for_a_ready_video_and_matches_the_filter(): void
+    {
+        $ready = Product::factory()->active()->create();
+        ProductVideo::factory()->create(['product_id' => $ready->id]);
+        ProductVideo::factory()->create(['product_id' => $ready->id, 'status' => 'HIDDEN', 'is_primary' => false]);
+        $none = Product::factory()->active()->create();
+        $flags = [(string) $ready->id => true, (string) $none->id => false];
+        foreach (['HIDDEN', 'PROCESSING', 'FAILED'] as $status) {
+            $product = Product::factory()->active()->create();
+            ProductVideo::factory()->create(['product_id' => $product->id, 'status' => $status, 'is_primary' => false]);
+            $flags[(string) $product->id] = false;
+        }
+        $rows = $this->getJson('/api/v1/products?per_page=100')->assertOk()->json('data');
+        $this->assertSame($flags, collect($rows)->sortBy(fn (array $row): int => (int) $row['id'])->mapWithKeys(fn (array $row): array => [$row['id'] => $row['has_video']])->all());
+        // The flag and the D1 "has video" filter share one condition.
+        $this->assertSame([(string) $ready->id], $this->ids(['has_video' => '1']));
+        $this->assertCount(4, $this->ids(['has_video' => '0']));
+        $this->getJson('/api/v1/products/'.$ready->slug)->assertOk()->assertJsonPath('data.has_video', true);
+        $this->getJson('/api/v1/products/'.$none->slug)->assertOk()->assertJsonPath('data.has_video', false);
+        $this->getJson('/api/v1/products/'.$ready->slug.'/similar')->assertOk();
+        $this->getJson('/api/v1/recommendations')->assertOk()->assertJsonPath('data.0.has_video', fn ($value): bool => is_bool($value));
+        $this->getJson('/api/v1/products/suggestions?q='.urlencode(substr($ready->name, 0, 3)))->assertOk();
+    }
+
+    public function test_has_video_flag_does_not_add_queries_per_product(): void
+    {
+        ProductVideo::factory()->create(['product_id' => Product::factory()->active()->create()->id]);
+        Product::factory()->active()->create();
+        $count = function (string $path): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->getJson($path)->assertOk();
+            DB::disableQueryLog();
+
+            return count(DB::getQueryLog());
+        };
+        $paths = ['/api/v1/products?per_page=100', '/api/v1/products?per_page=100&has_video=1'];
+        $few = array_map($count, $paths);
+        foreach (range(1, 12) as $index) {
+            $product = Product::factory()->active()->create();
+            if ($index % 2) {
+                ProductVideo::factory()->count(2)->create(['product_id' => $product->id, 'is_primary' => false]);
+            }
+        }
+        $this->assertCount(14, $this->ids(['per_page' => 100]));
+        $this->assertSame($few, array_map($count, $paths));
+    }
 }

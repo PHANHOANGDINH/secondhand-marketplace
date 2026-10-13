@@ -1,0 +1,63 @@
+// Single source for the product name. A rebrand touches this file and components/ui/BrandLogo.vue only.
+export const brand = {
+  name: 'pass lại',
+  slogan: 'Đồ cũ, giá trị mới',
+  sellerArea: 'Kênh người bán',
+  adminArea: 'Quản trị',
+}
+export const brandLine = `${brand.name} · ${brand.slogan}`
+export const sellerBrand = `${brand.name} · ${brand.sellerArea}`
+export const adminBrand = `${brand.name} · ${brand.adminArea}`
+
+/** "<page> · pass lại"; without a page name, the brand line. */
+export const pageTitle = (page) => (page ? `${page} · ${brand.name}` : brandLine)
+
+// Document titles by route name.
+export const pageNames = {
+  home: '',
+  products: 'Sản phẩm',
+  product: 'Chi tiết sản phẩm',
+  shops: 'Gian hàng',
+  shop: 'Gian hàng',
+  auctions: 'Sàn đấu giá',
+  auction: 'Phiên đấu giá',
+  'auction-checkout': 'Thanh toán phiên đấu giá',
+  cart: 'Giỏ hàng',
+  checkout: 'Thanh toán',
+  orders: 'Đơn mua',
+  order: 'Chi tiết đơn mua',
+  'payment-result': 'Kết quả thanh toán',
+  wishlist: 'Sản phẩm yêu thích',
+  notifications: 'Thông báo',
+  reports: 'Báo cáo của tôi',
+  login: 'Đăng nhập',
+  register: 'Đăng ký',
+  'forgot-password': 'Quên mật khẩu',
+  'reset-password': 'Đặt lại mật khẩu',
+  account: 'Tài khoản',
+  profile: 'Hồ sơ',
+  addresses: 'Địa chỉ',
+  'seller-shop': 'Gian hàng của tôi',
+  'seller-dashboard': 'Thống kê gian hàng',
+  'seller-products': 'Sản phẩm của tôi',
+  'seller-product-create': 'Đăng sản phẩm',
+  'seller-product-edit': 'Sửa sản phẩm',
+  'seller-inventory': 'Tồn kho',
+  'seller-orders': 'Đơn bán',
+  'seller-order': 'Chi tiết đơn bán',
+  'seller-auctions': 'Phiên đấu giá của tôi',
+  'seller-auction': 'Phiên đấu giá của tôi',
+  'admin-action-center': 'Việc cần xử lý',
+  'admin-dashboard': 'Tổng quan quản trị',
+  'admin-users': 'Người dùng',
+  'admin-shops': 'Kiểm duyệt gian hàng',
+  'admin-products': 'Kiểm duyệt sản phẩm',
+  'admin-categories': 'Quản lý danh mục',
+  'admin-reviews': 'Duyệt đánh giá',
+  'admin-orders': 'Tổng quan đơn hàng',
+  'admin-payments': 'Đối soát thanh toán',
+  'admin-auctions': 'Giám sát đấu giá',
+  'admin-reports': 'Báo cáo vi phạm',
+  forbidden: 'Không có quyền truy cập',
+  'not-found': 'Không tìm thấy trang',
+}

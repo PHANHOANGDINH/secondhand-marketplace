@@ -5,6 +5,7 @@ import AppIcon from './ui/AppIcon.vue'
 import { formatPrice, conditionLabel, timeAgo } from '../composables/productPresentation'
 import { getStatusLabel } from '../utils/labels'
 defineProps({ product: { type: Object, required: true } })
+const rating = (product) => Number(product.average_rating).toFixed(1)
 </script>
 <template>
   <article class="card h-100 marketplace-product-card" :data-product="product.id">
@@ -19,10 +20,13 @@ defineProps({ product: { type: Object, required: true } })
           class="w-100"
           style="aspect-ratio: 1 / 1; height: auto"
       /></RouterLink>
+      <span v-if="product.has_video" class="product-card-badge product-card-badge-video"
+        ><AppIcon name="play" :size="14" />Có video</span
+      >
       <RouterLink
         v-if="product.auction"
         :to="`/auctions/${product.auction.id}`"
-        class="product-card-badge"
+        class="product-card-badge product-card-badge-auction"
         ><AppIcon name="gavel" :size="14" />{{ getStatusLabel(product.auction.status, 'auction') }}
         · Xem phiên</RouterLink
       >
@@ -50,10 +54,14 @@ defineProps({ product: { type: Object, required: true } })
           :datetime="product.published_at"
           >{{ timeAgo(product.published_at) }}</time
         >
-      </p>
-      <p v-if="product.review_count" class="product-card-rating">
-        <AppIcon name="star" filled :size="14" /> {{ product.average_rating }} / 5 ·
-        {{ product.review_count }} đánh giá
+        <span
+          v-if="product.review_count > 0"
+          class="product-card-rating"
+          :aria-label="`${rating(product)} trên 5, ${product.review_count} đánh giá`"
+          ><AppIcon name="star" filled :size="13" />{{ rating(product) }} ({{
+            product.review_count
+          }})</span
+        >
       </p>
     </div>
   </article>
@@ -86,6 +94,7 @@ defineProps({ product: { type: Object, required: true } })
   width: 100%;
   height: 100% !important;
   object-fit: cover !important;
+  object-position: center;
   border-radius: 0 !important;
   background: transparent !important;
 }
@@ -95,11 +104,10 @@ defineProps({ product: { type: Object, required: true } })
   right: 0.5rem;
   z-index: 1;
 }
-/* Image-corner label: an auction is running or scheduled for this listing. */
+/* Image-corner labels: video at the top, auction at the bottom. */
 .product-card-badge {
   position: absolute;
   left: 0.5rem;
-  bottom: 0.5rem;
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -115,7 +123,15 @@ defineProps({ product: { type: Object, required: true } })
   text-decoration: none;
   transition: background-color var(--transition-fast);
 }
-.product-card-badge:hover {
+.product-card-badge-video {
+  top: 0.5rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.product-card-badge-auction {
+  bottom: 0.5rem;
+}
+.product-card-badge-auction:hover {
   background: var(--primary);
   color: #fff;
 }
@@ -185,9 +201,8 @@ h2 a:hover {
 .product-card-rating {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--muted);
+  gap: 0.2rem;
+  white-space: nowrap;
 }
 .product-card-rating :deep(svg) {
   color: #b7791f;

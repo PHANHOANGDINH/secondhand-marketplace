@@ -45,7 +45,7 @@ it('Admin shell retains existing sections and adds the report workflow and activ
   expect(wrapper.get('a[href="/admin/reports"]').text()).toContain('Báo cáo vi phạm')
   expect(wrapper.get('nav a.active').attributes('href')).toBe('/admin/orders')
   expect(wrapper.get('nav a.active').attributes('aria-current')).toBe('page')
-  expect(wrapper.get('.admin-brand').text()).toContain('quản trị')
+  expect(wrapper.get('.admin-brand').text()).toBe('pass lại Quản trị')
 })
 it('Admin menu supports Escape focus restoration and closes after query navigation', async () => {
   const { wrapper, router } = await shell()

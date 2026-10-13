@@ -13,6 +13,7 @@ class ProductResource extends JsonResource
             'is_wishlisted' => (bool) ($this->resource->getAttributes()['is_wishlisted'] ?? false),
             'wishlisted_at' => $this->whenHas('wishlisted_at'),
             'reason_label' => $this->whenHas('reason_label'),
+            'has_video' => $this->whenHas('has_video', fn (): bool => (bool) $this->has_video),
             'id' => (string) $this->id, 'name' => $this->name, 'slug' => $this->slug, 'description' => $this->description, 'price' => $this->price,
             'average_rating' => $this->whenHas('average_rating', fn () => $this->average_rating === null ? null : round((float) $this->average_rating, 2)),
             'review_count' => $this->whenHas('review_count', fn () => (int) $this->review_count),

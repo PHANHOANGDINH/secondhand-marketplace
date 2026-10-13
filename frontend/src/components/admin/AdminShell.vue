@@ -1,4 +1,5 @@
 <script setup>
+import { brand } from '../../config/brand'
 import NotificationBell from '../notifications/NotificationBell.vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -41,7 +42,7 @@ function close() {
   <div class="admin-shell" @keydown.esc="close">
     <header class="admin-topbar">
       <RouterLink class="admin-brand" to="/"
-        >Secondhand <span>Không gian quản trị</span></RouterLink
+        >{{ brand.name }} <span>{{ brand.adminArea }}</span></RouterLink
       >
       <div class="admin-topbar-actions">
         <span class="admin-identity">Quản trị</span

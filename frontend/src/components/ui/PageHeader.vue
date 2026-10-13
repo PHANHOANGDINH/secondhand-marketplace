@@ -1,8 +1,9 @@
 <script setup>
+import { brandLine } from '../../config/brand'
 defineProps({
   title: { type: String, required: true },
   description: String,
-  eyebrow: { type: String, default: 'Secondhand · Sàn mua bán' },
+  eyebrow: { type: String, default: brandLine },
 })
 </script>
 <template>

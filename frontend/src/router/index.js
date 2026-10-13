@@ -1,3 +1,4 @@
+import { pageNames, pageTitle } from '../config/brand'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { createAuthGuard } from './authGuard'
@@ -273,4 +274,7 @@ const router = createRouter({
   ],
 })
 router.beforeEach((to) => createAuthGuard(useAuthStore())(to))
+router.afterEach((to) => {
+  document.title = pageTitle(pageNames[to.name])
+})
 export default router

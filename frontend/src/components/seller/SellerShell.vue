@@ -1,4 +1,5 @@
 <script setup>
+import { brand } from '../../config/brand'
 import NotificationBell from '../notifications/NotificationBell.vue'
 import { provide, ref, watch } from 'vue'
 import { sellerIdentityKey } from './useSellerIdentity'
@@ -37,7 +38,9 @@ function close() {
 <template>
   <div class="seller-shell" @keydown.esc="close">
     <header class="seller-topbar">
-      <RouterLink class="seller-brand" to="/">Secondhand <span>Gian hàng của tôi</span></RouterLink>
+      <RouterLink class="seller-brand" to="/"
+        >{{ brand.name }} <span>{{ brand.sellerArea }}</span></RouterLink
+      >
       <div class="seller-topbar-actions">
         <RouterLink to="/products">← Sàn mua bán</RouterLink
         ><RouterLink to="/account/profile" class="seller-user">{{

@@ -21,6 +21,7 @@ import LogoutButton from '../components/LogoutButton.vue'
 import CartLink from '../components/CartLink.vue'
 import ProductSearch from '../components/ProductSearch.vue'
 import { listCategories } from '../api/category.api'
+import { brand } from '../config/brand'
 const searchKeyword = ref('')
 const searchProducts = () =>
   router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
@@ -121,7 +122,7 @@ function closeAccountMenu(event) {
     @keydown.esc="closeNavigation"
   >
     <nav class="container marketplace-nav" aria-label="Điều hướng chính">
-      <RouterLink to="/" class="marketplace-brand" aria-label="pass lại · Trang chủ"
+      <RouterLink to="/" class="marketplace-brand" :aria-label="`${brand.name} · Trang chủ`"
         ><BrandLogo
       /></RouterLink>
       <form

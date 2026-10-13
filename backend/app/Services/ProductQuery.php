@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ProductStatus;
+use App\Enums\ProductVideoStatus;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,7 +27,15 @@ class ProductQuery
             $query->withExists(['wishlistEntries as is_wishlisted' => fn (Builder $rows) => $rows->where('user_id', $user->id)]);
         }
 
+        $query->withExists(['videos as has_video' => $this->publicVideos()]);
+
         return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at'), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+    }
+
+    /** One definition of "has a video": shared by the has_video filter and the has_video flag. */
+    private function publicVideos(): \Closure
+    {
+        return fn (Builder $videos) => $videos->where('status', ProductVideoStatus::Ready);
     }
 
     public function apply(Builder $query, array $filters, bool $descendants = false): Builder
@@ -67,7 +76,7 @@ class ProductQuery
             $query->where('price', '<=', $filters['max_price']);
         }
         if ($descendants && isset($filters['has_video'])) {
-            $query->has('videos', (bool) $filters['has_video'] ? '>=' : '<', 1, 'and', fn (Builder $videos) => $videos->where('status', 'READY'));
+            $query->has('videos', (bool) $filters['has_video'] ? '>=' : '<', 1, 'and', $this->publicVideos());
         }
         if ($descendants && isset($filters['sale_type'])) {
             if ($filters['sale_type'] === 'auction') {

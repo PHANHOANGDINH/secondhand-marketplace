@@ -4,6 +4,9 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import * as categoryApi from '../api/category.api'
 import { timeAgo } from '../composables/productPresentation'
+import { brand, brandLine, sellerBrand, adminBrand, pageTitle, pageNames } from '../config/brand'
+import router from '../router'
+import PageHeader from '../components/ui/PageHeader.vue'
 import BrandLogo from '../components/ui/BrandLogo.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
@@ -88,6 +91,7 @@ it('listing card shows price, then one muted line: condition, shop, time since p
   expect(wrapper.get('.product-card-price').text()).toContain('1.500.000')
   expect(wrapper.get('h2 a').attributes('href')).toBe('/products/may-anh-phim')
   expect(wrapper.find('.product-card-badge').exists()).toBe(false)
+  expect(wrapper.find('.product-card-rating').exists()).toBe(false)
   expect(wrapper.find('.product-card-reason').exists()).toBe(false)
   expect(wrapper.get('.product-card-favorite button').attributes('aria-label')).toBe('Thêm vào yêu thích: Máy ảnh phim')
   expect(wrapper.get('.product-card-favorite svg').attributes('aria-hidden')).toBe('true')
@@ -100,7 +104,8 @@ it('listing card labels an auction on the image corner and keeps the link to the
   const { wrapper } = await setup(ProductCard, {
     props: { product: product({ auction: { id: '9', status: 'LIVE', current_price: '2000000.00' }, reason_label: 'Mới đăng gần đây' }) },
   })
-  const badge = wrapper.get('.product-card-media .product-card-badge')
+  const badge = wrapper.get('.product-card-media .product-card-badge-auction')
+  expect(wrapper.find('.product-card-badge-video').exists()).toBe(false)
   expect(badge.attributes('href')).toBe('/auctions/9')
   expect(badge.text()).toContain('Xem phiên')
   expect(wrapper.get('.product-card-price').text()).toContain('2.000.000')
@@ -112,7 +117,7 @@ it('interim logo, line icons and empty state use SVG with text labels and no emo
   expect(logo.text()).toBe('pass lại')
   expect(logo.get('.brand-logo-mark').attributes('aria-hidden')).toBe('true')
   expect(logo.get('svg path').attributes('stroke')).toBe('var(--accent)')
-  for (const name of ['search', 'menu', 'plus', 'chevronDown', 'heart', 'star', 'box', 'gavel', 'tag']) {
+  for (const name of ['search', 'menu', 'plus', 'chevronDown', 'heart', 'star', 'box', 'play', 'gavel', 'tag']) {
     const icon = mount(AppIcon, { props: { name } })
     expect(icon.get('svg').attributes()).toMatchObject({ 'aria-hidden': 'true', fill: 'none', 'stroke-width': '1.6' })
     expect(icon.get('path').attributes('d')).toBeTruthy()
@@ -156,4 +161,37 @@ it('category row is absent when categories cannot be loaded and in the seller an
     const area = await setup(DefaultLayout, { path })
     expect(area.wrapper.find('nav[aria-label="Danh mục"]').exists()).toBe(false)
   }
+})
+
+it('listing card marks a video on the image and ends the meta line with a compact rating', async () => {
+  const { wrapper } = await setup(ProductCard, {
+    props: { product: product({ has_video: true, review_count: 12, average_rating: 4.75 }) },
+  })
+  expect(wrapper.get('.product-card-media .product-card-badge-video').text()).toBe('Có video')
+  const parts = wrapper.get('.product-card-meta').findAll(':scope > *')
+  expect(parts.map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', '3 giờ trước', '4.8 (12)'])
+  expect(parts.at(-1).attributes('aria-label')).toBe('4.8 trên 5, 12 đánh giá')
+  expect(parts.at(-1).get('svg').attributes('aria-hidden')).toBe('true')
+
+  for (const extra of [{ has_video: false }, { review_count: 0, average_rating: null }, {}]) {
+    const plain = await setup(ProductCard, { props: { product: product(extra) } })
+    expect(plain.wrapper.find('.product-card-badge-video').exists()).toBe(false)
+    expect(plain.wrapper.find('.product-card-rating').exists()).toBe(false)
+    expect(plain.wrapper.text()).not.toContain('(0)')
+  }
+})
+
+it('brand config is the single source for the name, area labels and document titles', async () => {
+  expect(brand).toMatchObject({ name: 'pass lại', slogan: 'Đồ cũ, giá trị mới' })
+  expect(brandLine).toBe('pass lại · Đồ cũ, giá trị mới')
+  expect(sellerBrand).toBe('pass lại · Kênh người bán')
+  expect(adminBrand).toBe('pass lại · Quản trị')
+  expect(pageTitle('Giỏ hàng')).toBe('Giỏ hàng · pass lại')
+  expect(pageTitle('')).toBe(brandLine)
+  expect(pageTitle(undefined)).toBe(brandLine)
+  // Every named route has a Vietnamese document title.
+  const names = router.getRoutes().map((route) => route.name)
+  expect(names.filter((name) => !(name in pageNames))).toEqual([])
+  expect(mount(BrandLogo).text()).toBe(brand.name)
+  expect(mount(PageHeader, { props: { title: 'Đơn mua' } }).get('.buyer-eyebrow').text()).toBe(brandLine)
 })

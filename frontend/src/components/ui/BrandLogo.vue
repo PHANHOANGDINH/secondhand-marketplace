@@ -1,5 +1,6 @@
 <script setup>
 // Interim logo: primary tile with an accent-outlined price tag, plus the wordmark.
+import { brand } from '../../config/brand'
 defineProps({ compact: Boolean })
 </script>
 <template>
@@ -15,7 +16,7 @@ defineProps({ compact: Boolean })
         <circle cx="8.5" cy="8.5" r="1.3" fill="var(--accent)" />
       </svg>
     </span>
-    <span class="brand-logo-word">pass lại</span>
+    <span class="brand-logo-word">{{ brand.name }}</span>
   </span>
 </template>
 <style scoped>

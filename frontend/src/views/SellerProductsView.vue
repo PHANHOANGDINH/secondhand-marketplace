@@ -85,6 +85,19 @@ useSellerIdentity(() => shop.value)
       Gian hàng {{ getStatusLabel(shop.status) }}. Chỉ gian hàng đang hoạt động được gửi sản phẩm để
       duyệt.
     </p>
+    <div class="order-tabs" role="group" aria-label="Lọc sản phẩm theo trạng thái">
+      <button
+        v-for="state in ['', ...statuses]"
+        :key="state"
+        type="button"
+        class="order-tab"
+        :class="{ 'is-active': status === state }"
+        :aria-pressed="status === state"
+        @click="((status = state), load())"
+      >
+        {{ state ? getStatusLabel(state) : 'Tất cả' }}
+      </button>
+    </div>
     <form class="d-flex gap-2 flex-wrap my-3 seller-toolbar" @submit.prevent="load()">
       <label class="flex-grow-1"
         >Tìm kiếm<input

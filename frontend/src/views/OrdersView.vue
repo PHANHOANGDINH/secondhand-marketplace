@@ -91,6 +91,20 @@ useSellerIdentity(() => (props.seller ? result.value?.data[0]?.shop : null))
         {{ tab ? orderStatuses[tab] : 'Tất cả' }}
       </button>
     </div>
+    <div v-if="seller" class="order-tabs" role="group" aria-label="Lọc đơn bán theo trạng thái">
+      <button
+        v-for="tab in ['', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPING', 'COMPLETED', 'CANCELLED']"
+        :key="tab"
+        type="button"
+        class="order-tab"
+        :class="{ 'is-active': status === tab }"
+        :aria-pressed="status === tab"
+        :disabled="busy"
+        @click="((status = tab), load())"
+      >
+        {{ tab ? orderStatuses[tab] : 'Tất cả' }}
+      </button>
+    </div>
     <label v-if="seller" class="d-flex gap-2 align-items-center mt-3"
       ><input v-model="actionRequired" type="checkbox" @change="load()" /> Chỉ đơn cần xử lý</label
     >

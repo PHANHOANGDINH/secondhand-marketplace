@@ -551,3 +551,157 @@
   display: block;
   overflow-wrap: anywhere;
 }
+
+/* ---- Seller workspace skin ---- */
+.seller-shell {
+  background: var(--bg);
+}
+.seller-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--layer-header);
+  padding: 0.6rem clamp(1rem, 2vw, 2rem);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.seller-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+.seller-brand > span:last-child {
+  display: inline-block;
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.seller-topbar-actions {
+  gap: 1rem;
+}
+.seller-topbar-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 600;
+}
+.seller-topbar-actions a:hover {
+  color: var(--primary);
+}
+.seller-sidebar {
+  padding: 1.25rem 0.75rem;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.seller-sidebar-caption {
+  color: var(--muted);
+}
+.seller-sidebar nav {
+  gap: 0.15rem;
+}
+.seller-sidebar nav a {
+  align-items: center;
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-weight: 600;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+.seller-sidebar nav a:hover {
+  background: var(--surface-2);
+}
+.seller-sidebar nav a.active {
+  background: var(--primary);
+  color: #fff;
+}
+.seller-sidebar nav a.active span {
+  opacity: 1;
+}
+.seller-sidebar-note {
+  margin-top: 1.5rem;
+  padding: 1rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.seller-content {
+  padding: 2rem clamp(1rem, 2.5vw, 2.5rem) 4rem;
+}
+.seller-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow-x: auto;
+}
+.seller-table {
+  margin: 0;
+}
+.seller-table thead th {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.seller-table :is(td, th) {
+  border-color: var(--border);
+  vertical-align: middle;
+}
+.seller-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+.seller-table tbody tr:hover {
+  background: var(--surface-2);
+}
+.seller-toolbar {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.seller-kpi {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.workspace-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: none;
+}
+.workspace-panel-heading {
+  border-bottom-color: var(--border);
+}
+.seller-order-card {
+  transition: border-color var(--transition-fast);
+}
+.seller-order-card:hover {
+  border-color: var(--primary);
+}
+.seller-order-card a {
+  font-family: var(--font-money);
+  font-weight: 700;
+}
+.seller-submit-bar {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.seller-shell .order-tabs {
+  margin-bottom: var(--space-3);
+}

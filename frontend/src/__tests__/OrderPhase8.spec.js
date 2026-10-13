@@ -372,7 +372,13 @@ it('buyer list has status tabs that use the existing overall_status filter', asy
   await flushPromises()
   expect(api.listOrders).toHaveBeenLastCalledWith({ page: 1, per_page: 20 })
   const seller = await setup(OrdersView, { seller: true, path: '/seller/orders' })
-  expect(seller.wrapper.find('.order-tab').exists()).toBe(false)
+  // The seller list has its own tabs, bound to the same state as its status select.
+  const sellerTabs = seller.wrapper.findAll('.order-tab')
+  expect(sellerTabs).toHaveLength(7)
+  await sellerTabs[4].trigger('click')
+  await flushPromises()
+  expect(api.listSellerOrders).toHaveBeenLastCalledWith({ page: 1, per_page: 20, status: 'SHIPPING' })
+  expect(seller.wrapper.get('select').element.value).toBe('SHIPPING')
 })
 it('order timeline marks reached steps from API timestamps and shows a cancellation', async () => {
   const { default: OrderTimeline } = await import('../components/OrderTimeline.vue')

@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import api from '../api/axios'
-import HomeScrollStory from '../components/home/HomeScrollStory.vue'
+import HomeHero from '../components/home/HomeHero.vue'
+import HomeLiveAuctions from '../components/home/HomeLiveAuctions.vue'
 import HomeDiscovery from '../components/home/HomeDiscovery.vue'
 import ProductSuggestions from '../components/ProductSuggestions.vue'
 import { brandLine } from '../config/brand'
@@ -21,9 +22,17 @@ onMounted(checkHealth)
 
 <template>
   <h1 class="visually-hidden">{{ brandLine }}</h1>
-  <HomeScrollStory />
-  <HomeDiscovery />
-  <ProductSuggestions class="home-recommendations" title="Gợi ý cho bạn" :limit="12" />
+  <HomeHero />
+  <HomeLiveAuctions />
+  <ProductSuggestions title="Gợi ý cho bạn" :limit="8" />
+  <ProductSuggestions
+    title="Tin mới đăng"
+    latest
+    :limit="8"
+    more-to="/products"
+    more-label="Xem tất cả tin"
+  />
+  <HomeDiscovery default-mode="video" />
   <section class="marketplace-entry" aria-labelledby="marketplace-entry-title">
     <div class="marketplace-entry-copy">
       <p class="marketplace-entry-eyebrow">Tiếp tục khám phá</p>
@@ -50,16 +59,13 @@ onMounted(checkHealth)
 </template>
 
 <style scoped>
-.home-recommendations {
-  padding-inline: clamp(1.5rem, 5vw, 4rem);
-}
 .marketplace-entry {
   position: relative;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 5vw, 4rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
   margin-bottom: 2rem;
-  border-top: 1px solid var(--bs-border-color);
-  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb), 0.025), transparent);
-  border-radius: 0 0 1.5rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
 }
 .marketplace-entry-copy {
   max-width: 640px;

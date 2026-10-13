@@ -23,7 +23,7 @@ describe('Home page API connection', () => {
 
   it('shows a connection error and allows retry', async () => {
     api.get.mockRejectedValueOnce(new Error('Network Error'))
-    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true, ProductSuggestions: true } } })
+    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true, ProductSuggestions: true, HomeHero: true, HomeLiveAuctions: true } } })
     await flushPromises()
     expect(wrapper.get('[role="status"]').text()).toContain('Chưa kết nối')
     api.get.mockResolvedValueOnce({ data: { status: 'ok' } })

@@ -338,3 +338,15 @@ nav[aria-label='Phân trang'] > span {
     scroll-behavior: auto !important;
   }
 }
+
+/* Bottom sheet: an AccessibleDialog given class="ui-sheet" slides its panel to the bottom on phones. */
+@media (max-width: 767px) {
+  .ui-dialog-backdrop.ui-sheet {
+    place-items: end stretch;
+  }
+  .ui-dialog-backdrop.ui-sheet .ui-dialog {
+    height: auto;
+    max-height: 88dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}

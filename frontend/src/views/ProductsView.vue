@@ -16,6 +16,7 @@ import EmptyState from '../components/ui/EmptyState.vue'
 import ProductSearch from '../components/ProductSearch.vue'
 import ProductFilters from '../components/ProductFilters.vue'
 import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
 import { normalizeDiscoveryQuery } from '../utils/discoveryQuery'
 const route = useRoute(),
   router = useRouter()
@@ -142,7 +143,7 @@ onMounted(async () => {
           :aria-expanded="drawer"
           @click="drawer = true"
         >
-          Bộ lọc
+          <AppIcon name="sliders" :size="18" /> Bộ lọc
         </button>
       </div>
       <p v-if="errors.q || errors.search" role="alert" class="text-danger small">
@@ -157,8 +158,8 @@ onMounted(async () => {
           :errors="errors"
         />
       </div>
-      <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-        <p class="mb-0 me-auto text-muted" role="status">
+      <div class="discovery-summary d-flex flex-wrap align-items-center gap-2 mt-3">
+        <p class="discovery-count mb-0 me-auto" role="status">
           {{
             busy
               ? 'Đang tìm sản phẩm…'
@@ -176,6 +177,7 @@ onMounted(async () => {
     <AccessibleDialog
       v-if="drawer"
       id="discovery-dialog"
+      class="ui-sheet"
       title="Lọc sản phẩm"
       @dismiss="drawer = false"
     >
@@ -272,10 +274,27 @@ onMounted(async () => {
 .discovery-top :deep(.product-search) {
   min-width: 200px;
 }
+.discovery-toolbar {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.discovery-top :deep(.mb-3) {
+  margin-bottom: 0 !important;
+}
 .desktop-filters {
-  margin-top: 1.2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--bs-border-color);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+.discovery-summary {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.discovery-count {
+  font-weight: 700;
+  color: var(--text);
 }
 .mobile-filters {
   display: none;
@@ -285,7 +304,7 @@ onMounted(async () => {
     display: none;
   }
   .mobile-filters {
-    display: inline-block;
+    display: inline-flex;
   }
   .discovery-top :deep(.product-search) {
     flex-basis: 100%;

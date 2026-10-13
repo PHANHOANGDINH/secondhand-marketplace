@@ -10,9 +10,13 @@ import DomainFeedback from '../DomainFeedback.vue'
 import EmptyState from '../ui/EmptyState.vue'
 import CollectionPager from '../CollectionPager.vue'
 import '../../styles/auction.css'
+// The tab shown first when the URL does not ask for one.
+const props = defineProps({ defaultMode: { type: String, default: 'auction' } })
 const route = useRoute(),
   router = useRouter()
-const mode = ref(route.query.video || route.query.discovery === 'video' ? 'video' : 'auction'),
+const mode = ref(
+    route.query.video || route.query.discovery === 'video' ? 'video' : props.defaultMode,
+  ),
   rows = ref([]),
   meta = ref(null)
 const busy = ref(false),
@@ -217,12 +221,16 @@ onBeforeUnmount(() => {
 </template>
 <style scoped>
 .home-discovery {
-  padding: clamp(1rem, 4vw, 3rem);
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-10);
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
 }
 .home-discovery h2 {
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
-  letter-spacing: -0.03em;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 .discovery-switch {
   display: flex;

@@ -308,3 +308,66 @@
     transform: none !important;
   }
 }
+
+/* Dark auction surface (tokens: .theme-auction in tokens.css). */
+.auction-live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--live, #ff3d7f);
+}
+.theme-auction .auction-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: none;
+}
+.theme-auction .auction-card-image {
+  background: var(--surface-2);
+}
+.theme-auction .auction-card-image img {
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  background: transparent !important;
+  border-radius: 0 !important;
+  transition: none;
+}
+.theme-auction .auction-card h2 a {
+  color: var(--text);
+}
+.theme-auction .auction-card h2 a:hover {
+  color: var(--neon);
+}
+.theme-auction .text-muted {
+  color: var(--muted) !important;
+}
+.theme-auction .auction-card-price {
+  color: var(--neon);
+  font-weight: 800;
+}
+.theme-auction .auction-timer {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--neon);
+}
+.theme-auction .auction-timer small {
+  color: var(--muted);
+}
+.theme-auction .auction-timer.is-urgent {
+  border-color: var(--live);
+  color: var(--live);
+}
+.theme-auction .buyer-status {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.theme-auction .buyer-status-success {
+  background: var(--live);
+  border-color: var(--live);
+  color: #0e0b1f;
+}
+.theme-auction :is(a, button):focus-visible {
+  outline: 3px solid var(--neon);
+  outline-offset: 2px;
+}

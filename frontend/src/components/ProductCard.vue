@@ -19,6 +19,7 @@ defineProps({ product: { type: Object, required: true } })
     /></RouterLink>
     <div class="product-card-favorite"><FavoriteButton :product="product" compact /></div>
     <div class="card-body">
+      <p v-if="product.reason_label" class="product-card-reason">{{ product.reason_label }}</p>
       <h2 class="h5">
         <RouterLink :to="`/products/${product.slug}`">{{ product.name }}</RouterLink>
       </h2>
@@ -109,6 +110,16 @@ h2 a:hover {
   background: var(--bs-tertiary-bg);
   padding: 0.25rem 0.5rem;
   border-radius: 0.4rem;
+}
+.product-card-reason {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  margin-bottom: 0.6rem;
+  overflow-wrap: anywhere;
 }
 .product-card-rating {
   font-size: 0.7rem;

@@ -8,21 +8,29 @@ use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Shop;
 use App\Services\ProductQuery;
+use App\Services\RecommendationSignals;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PublicProductController extends Controller
 {
-    public function __construct(private ProductQuery $query) {}
+    public function __construct(private ProductQuery $query, private RecommendationSignals $signals) {}
 
     public function index(Domain\PublicProductListRequest $request): AnonymousResourceCollection
     {
+        if ($request->integer('page', 1) === 1) {
+            $this->signals->recordSearch($request->user('sanctum'), $request->validated('q'));
+        }
+
         return ProductResource::collection($this->query->apply($this->query->publicVisible(), $request->validated(), true)->paginate($request->integer('per_page', 20))->withQueryString());
     }
 
     public function show(string $slug): ProductResource
     {
-        return new ProductResource($this->query->related($this->query->publicVisible())->where('slug', $slug)->firstOrFail());
+        $product = $this->query->related($this->query->publicVisible())->where('slug', $slug)->firstOrFail();
+        $this->signals->recordView(request()->user('sanctum'), $product);
+
+        return new ProductResource($product);
     }
 
     public function suggestions(Domain\ProductSuggestionsRequest $request): JsonResponse

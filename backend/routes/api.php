@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use App\Http\Controllers\Api\V1\PublicShopController;
+use App\Http\Controllers\Api\V1\RecommendationController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\SellerDashboardController;
@@ -91,6 +92,8 @@ Route::middleware('throttle:public-read')->group(function (): void {
     Route::get('/products', [PublicProductController::class, 'index']);
     Route::get('/products/suggestions', [PublicProductController::class, 'suggestions']);
     Route::get('/products/{slug}', [PublicProductController::class, 'show']);
+    Route::get('/products/{slug}/similar', [RecommendationController::class, 'similar']);
+    Route::get('/recommendations', [RecommendationController::class, 'index']);
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
     Route::prefix('seller')->group(function (): void {

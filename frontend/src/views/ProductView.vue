@@ -12,6 +12,7 @@ import ReportDialog from '../components/ReportDialog.vue'
 import FavoriteButton from '../components/FavoriteButton.vue'
 import ChatSellerButton from '../components/chat/ChatSellerButton.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import ProductSuggestions from '../components/ProductSuggestions.vue'
 const route = useRoute(),
   product = ref(null),
   busy = ref(false),
@@ -75,5 +76,6 @@ watch(() => route.params.slug, load, { immediate: true })
     </div>
     <ProductVideos v-if="product" :key="`videos-${product.id}`" :slug="product.slug" />
     <ProductReviews v-if="product" :key="product.id" :product="product" @changed="load" />
+    <ProductSuggestions v-if="product" title="Sản phẩm tương tự" :slug="product.slug" :limit="8" />
   </section>
 </template>

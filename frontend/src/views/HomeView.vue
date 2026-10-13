@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import api from '../api/axios'
 import HomeScrollStory from '../components/home/HomeScrollStory.vue'
 import HomeDiscovery from '../components/home/HomeDiscovery.vue'
+import ProductSuggestions from '../components/ProductSuggestions.vue'
 
 const status = ref('checking')
 async function checkHealth() {
@@ -21,6 +22,7 @@ onMounted(checkHealth)
   <h1 class="visually-hidden">Secondhand · Sàn mua bán</h1>
   <HomeScrollStory />
   <HomeDiscovery />
+  <ProductSuggestions class="home-recommendations" title="Gợi ý cho bạn" :limit="12" />
   <section class="marketplace-entry" aria-labelledby="marketplace-entry-title">
     <div class="marketplace-entry-copy">
       <p class="marketplace-entry-eyebrow">Tiếp tục khám phá</p>
@@ -47,6 +49,9 @@ onMounted(checkHealth)
 </template>
 
 <style scoped>
+.home-recommendations {
+  padding-inline: clamp(1.5rem, 5vw, 4rem);
+}
 .marketplace-entry {
   position: relative;
   padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 5vw, 4rem);

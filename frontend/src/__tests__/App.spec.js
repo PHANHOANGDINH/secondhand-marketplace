@@ -10,7 +10,7 @@ beforeEach(() => {
 describe('Home page API connection', () => {
   it('renders the project and successful API status', async () => {
     api.get.mockResolvedValue({ data: { status: 'ok' } })
-    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true } } })
+    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true, ProductSuggestions: true } } })
     expect(wrapper.text()).toContain('Secondhand · Sàn mua bán')
     expect(wrapper.text()).toContain('Mua và bán đồ đã qua sử dụng')
     expect(
@@ -23,7 +23,7 @@ describe('Home page API connection', () => {
 
   it('shows a connection error and allows retry', async () => {
     api.get.mockRejectedValueOnce(new Error('Network Error'))
-    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true } } })
+    const wrapper = mount(HomeView, { global: { stubs: { RouterLink: true, HomeDiscovery: true, ProductSuggestions: true } } })
     await flushPromises()
     expect(wrapper.get('[role="status"]').text()).toContain('Chưa kết nối')
     api.get.mockResolvedValueOnce({ data: { status: 'ok' } })

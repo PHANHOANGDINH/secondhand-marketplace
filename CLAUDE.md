@@ -1,5 +1,6 @@
 # Quy tắc dự án (bắt buộc cho mọi task)
 - PHP: C:\Users\axyz5\.config\herd\bin\php84\php.exe (không dùng PHP XAMPP 8.0).
+- Trước khi làm backend: kiểm tra PHP của Herd và Composer chạy được (`php -v`, `composer -V`). Không cài PHP bản khác, không cài thêm công cụ (kể cả Laravel Boost) khi chưa được yêu cầu.
 - Cấm: migrate:fresh/refresh, db:wipe, db:seed, push, sửa git config global.
 - Migration chỉ additive, down() phải rollback được. Trước khi migrate DB dev: mysqldump vào .runtime/, snapshot hash bảng trước/sau.
 - Test backend chỉ chạy trên secondhand_marketplace_test.

@@ -169,28 +169,38 @@ it('treats broken storage as "already seen" and never throws', async () => {
   expect(full.wrapper.find('.first-time-note').exists()).toBe(false)
 })
 
-it('welcome tour opens after signing in, not on a page that loads already signed in, and can be replayed', async () => {
-  const loaded = await setup(DefaultLayout)
-  expect(document.querySelector('[role="dialog"]')).toBeNull()
-
-  const guest = await setup(DefaultLayout, { user: null })
-  expect(document.querySelector('[role="dialog"]')).toBeNull()
-  guest.auth.user = { id: '9', name: 'Người mới', role: 'USER', status: 'ACTIVE' }
-  await flushPromises()
+it('welcome tour opens on every signed-in page view until skipped, and can be replayed', async () => {
   const dialog = () => document.querySelector('[role="dialog"]')
+  const guest = await setup(DefaultLayout, { user: null })
+  expect(dialog()).toBeNull()
+  guest.wrapper.unmount()
+  wrappers.splice(wrappers.indexOf(guest.wrapper), 1)
+
+  // A page that loads already signed in shows the tour; so does the next page view.
+  const first = await setup(DefaultLayout, { user: '9' })
   expect(dialog().textContent).toContain('Chào mừng đến pass lại')
-  expect(dialog().textContent).toContain('Tìm kiếm')
+  first.wrapper.unmount()
+  wrappers.splice(wrappers.indexOf(first.wrapper), 1)
+  expect(window.localStorage.getItem(KEY('9', 'welcome'))).toBeNull()
+
+  const second = await setup(DefaultLayout, { user: '9' })
+  expect(dialog().textContent).toContain('Bước 1 / 3')
   document.querySelector('[data-guide-skip]').click()
   await flushPromises()
   expect(dialog()).toBeNull()
   expect(window.localStorage.getItem(KEY('9', 'welcome'))).toBe('1')
+  second.wrapper.unmount()
+  wrappers.splice(wrappers.indexOf(second.wrapper), 1)
 
+  const third = await setup(DefaultLayout, { user: '9' })
+  expect(dialog()).toBeNull()
   // "Xem lại hướng dẫn" clears this user's flags and opens the tour again.
   window.localStorage.setItem(KEY('9', 'auction-room'), '1')
-  const replay = guest.wrapper.findAll('.marketplace-account-menu button').find((button) => button.text() === 'Xem lại hướng dẫn')
+  const replay = third.wrapper
+    .findAll('.marketplace-account-menu button')
+    .find((button) => button.text() === 'Xem lại hướng dẫn')
   await replay.trigger('click')
   await flushPromises()
   expect(dialog().textContent).toContain('Bước 1 / 3')
   expect(window.localStorage.getItem(KEY('9', 'auction-room'))).toBeNull()
-  expect(loaded.wrapper.find('.marketplace-account-menu').exists()).toBe(true)
 })

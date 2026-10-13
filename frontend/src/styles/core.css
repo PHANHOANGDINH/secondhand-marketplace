@@ -350,3 +350,62 @@ nav[aria-label='Phân trang'] > span {
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   }
 }
+
+/* The shared .btn layout above must not reveal the workspace menu toggles on wide screens. */
+.seller-menu-toggle,
+.admin-menu-toggle {
+  display: none;
+}
+@media (max-width: 991px) {
+  .seller-menu-toggle,
+  .admin-menu-toggle {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+/* The logo inside a workspace brand link keeps its own type, not the brand link's caption style. */
+:is(.seller-brand, .admin-brand) .brand-logo,
+:is(.seller-brand, .admin-brand) .brand-logo-mark {
+  display: inline-flex;
+  margin: 0;
+}
+:is(.seller-brand, .admin-brand) .brand-logo-mark {
+  display: grid;
+}
+:is(.seller-brand, .admin-brand) .brand-logo-word {
+  display: inline;
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: none;
+}
+
+/* Signed-in review fixes: nothing in a workspace top bar or an order row may wrap mid-label. */
+:is(.seller-topbar-actions, .admin-topbar-actions) :is(a, .btn, button) {
+  white-space: nowrap;
+}
+.seller-order-value,
+.buyer-order-price,
+.buyer-status {
+  white-space: nowrap;
+}
+@media (max-width: 575px) {
+  :is(.seller-topbar-actions, .admin-topbar-actions) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-left: 0;
+    width: 100%;
+  }
+  :is(.seller-user, .admin-user, .admin-identity) {
+    display: none !important;
+  }
+  :is(.seller-order-card, .buyer-order-card) .card-body {
+    gap: var(--space-3);
+  }
+  :is(.seller-order-card, .buyer-order-card) .card-body > div:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

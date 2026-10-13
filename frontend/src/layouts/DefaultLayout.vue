@@ -28,27 +28,17 @@ const searchKeyword = ref('')
 const searchProducts = () =>
   router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
 const auth = useAuthStore()
-// The welcome tour opens right after a sign-in in this page session (not on a reload),
-// and again on request from the account menu.
-const welcomeActive = ref(false),
-  guideRun = ref(0)
+// The welcome tour opens on every page view of a signed-in user until it is finished or skipped
+// (FirstTimeGuide keeps the per-user flag); "Xem lại hướng dẫn" clears the flags and reopens it.
+const guideRun = ref(0)
 const welcomeSteps = [
   { title: 'Tìm kiếm', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm ở đầu trang để xem gợi ý.' },
   { title: 'Đăng bán nhanh', text: 'Nút "Đăng bán nhanh" mở biểu mẫu đăng tin ngay tại trang bạn đang xem.' },
   { title: 'Đấu giá', text: 'Vào "Sàn đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
 ]
-watch(
-  () => auth.user?.id,
-  (id, previous) => {
-    if (id && !previous && auth.initialized) welcomeActive.value = true
-    if (!id) welcomeActive.value = false
-  },
-)
 function replayGuides() {
   accountMenu.value?.removeAttribute('open')
-  if (!resetFirstTime(auth.user?.id)) return
-  guideRun.value += 1
-  welcomeActive.value = true
+  if (resetFirstTime(auth.user?.id)) guideRun.value += 1
 }
 // Top-level categories for the browse row; the row stays hidden if they cannot be loaded.
 const categories = ref([])
@@ -266,13 +256,12 @@ function closeAccountMenu(event) {
   </nav>
   <QuickListingDialog v-if="quickOpen" @close="closeQuickListing" />
   <FirstTimeGuide
-    v-if="auth.isAuthenticated && welcomeActive && !quickOpen"
+    v-if="auth.isAuthenticated && !quickOpen"
     :key="guideRun"
     name="welcome"
     tour
     :title="`Chào mừng đến ${brand.name}`"
     :steps="welcomeSteps"
-    @done="welcomeActive = false"
   />
   <OutbidToasts v-if="auth.isAuthenticated" /><ChatDrawer v-if="auth.isAuthenticated" />
   <AdminShell v-if="adminPage"><slot /></AdminShell>

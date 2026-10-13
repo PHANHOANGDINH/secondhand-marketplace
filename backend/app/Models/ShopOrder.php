@@ -12,7 +12,7 @@ class ShopOrder extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'shop_id', 'status', 'subtotal', 'shipping_fee', 'discount_amount', 'total_amount', 'confirmed_at', 'processing_at', 'shipping_at', 'completed_at', 'cancelled_at', 'cancellation_reason', 'stock_restored_at'];
+    protected $fillable = ['order_id', 'shop_id', 'status', 'subtotal', 'shipping_fee', 'discount_amount', 'discount_shop', 'discount_platform', 'voucher_code', 'total_amount', 'confirmed_at', 'processing_at', 'shipping_at', 'completed_at', 'cancelled_at', 'cancellation_reason', 'stock_restored_at'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PaymentMethod;
 use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -15,6 +16,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -34,7 +36,7 @@ while (! is_file($data['go'])) {
 try {
     $user = User::findOrFail($data['user']);
     if ($data['action'] === 'checkout') {
-        $result = app(CheckoutService::class)->checkout($user, $data['address'], $data['key']);
+        $result = app(CheckoutService::class)->checkout($user, $data['address'], $data['key'], PaymentMethod::COD, [], [], $data['vouchers'] ?? []);
         echo json_encode(['status' => $result['created'] ? 201 : 200, 'order' => $result['order']->id]);
     } elseif ($data['action'] === 'zalopay_callback') {
         config(['zalopay.key2' => $data['key2']]);
@@ -62,6 +64,8 @@ try {
         app(ShopOrderService::class)->transition($user, ShopOrder::findOrFail($data['part']), $data['transition'], $data['action'] === 'cancel');
         echo json_encode(['status' => 200]);
     }
+} catch (ValidationException) {
+    echo json_encode(['status' => 422]);
 } catch (HttpExceptionInterface $e) {
     echo json_encode(['status' => $e->getStatusCode()]);
 } catch (ModelNotFoundException) {

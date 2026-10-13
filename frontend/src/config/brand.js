@@ -46,6 +46,8 @@ export const pageNames = {
   'seller-orders': 'Đơn bán',
   'seller-order': 'Chi tiết đơn bán',
   'seller-auctions': 'Phiên đấu giá của tôi',
+  'seller-vouchers': 'Mã giảm giá của gian hàng',
+  'admin-vouchers': 'Mã giảm giá',
   'seller-auction': 'Phiên đấu giá của tôi',
   'admin-action-center': 'Việc cần xử lý',
   'admin-dashboard': 'Tổng quan quản trị',

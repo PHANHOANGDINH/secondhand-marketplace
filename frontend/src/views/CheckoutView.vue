@@ -1,5 +1,7 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { previewCheckout } from '../api/voucher.api'
+import { domainError } from '../api/domain.api'
 import * as paymentApi from '../api/payment.api'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -72,6 +74,60 @@ const selectedTotal = computed(() => {
   const sum = lines.value.reduce((total, item) => total + cents(item.subtotal), 0n)
   return `${sum / 100n}.${String(sum % 100n).padStart(2, '0')}`
 })
+// Vouchers: `codes` is what is typed, `applied` what the last price preview accepted.
+// The preview only shows numbers; checkout recalculates and decides.
+const codes = reactive({ platform: '', shops: {} }),
+  applied = reactive({ platform: '', shops: {} }),
+  voucherErrors = reactive({ platform: '', shops: {} }),
+  quote = ref(null),
+  voucherBusy = ref(false)
+const hasVouchers = computed(() => Boolean(applied.platform) || Object.keys(applied.shops).length > 0)
+const quoteRow = (shopId) =>
+  quote.value?.shop_orders.find((row) => String(row.shop_id) === String(shopId)) || null
+const clean = (value) => String(value || '').trim().toUpperCase()
+async function applyVouchers(platform, shops) {
+  const wanted = Object.fromEntries(Object.entries(shops).filter(([, code]) => code))
+  voucherErrors.platform = ''
+  voucherErrors.shops = {}
+  if (!platform && !Object.keys(wanted).length) {
+    applied.platform = ''
+    applied.shops = {}
+    quote.value = null
+    return
+  }
+  voucherBusy.value = true
+  try {
+    const result = await previewCheckout({
+      ...(selected.value.length ? { cart_item_ids: selected.value.map(Number) } : {}),
+      ...(platform ? { platform_voucher: platform } : {}),
+      ...(Object.keys(wanted).length ? { shop_vouchers: wanted } : {}),
+    })
+    voucherErrors.platform = result.errors?.platform_voucher || ''
+    voucherErrors.shops = { ...result.errors?.shop_vouchers }
+    applied.platform = result.platform_voucher_code || ''
+    applied.shops = Object.fromEntries(
+      result.shop_orders.filter((row) => row.voucher_code).map((row) => [row.shop_id, row.voucher_code]),
+    )
+    quote.value = hasVouchers.value ? result : null
+  } catch (failure) {
+    voucherErrors.platform = domainError(failure)
+  } finally {
+    voucherBusy.value = false
+  }
+}
+const applyPlatform = () => applyVouchers(clean(codes.platform), { ...applied.shops })
+const applyShop = (shopId) =>
+  applyVouchers(applied.platform, { ...applied.shops, [shopId]: clean(codes.shops[shopId]) })
+function removePlatform() {
+  codes.platform = ''
+  return applyVouchers('', { ...applied.shops })
+}
+function removeShop(shopId) {
+  codes.shops[shopId] = ''
+  const rest = { ...applied.shops }
+  delete rest[shopId]
+  return applyVouchers(applied.platform, rest)
+}
 const groups = computed(() => {
   const map = new Map()
   for (const item of lines.value) {
@@ -110,6 +166,8 @@ async function submit() {
           address_id: addressId.value,
           payment_method: paymentMethod.value,
           ...(selected.value.length ? { cart_item_ids: selected.value.map(Number) } : {}),
+          ...(applied.platform ? { platform_voucher: applied.platform } : {}),
+          ...(Object.keys(applied.shops).length ? { shop_vouchers: { ...applied.shops } } : {}),
           ...(paymentMethod.value === 'ZALOPAY'
             ? {
                 preferred_payment_method:
@@ -208,8 +266,97 @@ onMounted(load)
                 <span>{{ item.product?.name }} × {{ item.quantity }}</span
                 ><strong>{{ formatPrice(item.subtotal) }}</strong>
               </p>
+              <div class="checkout-voucher" :data-shop-voucher="group.shop?.id">
+                <label :for="`voucher-shop-${group.shop?.id}`" class="form-label"
+                  >Mã giảm giá của gian hàng</label
+                >
+                <div class="checkout-voucher-row">
+                  <input
+                    :id="`voucher-shop-${group.shop?.id}`"
+                    v-model="codes.shops[group.shop?.id]"
+                    class="form-control checkout-voucher-input"
+                    maxlength="20"
+                    autocomplete="off"
+                    placeholder="Nhập mã"
+                    :disabled="busy || voucherBusy || !!attempt || !!applied.shops[group.shop?.id]"
+                  />
+                  <button
+                    v-if="!applied.shops[group.shop?.id]"
+                    type="button"
+                    class="btn btn-outline-primary"
+                    :disabled="busy || voucherBusy || !!attempt || !codes.shops[group.shop?.id]"
+                    @click="applyShop(group.shop?.id)"
+                  >
+                    Áp dụng
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    :disabled="busy || voucherBusy || !!attempt"
+                    @click="removeShop(group.shop?.id)"
+                  >
+                    Bỏ mã
+                  </button>
+                </div>
+                <p v-if="voucherErrors.shops[group.shop?.id]" role="alert" class="text-danger small">
+                  {{ voucherErrors.shops[group.shop?.id] }}
+                </p>
+                <p
+                  v-if="quoteRow(group.shop?.id) && Number(quoteRow(group.shop?.id).discount_shop) + Number(quoteRow(group.shop?.id).discount_platform) > 0"
+                  class="checkout-voucher-line"
+                  data-shop-discount
+                >
+                  <template v-if="Number(quoteRow(group.shop?.id).discount_shop) > 0"
+                    >Mã gian hàng: −{{ formatPrice(quoteRow(group.shop?.id).discount_shop) }} ·
+                  </template>
+                  <template v-if="Number(quoteRow(group.shop?.id).discount_platform) > 0"
+                    >Mã của sàn: −{{ formatPrice(quoteRow(group.shop?.id).discount_platform) }} ·
+                  </template>
+                  Còn {{ formatPrice(quoteRow(group.shop?.id).total) }}
+                </p>
+              </div>
             </div>
           </section>
+        </section>
+        <section class="buyer-panel" data-platform-voucher>
+          <h2>Mã giảm giá của sàn</h2>
+          <label for="voucher-platform" class="form-label">Mỗi đơn dùng được một mã của sàn</label>
+          <div class="checkout-voucher-row">
+            <input
+              id="voucher-platform"
+              v-model="codes.platform"
+              class="form-control checkout-voucher-input"
+              maxlength="20"
+              autocomplete="off"
+              placeholder="Nhập mã"
+              :disabled="busy || voucherBusy || !!attempt || !!applied.platform"
+            />
+            <button
+              v-if="!applied.platform"
+              type="button"
+              class="btn btn-outline-primary"
+              :disabled="busy || voucherBusy || !!attempt || !codes.platform"
+              @click="applyPlatform"
+            >
+              Áp dụng
+            </button>
+            <button
+              v-else
+              type="button"
+              class="btn btn-outline-secondary"
+              :disabled="busy || voucherBusy || !!attempt"
+              @click="removePlatform"
+            >
+              Bỏ mã
+            </button>
+          </div>
+          <p v-if="voucherErrors.platform" role="alert" class="text-danger small">
+            {{ voucherErrors.platform }}
+          </p>
+          <p v-if="applied.platform && quote" class="checkout-voucher-line">
+            Mã {{ applied.platform }}: −{{ formatPrice(quote.platform_discount) }}
+          </p>
         </section>
         <section class="buyer-panel">
           <h2>03 · Thanh toán</h2>
@@ -256,9 +403,12 @@ onMounted(load)
       </div>
       <aside class="buyer-panel buyer-sticky-summary" aria-label="Tóm tắt thanh toán">
         <h2>Xác nhận đơn mua</h2>
-        <p>Phí giao hàng: 0 ₫. Giảm giá: 0 ₫.</p>
+        <p data-checkout-discount>
+          Phí giao hàng: 0 ₫. Giảm giá: {{ quote ? formatPrice(quote.discount_total) : '0 ₫' }}.
+        </p>
         <p class="buyer-summary-total" data-checkout-total>
-          Tổng tạm tính: {{ formatPrice(selected.length ? selectedTotal : cart.data?.subtotal) }}
+          Tổng tạm tính:
+          {{ formatPrice(quote ? quote.total : selected.length ? selectedTotal : cart.data?.subtotal) }}
         </p>
         <p class="buyer-summary-note">
           Giá và tồn kho được kiểm tra lại khi xác nhận. Đơn hàng lưu giá tại thời điểm đặt.
@@ -276,3 +426,39 @@ onMounted(load)
     </form>
   </section>
 </template>
+<style scoped>
+.checkout-voucher {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+.checkout-voucher-row {
+  display: flex;
+  gap: var(--space-2);
+}
+.checkout-voucher-input {
+  font-family: var(--font-money);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.checkout-voucher-input::placeholder {
+  font-family: var(--font-ui);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.checkout-voucher-row .btn {
+  flex: none;
+}
+.checkout-voucher-line {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bs-success-bg-subtle);
+  color: var(--success-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.checkout-voucher p[role='alert'] {
+  margin: var(--space-2) 0 0;
+}
+</style>

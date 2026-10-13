@@ -69,7 +69,7 @@ Không có test nào bị sửa để che một thay đổi hành vi.
 | A – tour mở ở mọi lần vào trang; rà trang đăng nhập | `a4c67f7` | PASS |
 | B – `shop.rating_avg`, `rating_count`, `joined_at` | `7ccbbde` | PASS |
 | C – Mua ngay (`cart_item_ids` ở checkout) | `018c5d4` | PASS |
-| D – D6 Voucher | — | **CHƯA LÀM**: chưa có đề bài D6 |
+| D – D6 Voucher | xem [D6 verification](extension-d6-vouchers-verification.md) | PASS (làm sau, khi đã có đề bài) |
 
 - Số liệu cuối: backend **460 test / 5.137 assertions PASS**, Pint PASS; frontend **472 test / 38 file PASS**; oxlint, ESLint, build PASS.
 - Rà trang đăng nhập: stack riêng (PHP :8001 với `APP_ENV=testing`, Vite :5174, Edge headless), fixture tạo bằng script chỉ chạy trên DB test. 27 trang × 2 bề rộng: không tràn ngang, 0 lỗi JS. Tour: focus nằm trong hộp thoại, ESC đóng và lưu cờ, tải lại không mở lại.

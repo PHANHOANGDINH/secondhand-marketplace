@@ -16,14 +16,15 @@ use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
-    public function __construct(private OrderLocks $locks) {}
+    public function __construct(private OrderLocks $locks, private VoucherService $vouchers) {}
 
     /**
      * Checks out the whole cart, or only `$itemIds` (cart item ids) when given: the other items stay in the cart.
+     * `$vouchers` is ['platform' => ?string, 'shops' => [shop id => code]].
      *
      * @return array{order: Order, created: bool}
      */
-    public function checkout(User $user, int $addressId, string $key, PaymentMethod $method = PaymentMethod::COD, array $channels = [], array $itemIds = []): array
+    public function checkout(User $user, int $addressId, string $key, PaymentMethod $method = PaymentMethod::COD, array $channels = [], array $itemIds = [], array $vouchers = []): array
     {
         sort($channels);
         $itemIds = array_values(array_unique(array_map('intval', $itemIds)));
@@ -38,11 +39,19 @@ class CheckoutService
         if ($itemIds !== []) {
             $payload['cart_item_ids'] = array_map('strval', $itemIds);
         }
+        // So are the voucher codes. A request without vouchers keeps the hash it always had.
+        [$platformCode, $shopCodes] = VoucherService::codes($vouchers['platform'] ?? null, $vouchers['shops'] ?? []);
+        if ($platformCode !== null) {
+            $payload['platform_voucher'] = $platformCode;
+        }
+        if ($shopCodes !== []) {
+            $payload['shop_vouchers'] = array_combine(array_map('strval', array_keys($shopCodes)), array_values($shopCodes));
+        }
         $hash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
         for ($plan = 0; $plan < 3; $plan++) {
             $owners = DB::table('cart_items')->join('carts', 'carts.id', '=', 'cart_items.cart_id')->join('products', 'products.id', '=', 'cart_items.product_id')->join('shops', 'shops.id', '=', 'products.shop_id')->where('carts.user_id', $user->id)->when($itemIds !== [], fn ($query) => $query->whereIn('cart_items.id', $itemIds))->pluck('shops.owner_id')->all();
             try {
-                return $this->locks->transaction(function () use ($user, $addressId, $key, $hash, $owners, $method, $channels, $itemIds): array {
+                return $this->locks->transaction(function () use ($user, $addressId, $key, $hash, $owners, $method, $channels, $itemIds, $platformCode, $shopCodes): array {
                     $accounts = $this->locks->accounts([...$owners, $user->id]);
                     $buyer = $accounts[$user->id];
                     $this->locks->active($buyer);
@@ -90,10 +99,21 @@ class CheckoutService
                         $groups[$shop->id][] = ['product_id' => $product->id, 'product_name' => $product->name, 'product_image' => $image->image_path, 'product_price' => $product->price, 'quantity' => $item->quantity, 'subtotal' => $amount];
                         $total = OrderSummary::checked(bcadd($total, $amount, 2));
                     }
-                    if ($method === PaymentMethod::ZALOPAY) {
-                        ZaloPayGateway::amount($total);
+                    // Vouchers are locked last, after every lock above, then re-checked in full.
+                    $subtotals = array_map(fn (array $rows): string => array_reduce($rows, fn (string $sum, array $row): string => bcadd($sum, $row['subtotal'], 2), '0.00'), $groups);
+                    $plan = $this->vouchers->plan($buyer, $subtotals, $shops, $platformCode, $shopCodes, true);
+                    if (VoucherService::failed($plan)) {
+                        $messages = $plan['errors']['platform_voucher'] === null ? [] : ['platform_voucher' => [$plan['errors']['platform_voucher']]];
+                        foreach ($plan['errors']['shop_vouchers'] as $shopId => $message) {
+                            $messages['shop_vouchers.'.$shopId] = [$message];
+                        }
+                        throw ValidationException::withMessages($messages);
                     }
-                    $order = app(OrderCreator::class)->create($buyer, $address, $key, $hash, $method, $channels, $groups, $products, $total);
+                    if ($method === PaymentMethod::ZALOPAY) {
+                        ZaloPayGateway::amount($plan['total']);
+                    }
+                    $order = app(OrderCreator::class)->create($buyer, $address, $key, $hash, $method, $channels, $groups, $products, $total, $plan);
+                    $this->vouchers->commit($plan, $order, $buyer);
                     $cart->items()->whereIn('id', $items->pluck('id'))->delete();
                     $cart->touch();
 

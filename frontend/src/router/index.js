@@ -6,6 +6,19 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/seller/vouchers',
+      name: 'seller-vouchers',
+      component: () => import('../views/VouchersView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin/vouchers',
+      name: 'admin-vouchers',
+      component: () => import('../views/VouchersView.vue'),
+      props: { admin: true },
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: '/seller/inventory',
       name: 'seller-inventory',
       component: () => import('../views/SellerInventoryView.vue'),

@@ -14,6 +14,7 @@ use App\Models\Report;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\VideoComment;
+use App\Models\Voucher;
 use App\Models\Wishlist;
 use App\Services\AddressService;
 use App\Services\AuctionCheckoutService;
@@ -98,6 +99,9 @@ class FinalDemoSeeder extends Seeder
                     }
                     $shops[$key] = $shop;
                 }
+                // D6 demo vouchers: one platform code and one shop code. Created once and never overwritten.
+                Voucher::firstOrCreate(['code' => 'PASSLAI10'], ['scope' => Voucher::PLATFORM, 'type' => Voucher::PERCENT, 'value' => '10.00', 'max_discount' => '50000.00', 'min_order' => '200000.00', 'starts_at' => $present->subDay(), 'ends_at' => $present->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => $this->users['admin']->id]);
+                Voucher::firstOrCreate(['code' => 'CONGNGHE20K'], ['scope' => Voucher::SHOP, 'shop_id' => $shops['seller-1']->id, 'type' => Voucher::FIXED, 'value' => '20000.00', 'min_order' => '100000.00', 'starts_at' => $present->subDay(), 'ends_at' => $present->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => $this->users['seller-1']->id]);
                 $catalog = json_decode(file_get_contents(resource_path('demo-marketplace/catalog.json')), true, flags: JSON_THROW_ON_ERROR);
                 $groups = ['phones' => ['dien-thoai', 'Điện thoại & máy tính bảng'], 'laptops' => ['laptop', 'Laptop & máy tính'], 'accessories' => ['phu-kien', 'Phụ kiện công nghệ'], 'home' => ['gia-dung', 'Đồ gia dụng'], 'fashion' => ['thoi-trang', 'Thời trang'], 'books' => ['sach-hoc-tap', 'Sách & học tập']];
                 $index = 0;

@@ -88,6 +88,9 @@ class ShopOrderService
             $locked->$timestamp = now();
             $locked->save();
             $this->audit->record($actor, 'shop_orders', $locked->id, 'shop_order.status_changed', $expected->value, $target->value, $locked->cancellation_reason);
+            if ($target === Status::CANCELLED) {
+                app(VoucherService::class)->release($actor, $order, $locked, $parts);
+            }
             if ($order->payment_method === PaymentMethod::ZALOPAY) {
                 if ($target === Status::CANCELLED) {
                     foreach ($payments as $payment) {

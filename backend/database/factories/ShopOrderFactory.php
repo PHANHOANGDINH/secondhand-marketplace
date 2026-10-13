@@ -21,6 +21,8 @@ class ShopOrderFactory extends Factory
             'subtotal' => fn (array $a) => Models\Order::findOrFail($a['order_id'])->subtotal,
             'shipping_fee' => '0.00',
             'discount_amount' => '0.00',
+            // A fixture that sets only discount_amount means a shop-funded discount; the split must always add up.
+            'discount_shop' => fn (array $a) => $a['discount_amount'],
             'total_amount' => fn (array $a) => bcsub(bcadd((string) $a['subtotal'], (string) $a['shipping_fee'], 2), (string) $a['discount_amount'], 2),
         ];
     }

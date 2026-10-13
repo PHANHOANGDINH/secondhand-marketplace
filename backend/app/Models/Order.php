@@ -12,7 +12,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['buyer_id', 'order_code', 'checkout_key', 'request_hash', 'shipping_recipient_name', 'shipping_phone', 'shipping_address_line', 'shipping_ward', 'shipping_district', 'shipping_province', 'shipping_country_code', 'subtotal', 'shipping_fee', 'discount_amount', 'total_amount', 'currency', 'payment_method'];
+    protected $fillable = ['buyer_id', 'order_code', 'checkout_key', 'request_hash', 'shipping_recipient_name', 'shipping_phone', 'shipping_address_line', 'shipping_ward', 'shipping_district', 'shipping_province', 'shipping_country_code', 'subtotal', 'shipping_fee', 'discount_amount', 'platform_voucher_code', 'total_amount', 'currency', 'payment_method'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\V1\SellerOrderController;
 use App\Http\Controllers\Api\V1\SellerProductController;
 use App\Http\Controllers\Api\V1\SellerShopController;
 use App\Http\Controllers\Api\V1\VideoCommentController;
+use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\V1\WishlistController;
 use App\Http\Controllers\Api\V1\ZaloPayController;
 use App\Http\Middleware\EnsureActiveAccount;
@@ -125,6 +126,17 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
     Route::post('/orders/{order}/payments/zalopay', [ZaloPayController::class, 'retry'])->middleware('throttle:payment');
     Route::post('/orders/{order}/payments/zalopay/query', [ZaloPayController::class, 'sync'])->middleware('throttle:payment');
     Route::post('/checkout', CheckoutController::class)->middleware('throttle:payment');
+    Route::post('/checkout/preview', [VoucherController::class, 'preview'])->middleware('throttle:checkout-preview');
+    Route::get('/seller/vouchers', [VoucherController::class, 'sellerIndex']);
+    Route::post('/seller/vouchers', [VoucherController::class, 'sellerStore']);
+    Route::patch('/seller/vouchers/{voucher}', [VoucherController::class, 'sellerUpdate'])->whereNumber('voucher');
+    Route::delete('/seller/vouchers/{voucher}', [VoucherController::class, 'sellerDestroy'])->whereNumber('voucher');
+    Route::prefix('admin')->middleware(EnsureAdmin::class)->group(function (): void {
+        Route::get('/vouchers', [VoucherController::class, 'adminIndex']);
+        Route::post('/vouchers', [VoucherController::class, 'adminStore']);
+        Route::patch('/vouchers/{voucher}', [VoucherController::class, 'adminUpdate'])->whereNumber('voucher');
+        Route::delete('/vouchers/{voucher}', [VoucherController::class, 'adminDestroy'])->whereNumber('voucher');
+    });
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/orders/{order}/payments', [OrderController::class, 'payments']);

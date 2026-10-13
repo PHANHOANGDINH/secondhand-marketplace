@@ -10,6 +10,7 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
+use App\Models\Voucher;
 use App\Services\ProductQuery;
 use App\Services\ReviewService;
 use App\Services\SellerInventoryService;
@@ -74,6 +75,8 @@ class FinalDemoSeederTest extends TestCase
         $this->assertSame($ended->id, $order->shopOrders->sole()->orderItems->sole()->auction_id);
         $this->assertSame('COMPLETED', $order->shopOrders->sole()->status->value);
         $this->assertSame(6, Order::count());
+        $this->assertSame(['CONGNGHE20K' => 'SHOP', 'PASSLAI10' => 'PLATFORM'], Voucher::orderBy('code')->pluck('scope', 'code')->all());
+        $this->assertSame($inventoryShop->id, Voucher::where('code', 'CONGNGHE20K')->value('shop_id'));
         $this->assertSame(2, ReviewService::published(Review::query())->count());
         $this->assertDatabaseCount('product_videos', 2);
         $this->assertDatabaseCount('video_comments', 4);
@@ -99,6 +102,7 @@ class FinalDemoSeederTest extends TestCase
         $this->seed(FinalDemoSeeder::class);
         $this->assertSame($snapshot, $this->snapshot());
         $this->assertSame($files, Storage::disk('public')->allFiles());
+        $this->assertDatabaseCount('vouchers', 2);
         $this->assertTrue(Hash::check('FictionalTestOnlyC1!', User::where('email', 'c1-admin@example.test')->sole()->password));
     }
 

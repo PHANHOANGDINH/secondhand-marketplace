@@ -22,6 +22,7 @@ const links = [
   ['/seller/orders', 'Đơn hàng', '04'],
   ['/seller/shop', 'Gian hàng', '05'],
   ['/seller/auctions', 'Đấu giá', '06'],
+  ['/seller/vouchers', 'Mã giảm giá', '07'],
 ]
 const active = (path) => route.path === path || route.path.startsWith(`${path}/`)
 watch(

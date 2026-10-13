@@ -23,6 +23,7 @@ const links = [
   ['/admin/payments', 'Đối soát thanh toán', '09'],
   ['/admin/reviews', 'Đánh giá', '10'],
   ['/admin/reports', 'Báo cáo vi phạm', '11'],
+  ['/admin/vouchers', 'Mã giảm giá', '12'],
 ]
 // "/admin" is the Action Center itself, not a prefix that every admin page shares.
 const active = (path) =>

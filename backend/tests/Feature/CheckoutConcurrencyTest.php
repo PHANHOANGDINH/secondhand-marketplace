@@ -14,6 +14,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ShopOrder;
 use App\Models\User;
+use App\Models\Voucher;
 use App\Services\CheckoutService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
@@ -235,5 +236,39 @@ class CheckoutConcurrencyTest extends TestCase
         $this->assertSame([409, 403], array_column($this->race([$job, [...$job, 'user' => $foreign->id]]), 'status'));
         $this->assertSame(1, $item->review()->count());
         $this->assertSame($job['user'], $item->review()->firstOrFail()->user_id);
+    }
+
+    public function test_real_mysql_voucher_with_one_use_left_is_redeemed_by_exactly_one_concurrent_checkout(): void
+    {
+        $voucher = Voucher::factory()->create(['code' => 'ONLYONE', 'value' => '1000.00', 'usage_limit' => 1]);
+        $jobs = [];
+        foreach (range(1, 4) as $index) {
+            // Separate buyers, products and shops: the voucher row is the only thing they compete for.
+            $jobs[] = [...$this->buyer(Product::factory()->active()->create(['stock_quantity' => 1, 'price' => '50000.00'])), 'vouchers' => ['platform' => 'ONLYONE']];
+        }
+        $statuses = array_column($this->race($jobs), 'status');
+        sort($statuses);
+        $this->assertSame([201, 422, 422, 422], $statuses);
+        $this->assertSame(1, $voucher->refresh()->used_count);
+        $this->assertDatabaseCount('voucher_redemptions', 1);
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame('49000.00', Order::sole()->total_amount);
+        $this->assertSame('ONLYONE', Order::sole()->platform_voucher_code);
+        // The losers changed nothing: their carts and stock are intact.
+        $this->assertDatabaseCount('cart_items', 3);
+        $this->assertSame(3, Product::where('stock_quantity', 1)->count());
+
+        // The winner replays with the same key: still one use.
+        $winner = Order::sole();
+        $replay = ['action' => 'checkout', 'user' => $winner->buyer_id, 'address' => Address::where('user_id', $winner->buyer_id)->value('id'), 'key' => $winner->checkout_key, 'vouchers' => ['platform' => 'ONLYONE']];
+        $this->assertSame([200, 200], array_column($this->race([$replay, $replay]), 'status'));
+        $this->assertSame(1, $voucher->refresh()->used_count);
+
+        // Cancelling from two processes releases the use once.
+        $part = $winner->shopOrders()->sole();
+        $cancel = ['action' => 'cancel', 'user' => $winner->buyer_id, 'part' => $part->id, 'transition' => ['status' => 'CANCELLED', 'expected_status' => 'PENDING', 'reason' => 'Changed plans']];
+        $this->assertSame([200, 200], array_column($this->race([$cancel, $cancel]), 'status'));
+        $this->assertSame(0, $voucher->refresh()->used_count);
+        $this->assertSame(1, DB::table('voucher_redemptions')->whereNotNull('released_at')->count());
     }
 }

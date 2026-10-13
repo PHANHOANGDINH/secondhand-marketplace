@@ -136,6 +136,12 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
             · Đã thu: {{ formatPrice(order.cod_collected_amount) }}
           </template>
         </p>
+        <p v-if="Number(order.discount_amount) > 0" data-order-discount>
+          Đã giảm: {{ formatPrice(order.discount_amount) }}
+          <template v-if="order.platform_voucher_code">
+            · Mã của sàn: <strong class="order-voucher-code">{{ order.platform_voucher_code }}</strong>
+          </template>
+        </p>
       </div>
       <PaymentAttempts v-if="!seller" :order="order" @changed="order = $event" />
       <section v-for="part in parts" :key="part.id" class="card mb-3" :data-shop-order="part.id">
@@ -148,6 +154,19 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
           <p v-else>
             <StatusBadge :status="part.status" :label="orderStatuses[part.status]" />
             <strong class="ms-2">{{ formatPrice(part.total_amount) }}</strong>
+          </p>
+          <p v-if="Number(part.discount_amount) > 0" class="order-part-discount" data-part-discount>
+            <template v-if="part.voucher_code"
+              >Mã gian hàng <strong class="order-voucher-code">{{ part.voucher_code }}</strong>: −{{
+                formatPrice(part.discount_shop)
+              }}</template
+            >
+            <template v-if="Number(part.discount_platform) > 0">
+              <template v-if="part.voucher_code"> · </template>Giảm từ mã của sàn: −{{
+                formatPrice(part.discount_platform)
+              }}</template
+            >
+            · Tiền hàng: {{ formatPrice(part.subtotal) }}
           </p>
           <OrderTimeline :part="part" />
           <p v-if="part.cancellation_reason">Lý do hủy: {{ formatCancellationReason(part.cancellation_reason) }}</p>
@@ -210,3 +229,17 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
     >
   </section>
 </template>
+<style scoped>
+.order-voucher-code {
+  font-family: var(--font-money);
+  letter-spacing: 0.04em;
+}
+.order-part-discount {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bs-success-bg-subtle);
+  color: var(--success-ink);
+  font-size: 0.85rem;
+}
+</style>

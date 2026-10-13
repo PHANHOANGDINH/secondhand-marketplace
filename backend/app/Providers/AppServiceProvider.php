@@ -52,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('auction-bid', fn (Request $request): Limit => Limit::perMinute(20)->by((string) $request->user()->id));
         RateLimiter::for('messaging', fn (Request $request): Limit => Limit::perMinute(20)->by((string) $request->user()->id));
         RateLimiter::for('video-comment', fn (Request $request): Limit => Limit::perMinute(10)->by((string) $request->user()->id));
+        RateLimiter::for('checkout-preview', fn (Request $request): Limit => Limit::perMinute(30)->by((string) $request->user()->id));
         RateLimiter::for('payment', fn (Request $request): Limit => Limit::perMinute(12)->by((string) $request->user()->id));
         RateLimiter::for('upload', fn (Request $request): Limit => Limit::perMinute(20)->by((string) $request->user()->id));
         RateLimiter::for('public-read', fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()));

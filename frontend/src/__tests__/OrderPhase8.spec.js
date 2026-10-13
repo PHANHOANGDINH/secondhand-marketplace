@@ -356,3 +356,38 @@ it('all order pages require login and checkout API carries CSRF plus idempotency
     { headers: { 'Idempotency-Key': key } },
   )
 })
+
+it('buyer list has status tabs that use the existing overall_status filter', async () => {
+  const { wrapper } = await setup(OrdersView, { path: '/orders' })
+  const tabs = wrapper.findAll('.order-tab')
+  expect(tabs.map((tab) => tab.text())[0]).toBe('Tất cả')
+  expect(tabs).toHaveLength(6)
+  expect(tabs[0].attributes('aria-pressed')).toBe('true')
+  expect(api.listOrders).toHaveBeenLastCalledWith({ page: 1, per_page: 20 })
+  await tabs[3].trigger('click')
+  await flushPromises()
+  expect(api.listOrders).toHaveBeenLastCalledWith({ page: 1, per_page: 20, overall_status: 'COMPLETED' })
+  expect(wrapper.findAll('.order-tab')[3].attributes('aria-pressed')).toBe('true')
+  await wrapper.findAll('.order-tab')[0].trigger('click')
+  await flushPromises()
+  expect(api.listOrders).toHaveBeenLastCalledWith({ page: 1, per_page: 20 })
+  const seller = await setup(OrdersView, { seller: true, path: '/seller/orders' })
+  expect(seller.wrapper.find('.order-tab').exists()).toBe(false)
+})
+it('order timeline marks reached steps from API timestamps and shows a cancellation', async () => {
+  const { default: OrderTimeline } = await import('../components/OrderTimeline.vue')
+  const { mount } = await import('@vue/test-utils')
+  const running = mount(OrderTimeline, {
+    props: { part: { status: 'PROCESSING', created_at: '2026-10-01T02:00:00Z', confirmed_at: '2026-10-01T03:00:00Z', processing_at: '2026-10-02T03:00:00Z' } },
+  })
+  const steps = running.findAll('li')
+  expect(steps).toHaveLength(5)
+  expect(steps.map((step) => step.classes('is-done'))).toEqual([true, true, true, false, false])
+  expect(running.get('[aria-current="step"]').text()).toContain('Đang xử lý')
+  expect(running.findAll('time')).toHaveLength(3)
+  const cancelled = mount(OrderTimeline, {
+    props: { part: { status: 'CANCELLED', created_at: '2026-10-01T02:00:00Z', confirmed_at: '2026-10-01T03:00:00Z', cancelled_at: '2026-10-01T04:00:00Z' } },
+  })
+  expect(cancelled.findAll('li')).toHaveLength(3)
+  expect(cancelled.get('.is-cancelled').attributes('aria-current')).toBe('step')
+})

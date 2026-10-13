@@ -16,6 +16,13 @@ const actionRequired = ref(route.query.action_required === '1')
 const props = defineProps({ seller: Boolean })
 const result = ref(null),
   status = ref(typeof route.query.status === 'string' ? route.query.status : '')
+// Buyer tabs use the list endpoint's existing overall_status filter.
+const overallStatus = ref('')
+const buyerTabs = ['', 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'PARTIALLY_COMPLETED', 'CANCELLED']
+function chooseTab(value) {
+  overallStatus.value = value
+  load()
+}
 const { busy, error, run } = useFeedback()
 async function load(page = 1) {
   await run(async () => {
@@ -24,6 +31,7 @@ async function load(page = 1) {
       per_page: 20,
       ...(props.seller && actionRequired.value ? { action_required: 1 } : {}),
       ...(props.seller && status.value ? { status: status.value } : {}),
+      ...(!props.seller && overallStatus.value ? { overall_status: overallStatus.value } : {}),
     })
   })
 }
@@ -32,6 +40,7 @@ watch(
   () => {
     result.value = null
     status.value = ''
+    overallStatus.value = ''
     load()
   },
 )
@@ -68,6 +77,20 @@ useSellerIdentity(() => (props.seller ? result.value?.data[0]?.shop : null))
     <button v-if="error" class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()">
       {{ seller ? 'Tải lại đơn bán' : 'Tải lại đơn mua' }}
     </button>
+    <div v-if="!seller" class="order-tabs" role="group" aria-label="Lọc đơn theo trạng thái">
+      <button
+        v-for="tab in buyerTabs"
+        :key="tab"
+        type="button"
+        class="order-tab"
+        :class="{ 'is-active': overallStatus === tab }"
+        :aria-pressed="overallStatus === tab"
+        :disabled="busy"
+        @click="chooseTab(tab)"
+      >
+        {{ tab ? orderStatuses[tab] : 'Tất cả' }}
+      </button>
+    </div>
     <label v-if="seller" class="d-flex gap-2 align-items-center mt-3"
       ><input v-model="actionRequired" type="checkbox" @change="load()" /> Chỉ đơn cần xử lý</label
     >

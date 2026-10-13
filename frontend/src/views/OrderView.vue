@@ -1,4 +1,5 @@
 <script setup>
+import OrderTimeline from '../components/OrderTimeline.vue'
 import { formatCancellationReason, getPaymentMethodLabel } from '../utils/labels'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
@@ -148,6 +149,7 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
             <StatusBadge :status="part.status" :label="orderStatuses[part.status]" />
             <strong class="ms-2">{{ formatPrice(part.total_amount) }}</strong>
           </p>
+          <OrderTimeline :part="part" />
           <p v-if="part.cancellation_reason">Lý do hủy: {{ formatCancellationReason(part.cancellation_reason) }}</p>
           <OrderItems
             :items="part.items"

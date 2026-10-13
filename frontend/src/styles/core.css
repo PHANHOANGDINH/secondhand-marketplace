@@ -14,9 +14,14 @@ h4,
 .h4 {
   letter-spacing: -0.02em;
 }
+/* Monospace is reserved for auction prices and countdowns. */
 .money-value,
 .product-card-price,
-.buyer-product-price,
+.buyer-product-price {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
 .auction-price,
 .auction-countdown,
 .auction-timer strong {
@@ -37,6 +42,24 @@ h4,
   justify-content: center;
   gap: var(--space-2);
   box-shadow: none !important;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-success {
+  --bs-btn-bg: var(--success);
+  --bs-btn-border-color: var(--success);
+  --bs-btn-hover-bg: var(--success-ink);
+  --bs-btn-hover-border-color: var(--success-ink);
+  --bs-btn-active-bg: var(--success-ink);
+  --bs-btn-active-border-color: var(--success-ink);
+  --bs-btn-disabled-bg: var(--success);
+  --bs-btn-disabled-border-color: var(--success);
 }
 .btn-sm {
   --bs-btn-border-radius: 8px;
@@ -118,6 +141,9 @@ h4,
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 .form-control::placeholder {
   color: var(--muted);

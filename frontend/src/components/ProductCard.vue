@@ -2,23 +2,32 @@
 import ProductPhoto from './ProductPhoto.vue'
 import FavoriteButton from './FavoriteButton.vue'
 import AppIcon from './ui/AppIcon.vue'
-import { formatPrice, conditionLabel } from '../composables/productPresentation'
+import { formatPrice, conditionLabel, timeAgo } from '../composables/productPresentation'
 import { getStatusLabel } from '../utils/labels'
 defineProps({ product: { type: Object, required: true } })
 </script>
 <template>
   <article class="card h-100 marketplace-product-card" :data-product="product.id">
-    <RouterLink
-      :to="`/products/${product.slug}`"
-      class="product-card-image"
-      :aria-label="product.name"
-      ><ProductPhoto
-        :src="product.primary_image?.url"
-        :alt="product.name"
-        class="w-100"
-        style="aspect-ratio: 1 / 1; height: auto"
-    /></RouterLink>
-    <div class="product-card-favorite"><FavoriteButton :product="product" compact /></div>
+    <div class="product-card-media">
+      <RouterLink
+        :to="`/products/${product.slug}`"
+        class="product-card-image"
+        :aria-label="product.name"
+        ><ProductPhoto
+          :src="product.primary_image?.url"
+          :alt="product.name"
+          class="w-100"
+          style="aspect-ratio: 1 / 1; height: auto"
+      /></RouterLink>
+      <RouterLink
+        v-if="product.auction"
+        :to="`/auctions/${product.auction.id}`"
+        class="product-card-badge"
+        ><AppIcon name="gavel" :size="14" />{{ getStatusLabel(product.auction.status, 'auction') }}
+        · Xem phiên</RouterLink
+      >
+      <div class="product-card-favorite"><FavoriteButton :product="product" compact /></div>
+    </div>
     <div class="card-body">
       <p v-if="product.reason_label" class="product-card-reason">{{ product.reason_label }}</p>
       <h2 class="h5">
@@ -27,42 +36,43 @@ defineProps({ product: { type: Object, required: true } })
       <p class="product-card-price">
         {{ formatPrice(product.auction?.current_price || product.price) }}
       </p>
-      <RouterLink v-if="product.auction" :to="`/auctions/${product.auction.id}`" class="small mb-2"
-        >{{ getStatusLabel(product.auction.status, 'auction') }} · Xem phiên</RouterLink
-      >
-      <p class="product-card-condition">{{ conditionLabel(product.condition) }}</p>
+      <p class="product-card-meta">
+        <span class="product-card-condition">{{ conditionLabel(product.condition) }}</span>
+        <RouterLink
+          v-if="product.shop"
+          class="product-card-shop"
+          :to="`/shops/${product.shop.slug}`"
+          >{{ product.shop.name }}</RouterLink
+        >
+        <time
+          v-if="timeAgo(product.published_at)"
+          class="product-card-time"
+          :datetime="product.published_at"
+          >{{ timeAgo(product.published_at) }}</time
+        >
+      </p>
       <p v-if="product.review_count" class="product-card-rating">
         <AppIcon name="star" filled :size="14" /> {{ product.average_rating }} / 5 ·
         {{ product.review_count }} đánh giá
       </p>
-      <RouterLink
-        v-if="product.shop"
-        class="product-card-shop"
-        :to="`/shops/${product.shop.slug}`"
-        >{{ product.shop.name }}</RouterLink
-      >
     </div>
   </article>
 </template>
 
 <style scoped>
 .marketplace-product-card {
-  position: relative;
   padding: 0.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--surface);
-  transition: border-color 0.2s ease;
+  transition: border-color var(--transition-fast);
 }
 .marketplace-product-card:hover,
 .marketplace-product-card:focus-within {
   border-color: var(--primary);
 }
-.product-card-favorite {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1;
+.product-card-media {
+  position: relative;
 }
 .product-card-image {
   display: block;
@@ -78,17 +88,43 @@ defineProps({ product: { type: Object, required: true } })
   object-fit: cover !important;
   border-radius: 0 !important;
   background: transparent !important;
-  transition: transform 0.3s ease;
 }
-.marketplace-product-card:hover .product-card-image :deep(img) {
-  transform: scale(1.03);
+.product-card-favorite {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+}
+/* Image-corner label: an auction is running or scheduled for this listing. */
+.product-card-badge {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--text);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+.product-card-badge:hover {
+  background: var(--primary);
+  color: #fff;
 }
 .card-body {
   padding: 0.85rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .card-body > * {
   margin: 0;
@@ -118,18 +154,33 @@ h2 a:hover {
   color: var(--primary);
 }
 .product-card-price {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--text);
 }
-.product-card-condition {
-  padding: 0.2rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 0.7rem;
-  font-weight: 600;
+.product-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.product-card-meta > *:not(:last-child)::after {
+  content: '·';
+  margin-left: 0.4rem;
+  color: var(--muted);
+}
+.product-card-shop {
+  color: var(--muted);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.product-card-shop:hover {
+  color: var(--primary);
 }
 .product-card-rating {
   display: inline-flex;
@@ -141,30 +192,14 @@ h2 a:hover {
 .product-card-rating :deep(svg) {
   color: #b7791f;
 }
-.product-card-shop {
-  width: 100%;
-  margin-top: auto;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.75rem;
-  text-decoration: none;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-.product-card-shop:hover {
-  color: var(--primary);
-}
 a:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .marketplace-product-card,
-  .product-card-image :deep(img) {
+  .product-card-badge {
     transition: none;
-  }
-  .marketplace-product-card:hover .product-card-image :deep(img) {
-    transform: none;
   }
 }
 </style>

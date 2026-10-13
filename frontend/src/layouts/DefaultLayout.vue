@@ -13,7 +13,6 @@ import '../styles/admin.css'
 import '../styles/core.css'
 import BrandLogo from '../components/ui/BrandLogo.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
-import { useMotion } from '../composables/useMotion'
 import AdminShell from '../components/admin/AdminShell.vue'
 import SellerShell from '../components/seller/SellerShell.vue'
 import AccountNav from '../components/account/AccountNav.vue'
@@ -21,11 +20,13 @@ import { useAuthStore } from '../stores/auth'
 import LogoutButton from '../components/LogoutButton.vue'
 import CartLink from '../components/CartLink.vue'
 import ProductSearch from '../components/ProductSearch.vue'
+import { listCategories } from '../api/category.api'
 const searchKeyword = ref('')
 const searchProducts = () =>
   router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
 const auth = useAuthStore()
-const { pressScale } = useMotion()
+// Top-level categories for the browse row; the row stays hidden if they cannot be loaded.
+const categories = ref([])
 provideMessaging()
 provideNotifications()
 const route = useRoute(),
@@ -87,7 +88,11 @@ watch(
   },
 )
 onMounted(() => {
-  pressScale(document)
+  listCategories()
+    .then((result) => {
+      categories.value = Array.isArray(result?.data) ? result.data : []
+    })
+    .catch(() => {})
   updateScroll()
   window.addEventListener('scroll', updateScroll, { passive: true })
   document.addEventListener('pointerdown', outsideMenu)
@@ -217,6 +222,20 @@ function closeAccountMenu(event) {
       </div>
     </nav>
   </header>
+  <nav
+    v-if="!sellerPage && !adminPage && categories.length"
+    class="marketplace-categories"
+    aria-label="Danh mục"
+  >
+    <ul class="container">
+      <li><RouterLink to="/products">Tất cả</RouterLink></li>
+      <li v-for="category in categories" :key="category.id">
+        <RouterLink :to="{ path: '/products', query: { category: category.id } }">{{
+          category.name
+        }}</RouterLink>
+      </li>
+    </ul>
+  </nav>
   <QuickListingDialog v-if="quickOpen" @close="closeQuickListing" />
   <OutbidToasts v-if="auth.isAuthenticated" /><ChatDrawer v-if="auth.isAuthenticated" />
   <AdminShell v-if="adminPage"><slot /></AdminShell>
@@ -255,6 +274,46 @@ function closeAccountMenu(event) {
   align-items: center;
   text-decoration: none;
   border-radius: var(--radius-sm);
+}
+/* Browse row under the header: scrolls sideways on narrow screens, scrolls away with the page. */
+.marketplace-categories {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.marketplace-categories ul {
+  display: flex;
+  gap: 0.25rem;
+  margin-block: 0;
+  padding-block: 0.35rem;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.marketplace-categories ul::-webkit-scrollbar {
+  display: none;
+}
+.marketplace-categories a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+.marketplace-categories a:hover {
+  background: var(--surface-2);
+  color: var(--primary);
+}
+.marketplace-categories a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
 }
 .marketplace-search {
   grid-area: search;

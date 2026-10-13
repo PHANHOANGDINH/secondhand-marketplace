@@ -2,13 +2,6 @@
 html {
   scrollbar-gutter: stable;
 }
-.money-value,
-.product-card-price,
-.buyer-product-price {
-  font-family: var(--font-money);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-}
 .ui-dialog-backdrop {
   position: fixed;
   inset: 0;

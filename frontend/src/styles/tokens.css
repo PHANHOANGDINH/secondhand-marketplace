@@ -13,7 +13,7 @@
   --muted: #5b5d66;
   --primary: #1e3be8;
   --primary-rgb: 30, 59, 232;
-  --primary-hover: #1730c4;
+  --primary-hover: #1429a8;
   --primary-ink: #14279b;
   --primary-soft: #e8ecfe;
   --accent: #c6ff3d;
@@ -22,7 +22,9 @@
   --danger-rgb: 229, 36, 59;
   /* #E5243B reaches 4.5:1 only on pure white; text on tinted backgrounds uses this. */
   --danger-ink: #b3172b;
-  --success: var(--bs-success, #198754);
+  --success: #12805c;
+  --success-rgb: 18, 128, 92;
+  --success-ink: #0c5c42;
   --warning: var(--bs-warning, #ffc107);
 
   /* Names kept from the previous token set so existing rules keep working. */
@@ -55,6 +57,9 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-pill: 999px;
+
+  /* Every transition in the redesigned parts uses this; nothing is animated with JavaScript. */
+  --transition-fast: 0.15s ease;
 
   /* Borders carry the structure; shadows are reserved for floating layers. */
   --shadow-card: none;
@@ -96,7 +101,12 @@
   --bs-link-color: var(--primary);
   --bs-link-color-rgb: var(--primary-rgb);
   --bs-link-hover-color: var(--primary-hover);
-  --bs-link-hover-color-rgb: 23, 48, 196;
+  --bs-link-hover-color-rgb: 20, 41, 168;
+  --bs-success: var(--success);
+  --bs-success-rgb: var(--success-rgb);
+  --bs-success-text-emphasis: var(--success-ink);
+  --bs-success-bg-subtle: #e3f4ee;
+  --bs-success-border-subtle: #b5dfd0;
   --bs-border-radius: var(--radius-sm);
   --bs-border-radius-sm: 8px;
   --bs-border-radius-lg: var(--radius-md);

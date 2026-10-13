@@ -1,6 +1,5 @@
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue'
-import { fadeOutCopy, useMotion } from '../../composables/useMotion'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 defineOptions({ inheritAttrs: false })
 const props = defineProps({
   id: { type: String, required: true },
@@ -9,7 +8,6 @@ const props = defineProps({
   busy: Boolean,
 })
 const emit = defineEmits(['dismiss'])
-const { dialogIn } = useMotion()
 const overlay = ref(null),
   panel = ref(null),
   closeButton = ref(null)
@@ -59,13 +57,10 @@ onMounted(async () => {
     inertElements.push([element, element.hasAttribute('inert')])
     element.setAttribute('inert', '')
   }
-  dialogIn(overlay.value, panel.value)
   await nextTick()
   if (closeButton.value?.disabled) panel.value?.focus()
   else closeButton.value?.focus()
 })
-// Closing is immediate; a click-through copy of the dialog fades out behind it.
-onBeforeUnmount(() => fadeOutCopy(overlay.value))
 onUnmounted(() => {
   document.body.style.overflow = previousOverflow
   for (const [element, previouslyInert] of inertElements)

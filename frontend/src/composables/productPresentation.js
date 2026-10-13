@@ -42,3 +42,16 @@ export const actionLabels = {
   hide: 'Ẩn sản phẩm',
   delete: 'Xóa sản phẩm',
 }
+// "3 giờ trước" from an ISO timestamp; empty when the value is missing or invalid.
+export function timeAgo(value, now = Date.now()) {
+  const time = value ? Date.parse(value) : NaN
+  if (Number.isNaN(time)) return ''
+  const minutes = Math.floor(Math.max(0, now - time) / 60000)
+  if (minutes < 1) return 'Vừa đăng'
+  if (minutes < 60) return `${minutes} phút trước`
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} giờ trước`
+  const days = Math.floor(minutes / 1440)
+  if (days < 30) return `${days} ngày trước`
+  if (days < 365) return `${Math.floor(days / 30)} tháng trước`
+  return `${Math.floor(days / 365)} năm trước`
+}

@@ -36,14 +36,67 @@ watch(() => route.params.slug, load, { immediate: true })
       Tải lại
     </button>
     <template v-if="shop"
-      ><PageHeader :title="shop.name" eyebrow="Gian hàng trên sàn mua bán" />
-      <p class="public-shop-description">{{ shop.description }}</p>
-      <ReportDialog
-        target-type="SHOP"
-        :target-id="shop.id"
-        label="Báo cáo gian hàng"
-        class="mb-3" />
+      ><div class="shop-hero">
+        <span class="shop-hero-avatar" aria-hidden="true">{{
+          shop.name.trim().charAt(0).toLocaleUpperCase('vi-VN')
+        }}</span>
+        <div class="shop-hero-body">
+          <PageHeader :title="shop.name" eyebrow="Gian hàng trên sàn mua bán" />
+          <p class="public-shop-description">{{ shop.description }}</p>
+          <ReportDialog target-type="SHOP" :target-id="shop.id" label="Báo cáo gian hàng" />
+        </div>
+      </div>
       <ShopProducts :shop-id="shop.id"
     /></template>
   </section>
 </template>
+<style scoped>
+.shop-hero {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+.shop-hero-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: var(--accent);
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+.shop-hero-body {
+  min-width: 0;
+  flex: 1;
+}
+.shop-hero :deep(.buyer-page-header) {
+  margin-bottom: var(--space-3);
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.shop-hero :deep(.buyer-page-header h1) {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+.shop-hero .public-shop-description {
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 575px) {
+  .shop-hero {
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+  .shop-hero-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.35rem;
+  }
+}
+</style>

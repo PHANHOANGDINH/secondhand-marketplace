@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProduct } from '../api/product.api'
 import { domainError } from '../api/domain.api'
@@ -34,6 +34,13 @@ async function load() {
   }
 }
 watch(() => route.params.slug, load, { immediate: true })
+// "tháng 10/2026" from the shop's creation date, when the API sends it.
+const joined = computed(() => {
+  const time = Date.parse(product.value?.shop?.joined_at || '')
+  return Number.isNaN(time)
+    ? ''
+    : new Date(time).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })
+})
 </script>
 <template>
   <section class="buyer-flow product-detail">
@@ -106,6 +113,17 @@ watch(() => route.params.slug, load, { immediate: true })
                 product.shop.name
               }}</RouterLink></span
             >
+          </p>
+          <p v-if="product.shop && (product.shop.rating_count > 0 || joined)" class="product-seller-stats">
+            <span
+              v-if="product.shop.rating_count > 0"
+              :aria-label="`Gian hàng được đánh giá ${Number(product.shop.rating_avg).toFixed(1)} trên 5 từ ${product.shop.rating_count} lượt`"
+              ><AppIcon name="star" filled :size="14" />{{
+                Number(product.shop.rating_avg).toFixed(1)
+              }}
+              ({{ product.shop.rating_count }})</span
+            >
+            <span v-if="joined">Tham gia {{ joined }}</span>
           </p>
           <ChatSellerButton :key="`chat-${product.id}`" :product="product" />
         </div>
@@ -218,6 +236,22 @@ watch(() => route.params.slug, load, { immediate: true })
   background: var(--accent);
   color: var(--accent-ink);
   font-weight: 800;
+}
+.product-seller-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.product-seller-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.product-seller-stats :deep(svg) {
+  color: #b7791f;
 }
 .product-seller :deep(.btn) {
   width: 100%;

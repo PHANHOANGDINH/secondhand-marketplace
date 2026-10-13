@@ -12,6 +12,8 @@ import AppIcon from '../components/ui/AppIcon.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import ProductCard from '../components/ProductCard.vue'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
+import ProductView from '../views/ProductView.vue'
+import * as productApi from '../api/product.api'
 vi.mock('../composables/useNotifications', async (importOriginal) => ({
   ...(await importOriginal()),
   provideNotifications: vi.fn(),
@@ -194,4 +196,35 @@ it('brand config is the single source for the name, area labels and document tit
   expect(names.filter((name) => !(name in pageNames))).toEqual([])
   expect(mount(BrandLogo).text()).toBe(brand.name)
   expect(mount(PageHeader, { props: { title: 'Đơn mua' } }).get('.buyer-eyebrow').text()).toBe(brandLine)
+})
+
+it('product detail seller card shows the shop rating and join month only when the API provides them', async () => {
+  const detail = { ...product(), description: 'Mô tả', stock_quantity: 2, images: [] }
+  const stubs = { ProductReviews: true, ProductVideos: true, AddToCart: true, ReportDialog: true, ChatSellerButton: true, ProductSuggestions: true }
+  const mountDetail = async (shop) => {
+    vi.spyOn(productApi, 'getProduct').mockResolvedValue({ ...detail, shop })
+    const pinia = (await import('pinia')).createPinia()
+    const auth = useAuthStore(pinia)
+    auth.initialized = true
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: ['/products', '/products/:slug', '/shops/:slug', '/login'].map((path) => ({ path, component: { template: '<div />' } })),
+    })
+    await router.push('/products/may-anh-phim')
+    const wrapper = mount(ProductView, { global: { plugins: [pinia, router], stubs } })
+    wrappers.push(wrapper)
+    await flushPromises()
+    return wrapper
+  }
+  const rated = await mountDetail({ ...detail.shop, rating_avg: 4.25, rating_count: 8, joined_at: '2026-03-05T02:00:00Z' })
+  const stats = rated.get('.product-seller-stats')
+  expect(stats.text()).toContain('4.3')
+  expect(stats.text()).toContain('(8)')
+  expect(stats.text()).toMatch(/Tham gia .*3.*2026/)
+  expect(stats.get('span').attributes('aria-label')).toContain('8 lượt')
+  const fresh = await mountDetail({ ...detail.shop, rating_avg: null, rating_count: 0, joined_at: '2026-03-05T02:00:00Z' })
+  expect(fresh.get('.product-seller-stats').text()).not.toContain('(0)')
+  const bare = await mountDetail(detail.shop)
+  expect(bare.find('.product-seller-stats').exists()).toBe(false)
+  expect(bare.get('.buyer-shop-panel a').attributes('href')).toBe('/shops/tiem-cu')
 })

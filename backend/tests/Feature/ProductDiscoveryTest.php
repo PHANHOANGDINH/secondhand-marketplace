@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Auction;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVideo;
 use App\Models\Review;
+use App\Models\ShopOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -166,5 +168,49 @@ class ProductDiscoveryTest extends TestCase
         }
         $this->assertCount(14, $this->ids(['per_page' => 100]));
         $this->assertSame($few, array_map($count, $paths));
+    }
+
+    public function test_seller_card_stats_cover_published_reviews_of_the_whole_shop_without_extra_queries(): void
+    {
+        $this->travelTo('2026-10-01 08:00:00');
+        $first = Product::factory()->active()->create();
+        $second = Product::factory()->active()->create(['shop_id' => $first->shop_id]);
+        $unrated = Product::factory()->active()->create();
+        $review = function (Product $product, int $rating, string $status = 'PUBLISHED'): void {
+            $item = OrderItem::factory()->create(['shop_order_id' => ShopOrder::factory()->completed()->create(['shop_id' => $product->shop_id])->id, 'product_id' => $product->id]);
+            Review::factory()->create(['order_item_id' => $item->id, 'rating' => $rating, 'status' => $status]);
+        };
+        $review($first, 5);
+        $review($second, 4);
+        $review($second, 3);
+        $review($second, 1, 'HIDDEN');
+        $count = function (): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->getJson('/api/v1/products?per_page=100')->assertOk();
+            DB::disableQueryLog();
+
+            return count(DB::getQueryLog());
+        };
+        $few = $count();
+
+        foreach ([$first, $second] as $product) {
+            $this->getJson('/api/v1/products/'.$product->slug)->assertOk()
+                ->assertJsonPath('data.shop.rating_avg', 4)->assertJsonPath('data.shop.rating_count', 3)
+                ->assertJsonPath('data.shop.joined_at', $first->shop->created_at->toISOString())
+                ->assertJsonMissingPath('data.shop.owner_id')->assertJsonMissingPath('data.shop.status');
+        }
+        // The product's own rating is unchanged and separate from the shop's.
+        $this->getJson('/api/v1/products/'.$second->slug)->assertJsonPath('data.review_count', 2)->assertJsonPath('data.average_rating', 3.5);
+        $this->getJson('/api/v1/products/'.$unrated->slug)->assertOk()
+            ->assertJsonPath('data.shop.rating_avg', null)->assertJsonPath('data.shop.rating_count', 0);
+        $rows = collect($this->getJson('/api/v1/products?per_page=100')->assertOk()->json('data'))->keyBy('id');
+        $this->assertSame(3, $rows[(string) $first->id]['shop']['rating_count']);
+        $this->assertSame(0, $rows[(string) $unrated->id]['shop']['rating_count']);
+
+        foreach (range(1, 8) as $index) {
+            $review(Product::factory()->active()->create(), 4);
+        }
+        $this->assertSame($few, $count());
     }
 }

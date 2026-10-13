@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Enums\ProductStatus;
 use App\Enums\ProductVideoStatus;
+use App\Enums\ReviewStatus;
 use App\Models\Product;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,7 +31,17 @@ class ProductQuery
 
         $query->withExists(['videos as has_video' => $this->publicVideos()]);
 
-        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at'), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $this->sellerStats($q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at', 'created_at')), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+    }
+
+    /** Seller-card figures for the eager-loaded shop: published reviews across all of its products, as two subselects. */
+    private function sellerStats(BelongsTo $shops): BelongsTo
+    {
+        $reviews = fn (string $aggregate) => Review::query()->selectRaw($aggregate)
+            ->join('products as rated', 'rated.id', '=', 'reviews.product_id')
+            ->whereColumn('rated.shop_id', 'shops.id')->where('reviews.status', ReviewStatus::PUBLISHED);
+
+        return $shops->addSelect(['rating_count' => $reviews('COUNT(*)'), 'rating_avg' => $reviews('AVG(reviews.rating)')]);
     }
 
     /** One definition of "has a video": shared by the has_video filter and the has_video flag. */

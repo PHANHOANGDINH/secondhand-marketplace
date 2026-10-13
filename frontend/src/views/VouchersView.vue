@@ -225,8 +225,8 @@ onMounted(() => load())
                 {{ voucher.scope === 'PLATFORM' ? 'Toàn sàn' : voucher.shop?.name || 'Gian hàng' }}
               </div>
             </td>
-            <td data-label="Mức giảm">{{ worth(voucher) }}</td>
-            <td data-label="Điều kiện">
+            <td data-label="Mức giảm" class="voucher-nowrap">{{ worth(voucher) }}</td>
+            <td data-label="Điều kiện" class="voucher-nowrap">
               Đơn từ {{ formatPrice(voucher.min_order) }}
               <div v-if="voucher.per_user_limit" class="small text-muted">
                 Mỗi người {{ voucher.per_user_limit }} lượt
@@ -412,6 +412,10 @@ onMounted(() => load())
   </section>
 </template>
 <style scoped>
+/* Amounts stay on one line: "20.000 ₫" must not break before the currency sign. */
+.voucher-nowrap {
+  white-space: nowrap;
+}
 .voucher-code {
   font-family: var(--font-money);
   letter-spacing: 0.04em;

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Auction;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVideo;
 use App\Models\Report;
@@ -11,7 +12,9 @@ use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\Voucher;
+use App\Services\AdminActionCenterService;
 use App\Services\ProductQuery;
+use App\Services\RecommendationService;
 use App\Services\ReviewService;
 use App\Services\SellerInventoryService;
 use Carbon\Carbon;
@@ -74,7 +77,16 @@ class FinalDemoSeederTest extends TestCase
         $this->assertSame('120000.00', $order->total_amount);
         $this->assertSame($ended->id, $order->shopOrders->sole()->orderItems->sole()->auction_id);
         $this->assertSame('COMPLETED', $order->shopOrders->sole()->status->value);
-        $this->assertSame(6, Order::count());
+        $this->assertSame(7, Order::count());
+        // D8 additions: one payment waiting for reconciliation, an admin-cancellable auction, view and search signals.
+        $this->assertSame(1, Payment::where('reconciliation_required', true)->whereNull('reconciliation_resolved_at')->count());
+        $this->assertSame(1, app(AdminActionCenterService::class)->summary()['payments_reconciliation']);
+        $this->assertSame(5, DB::table('product_views')->count());
+        $this->assertSame(3, DB::table('search_logs')->count());
+        $buyerA = User::where('email', 'c1-buyer-a@example.test')->sole();
+        $recommended = app(RecommendationService::class)->forUser($buyerA, 12);
+        $this->assertGreaterThan(0, $recommended->count());
+        $this->assertTrue($recommended->contains(fn ($product) => str_starts_with($product->reason_label, 'Vì bạn')));
         $this->assertSame(['CONGNGHE20K' => 'SHOP', 'PASSLAI10' => 'PLATFORM'], Voucher::orderBy('code')->pluck('scope', 'code')->all());
         $this->assertSame($inventoryShop->id, Voucher::where('code', 'CONGNGHE20K')->value('shop_id'));
         $this->assertSame(2, ReviewService::published(Review::query())->count());
@@ -103,6 +115,9 @@ class FinalDemoSeederTest extends TestCase
         $this->assertSame($snapshot, $this->snapshot());
         $this->assertSame($files, Storage::disk('public')->allFiles());
         $this->assertDatabaseCount('vouchers', 2);
+        $this->assertSame(5, DB::table('product_views')->count());
+        $this->assertSame(3, DB::table('search_logs')->count());
+        $this->assertSame(7, Order::count());
         $this->assertTrue(Hash::check('FictionalTestOnlyC1!', User::where('email', 'c1-admin@example.test')->sole()->password));
     }
 

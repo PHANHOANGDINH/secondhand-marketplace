@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\ReportTargetType;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
@@ -10,7 +11,9 @@ use App\Models\Auction;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductView;
 use App\Models\Report;
+use App\Models\SearchLog;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\VideoComment;
@@ -156,6 +159,7 @@ class FinalDemoSeeder extends Seeder
                         }
                     }
                 }
+                $this->integration();
             });
         } catch (Throwable $exception) {
             foreach ($this->createdFiles as [$kind, $path, $productId]) {
@@ -171,6 +175,38 @@ class FinalDemoSeeder extends Seeder
             CarbonImmutable::setTestNow($oldImmutable);
         }
         $this->command?->info('C1 demo seed complete. Existing accounts/passwords, progress and unrelated records are preserved.');
+    }
+
+    /** D8: data the D5 and D7 screens need so they are not empty in a demo. Additive and repeatable. */
+    private function integration(): void
+    {
+        // D7: a few product views and searches, so "Gợi ý cho bạn" is personal for the demo buyers.
+        foreach (['buyer-a' => [[9, 10, 16], ['bàn phím cơ', 'tai nghe sony']], 'buyer-b' => [[15, 17], ['giày adidas']]] as $buyerKey => [$indices, $queries]) {
+            $buyer = $this->users[$buyerKey];
+            foreach ($indices as $index) {
+                if (! ProductView::where('user_id', $buyer->id)->where('product_id', $this->products[$index]->id)->exists()) {
+                    ProductView::create(['user_id' => $buyer->id, 'product_id' => $this->products[$index]->id, 'viewed_at' => now()]);
+                }
+            }
+            foreach ($queries as $query) {
+                SearchLog::firstOrCreate(['user_id' => $buyer->id, 'query' => $query]);
+            }
+        }
+        // D5: one online order that was cancelled and then received money, waiting for an admin decision.
+        // Written as new rows only: no cart, stock or existing record is touched and no gateway is called.
+        $buyer = $this->users['buyer-c'];
+        if (! Order::where('buyer_id', $buyer->id)->where('checkout_key', $this->key('reconcile'))->exists()) {
+            $product = $this->products[15];
+            $address = $this->addresses['buyer-c'];
+            $shipping = [];
+            foreach (['recipient_name', 'phone', 'address_line', 'ward', 'district', 'province', 'country_code'] as $field) {
+                $shipping['shipping_'.$field] = $address->$field;
+            }
+            $order = Order::create([...$shipping, 'buyer_id' => $buyer->id, 'order_code' => 'SHM-C1DEMORECONCILE0001', 'checkout_key' => $this->key('reconcile'), 'request_hash' => hash('sha256', 'c1-demo-reconcile'), 'subtotal' => $product->price, 'shipping_fee' => '0.00', 'discount_amount' => '0.00', 'total_amount' => $product->price, 'currency' => 'VND', 'payment_method' => PaymentMethod::ZALOPAY]);
+            $part = $order->shopOrders()->create(['shop_id' => $product->shop_id, 'status' => 'CANCELLED', 'subtotal' => $product->price, 'shipping_fee' => '0.00', 'discount_amount' => '0.00', 'total_amount' => $product->price, 'cancelled_at' => now(), 'cancellation_reason' => 'Demo: người mua hủy trước khi tiền về', 'stock_restored_at' => now()]);
+            $part->orderItems()->create(['product_id' => $product->id, 'product_name' => $product->name, 'product_image' => $product->images()->where('is_primary', true)->value('image_path'), 'product_price' => $product->price, 'quantity' => 1, 'subtotal' => $product->price]);
+            $order->payments()->create(['attempt_number' => 1, 'method' => PaymentMethod::ZALOPAY, 'amount' => $product->price, 'currency' => 'VND', 'status' => PaymentStatus::CANCELLED, 'reconciliation_required' => true, 'gateway_transaction_id' => 'DEMO-RECONCILE-0001', 'transaction_reference' => 'demo_c1_reconcile_0001', 'gateway_requested_at' => now(), 'expires_at' => now()->addMinutes(15)]);
+        }
     }
 
     private function auction(int $index, string $kind): ?Auction

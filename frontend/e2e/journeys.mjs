@@ -1,0 +1,241 @@
+import { one, two, state, U, product, want } from './run.mjs'
+import { data, report, journey, check, sleep, php, artisan, ROOT } from './lib.mjs'
+import fs from 'node:fs/promises'
+import process from 'node:process'
+const image = new URL('backend/resources/demo-marketplace/images/', ROOT).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const firstImage = image + (await fs.readdir(new URL('backend/resources/demo-marketplace/images/', ROOT))).find((name) => name.endsWith('.webp'))
+const stamp = Date.now().toString().slice(-6)
+
+if (want('C'))
+  await journey('C seller: quick listing → admin approves → stock edit → handle order', async () => {
+    const name = `E2E ${stamp} — Loa Bluetooth đã dùng`
+    await one.login(U('seller-1'))
+    await one.clickText('Đăng bán nhanh', '.marketplace-header')
+    await one.wait("!!document.querySelector('#quick-product-form')", 'quick listing dialog')
+    await one.shot('C-quick-listing')
+    await one.fill('#quick-product-form [name="name"]', name)
+    await one.fill('#quick-product-form [name="description"]', 'Loa còn tốt, pin dùng khoảng 6 giờ, có vài vết xước nhỏ ở mặt lưới. Kèm cáp sạc.')
+    await one.evaluate(`(()=>{const s=document.querySelector('#quick-product-form [name="category_id"]');const o=[...s.options].find(x=>x.value);s.value=o.value;s.dispatchEvent(new Event('change',{bubbles:true}));return true})()`)
+    await one.fill('#quick-product-form [name="price"]', '450000')
+    await one.fill('#quick-product-form [name="stock_quantity"]', '3')
+    await one.fill('#quick-product-form [name="condition"]', 'GOOD')
+    await one.submit('#quick-product-form')
+    await one.wait("!!document.querySelector('#quick-product-images') && !document.querySelector('#quick-product-images').disabled", 'draft saved, image upload available')
+    const { root } = await one.call('DOM.getDocument')
+    const { nodeId } = await one.call('DOM.querySelector', { nodeId: root.nodeId, selector: '#quick-product-images' })
+    await one.call('DOM.setFileInputFiles', { nodeId, files: [firstImage] })
+    await sleep(500)
+    await one.clickText('Tải ảnh lên', '#quick-listing-dialog')
+    await one.wait("document.querySelector('#quick-listing-dialog').innerText.includes('Đã tải ảnh lên') && document.querySelector('#quick-listing-dialog').innerText.includes('(1/8)')", 'image uploaded')
+    await one.click('#quick-listing-dialog [data-action="submit"]')
+    await one.wait("document.querySelector('#quick-listing-dialog').innerText.includes('Chờ duyệt')", 'submitted for review')
+    const id = Number(php(`echo DB::table('products')->where('name', ${JSON.stringify(name)})->value('id');`))
+    check(id > 0 && php(`echo DB::table('products')->where('id', ${id})->value('status');`) === 'PENDING', 'product is PENDING in the database')
+    state.newProduct = id
+
+    await two.login(U('admin'))
+    await two.goto('/admin/products?status=PENDING', 2500)
+    await two.wait(`!!document.querySelector('main [data-product="${id}"]')`, 'pending product listed for the admin')
+    await two.clickText('Xem', `main [data-product="${id}"]`)
+    await two.wait("!!document.querySelector('main [name=\"reason\"]')", 'moderation form')
+    await two.fill('main [name="reason"]', 'Tin đăng đủ thông tin và ảnh rõ.')
+    await two.shot('C-admin-moderation')
+    await two.click('main [data-target="ACTIVE"]')
+    await two.wait(`document.body.innerText.includes('Đang hoạt động')`, 'approved')
+    check(php(`echo DB::table('products')->where('id', ${id})->value('status');`) === 'ACTIVE', 'product is ACTIVE')
+
+    await one.goto('/seller/inventory', 2500)
+    await one.fill('input[aria-label="Tìm tên sản phẩm"]', `E2E ${stamp}`)
+    await one.clickText('Áp dụng', 'main')
+    await one.clickText('Cập nhật tồn kho', 'main table')
+    await one.fill('#inventory-quantity', '5')
+    await one.shot('C-inventory-edit')
+    await one.submit('form[aria-label="Cập nhật tồn kho"]')
+    await one.wait(`document.querySelector('form[aria-label="Cập nhật tồn kho"]') === null`, 'stock saved')
+    check(php(`echo DB::table('products')->where('id', ${id})->value('stock_quantity').'|'.DB::table('products')->where('id', ${id})->value('status');`) === '5|ACTIVE', 'stock is 5 and the product stayed ACTIVE')
+
+    // The seller confirms the order placed in journey A (or B).
+    const order = state.orderA || state.orderB || Number(php("echo DB::table('orders')->whereNotNull('platform_voucher_code')->max('id');"))
+    const part = Number(php(`echo DB::table('shop_orders')->where('order_id', ${order})->value('id');`))
+    await one.goto(`/seller/orders/${part}`, 2500)
+    await one.wait("!!document.querySelector('[data-next-status]')", 'next-status button')
+    await one.shot('C-seller-order')
+    await one.click('[data-next-status]')
+    await one.wait(`document.body.innerText.includes('Đã xác nhận')`, 'order confirmed')
+    check(php(`echo DB::table('shop_orders')->where('id', ${part})->value('status');`) === 'CONFIRMED', 'shop order is CONFIRMED')
+  })
+
+if (want('D'))
+  await journey('D auction: two browsers bid in realtime → outbid → end → winner checkout', async () => {
+    // A fresh LIVE auction per run (test database), so the journey can be repeated.
+    const auction = { id: Number(php(`$a = App\\Models\\Auction::factory()->create(['product_id' => ${product(5).id}, 'start_price' => '100000.00', 'current_price' => '100000.00', 'bid_increment' => '10000.00']); echo $a->id;`)) }
+    check(auction.id > 0, 'auction created')
+    await one.login(U('buyer-a'))
+    await two.login(U('buyer-c'))
+    for (const page of [one, two]) {
+      await page.goto(`/auctions/${auction.id}`, 3000)
+      await page.wait("!!document.querySelector('.auction-bid-form')", 'bid form')
+    }
+    check((await one.text('.auction-connection')).length > 0, 'connection status shown')
+    await sleep(1500)
+    await one.fill('#auction-bid-amount', '200000')
+    await one.submit('.auction-bid-form')
+    // Browser 2 never reloads: the new price must arrive over the socket.
+    await two.wait("document.querySelector('.auction-price').innerText.includes('200.000')", 'browser 2 sees the 200,000 bid in realtime', 60)
+    await two.fill('#auction-bid-amount', '250000')
+    await two.submit('.auction-bid-form')
+    await one.wait("document.querySelector('.auction-price').innerText.includes('250.000')", 'browser 1 sees the 250,000 bid in realtime', 60)
+    await one.wait("!!document.querySelector('.auction-toast')", 'outbid toast for the previous leader', 60)
+    await one.shot('D-outbid')
+    await two.shot('D-leader')
+    check(php(`echo DB::table('auctions')->where('id', ${auction.id})->value('current_price');`) === '250000.00', 'server price is 250,000')
+
+    // End the auction on the server: move the end time and run the scheduler command once.
+    php(`DB::table('auctions')->where('id', ${auction.id})->update(['ends_at' => now()->subSeconds(2)]);`)
+    artisan('auctions:sync', '--limit=100')
+    check(php(`echo DB::table('auctions')->where('id', ${auction.id})->value('status');`) === 'ENDED', 'auction is ENDED')
+    const winner = Number(php(`echo DB::table('auctions')->where('id', ${auction.id})->value('winner_user_id');`))
+    check(winner === data.users[U('buyer-c')], 'the higher bidder won')
+    await two.goto(`/auctions/${auction.id}/checkout`, 3000)
+    await two.wait("!!document.querySelector('#auction-address')", 'winner checkout form')
+    await two.evaluate(`(()=>{const s=document.querySelector('#auction-address');if(!s.value){const o=[...s.options].find(x=>x.value);s.value=o.value;s.dispatchEvent(new Event('change',{bubbles:true}))}return true})()`)
+    await two.shot('D-winner-checkout')
+    await two.evaluate("(document.querySelector('#auction-address').closest('form').requestSubmit(), true)")
+    await two.wait("/^\\/orders\\/\\d+$/.test(location.pathname)", 'winner order created', 60)
+    await two.wait("document.querySelector('main').innerText.includes('250.000')", 'order total is the winning bid')
+    await two.shot('D-winner-order')
+    // The loser cannot check out.
+    await one.goto(`/auctions/${auction.id}/checkout`, 2500)
+    check(!(await one.exists('#auction-address')), 'the outbid buyer gets no checkout form')
+  })
+
+if (want('E'))
+  await journey('E video theater + realtime comments', async () => {
+    const video = data.videos[0]
+    const message = `Bình luận E2E ${stamp}`
+    await one.login(U('buyer-a'))
+    await two.login(U('buyer-b'))
+    for (const page of [one, two]) {
+      await page.goto(`/?video=${video}`, 3500)
+      await page.wait("!!document.querySelector('#video-comment-body')", 'theater with comment form')
+    }
+    await sleep(1500)
+    await one.fill('#video-comment-body', message)
+    await one.submit('.video-comment-form')
+    await one.wait(`document.body.innerText.includes(${JSON.stringify(message)})`, 'own comment listed')
+    // Browser 2 either shows it directly or offers a "new comments" button; no reload.
+    await two.wait(`document.body.innerText.includes(${JSON.stringify(message)}) || [...document.querySelectorAll('button')].some(b=>/bình luận mới/i.test(b.innerText))`, 'browser 2 notified in realtime', 60)
+    if (!(await two.evaluate(`document.body.innerText.includes(${JSON.stringify(message)})`))) {
+      await two.evaluate("([...document.querySelectorAll('button')].find(b=>/bình luận mới/i.test(b.innerText)).click(), true)")
+      await two.wait(`document.body.innerText.includes(${JSON.stringify(message)})`, 'comment visible after "new comments"')
+    }
+    await two.shot('E-theater-comments')
+    await one.evaluate("(document.querySelector('.ui-dialog-backdrop')?.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})), true)")
+  })
+
+if (want('F'))
+  await journey('F chat, notifications, wishlist, report → admin handles it', async () => {
+    const item = product(12)
+    const text = `Chào shop, món này còn không? (${stamp})`
+    await one.login(U('buyer-a'))
+    await one.goto(`/products/${item.slug}`, 2500)
+    await one.clickText('Nhắn người bán', '.product-seller')
+    await one.wait("!!document.querySelector('#chat-body')", 'chat drawer')
+    await one.fill('#chat-body', text)
+    await one.submit('.chat-compose')
+    await one.wait(`document.querySelector('#marketplace-chat').innerText.includes(${JSON.stringify(text)})`, 'message sent')
+    await one.shot('F-chat-buyer')
+    await one.evaluate("(document.querySelector('[aria-label=\"Đóng tin nhắn\"]').click(), true)")
+    await two.login(U('seller-2'))
+    await two.goto('/seller/dashboard', 2500)
+    await two.click('.chat-launcher')
+    await two.wait(`document.querySelector('#marketplace-chat').innerText.includes(${JSON.stringify(text.slice(0, 20))})`, 'seller sees the message')
+    await two.shot('F-chat-seller')
+
+    // Wishlist
+    await one.goto(`/products/${item.slug}`, 2500)
+    const saved = await one.evaluate("document.querySelector('.product-favorite button').getAttribute('aria-pressed')")
+    if (saved !== 'true') await one.click('.product-favorite button')
+    await one.wait("document.querySelector('.product-favorite button').getAttribute('aria-pressed') === 'true'", 'saved to wishlist')
+    await one.goto('/wishlist', 2500)
+    await one.wait(`!!document.querySelector('[data-product="${item.id}"]')`, 'wishlist shows the product')
+    await one.shot('F-wishlist')
+    await one.goto('/notifications', 2500)
+    await one.wait("!!document.querySelector('main h1')", 'notifications page')
+    await one.shot('F-notifications')
+
+    // Report a product, then the admin takes it.
+    const target = product(16)
+    await one.goto(`/products/${target.slug}`, 2500)
+    await one.click('.report-trigger')
+    await one.wait("document.querySelector('.report-dialog').open", 'report dialog')
+    await one.evaluate(`(()=>{const s=document.querySelector('.report-dialog select[name="reason"]');const o=[...s.options].find(x=>x.value);s.value=o.value;s.dispatchEvent(new Event('change',{bubbles:true}));return true})()`)
+    await one.fill('.report-dialog textarea[name="description"]', `Mô tả không khớp ảnh (${stamp}).`)
+    await one.shot('F-report-dialog')
+    await one.evaluate("(document.querySelector('.report-dialog form').requestSubmit(), true)")
+    await one.wait("document.querySelector('.report-dialog').innerText.includes('Báo cáo') && !!document.querySelector('.report-dialog .alert-success')", 'report sent')
+    const reportId = Number(php(`echo DB::table('reports')->where('description', 'like', '%${stamp}%')->value('id');`))
+    check(reportId > 0, 'report stored')
+    await two.login(U('admin'))
+    await two.goto('/admin/reports', 3000)
+    await two.click(`[aria-label="Xem báo cáo số ${reportId}"]`)
+    await two.wait("!!document.querySelector('#report-next-status')", 'report detail')
+    await two.fill('#report-next-status', 'IN_REVIEW')
+    await two.fill('#report-admin-note', 'Đã tiếp nhận, đang kiểm tra với người bán.')
+    await two.shot('F-admin-report')
+    await two.evaluate("(document.querySelector('#report-next-status').closest('form').requestSubmit(), true)")
+    await sleep(1500)
+    check(php(`echo DB::table('reports')->where('id', ${reportId})->value('status');`) === 'IN_REVIEW', 'report is IN_REVIEW')
+  })
+
+if (want('G'))
+  await journey('G admin action center: reconcile payment, cancel auction, suspend shop', async () => {
+    await two.login(U('admin'))
+    await two.goto('/admin', 3000)
+    await two.wait("document.querySelectorAll('[data-card]').length === 9", 'nine action cards')
+    await two.shot('G-action-center')
+    const payment = data.payments[0]
+    await two.goto('/admin/payments?reconciliation=open', 3000)
+    await two.click(`[data-resolve="${payment}"]`)
+    await two.wait("!!document.querySelector('#reconciliation-dialog')", 'reconciliation dialog')
+    await two.click('#outcome-refunded')
+    await two.fill('#reconciliation-note', 'Đã hoàn tiền thủ công qua cổng, mã tham chiếu RF-E2E-0001.')
+    await two.shot('G-reconciliation')
+    // Two steps: review, then confirm.
+    await two.click('#reconciliation-confirm')
+    await sleep(600)
+    if (await two.exists('#reconciliation-dialog')) await two.click('#reconciliation-confirm')
+    await two.wait("!document.querySelector('#reconciliation-dialog')", 'reconciliation saved')
+    check(php(`echo DB::table('payments')->where('id', ${payment})->value('status').'|'.(DB::table('payments')->where('id', ${payment})->value('reconciliation_resolved_at') ? 'resolved' : 'open');`) === 'REFUNDED|resolved', 'payment is REFUNDED and resolved')
+
+    const auction = data.live[0]
+    await two.goto('/admin/auctions?status=LIVE', 3000)
+    await two.click(`[data-cancel="${auction.id}"]`)
+    await two.wait("!!document.querySelector('#cancel-auction-dialog')", 'cancel dialog')
+    await two.fill('#cancel-auction-reason', 'Sản phẩm bị báo cáo, tạm dừng phiên để kiểm tra.')
+    await two.shot('G-cancel-auction')
+    await two.submit('#cancel-auction-form')
+    await two.wait("!document.querySelector('#cancel-auction-dialog')", 'auction cancelled')
+    check(php(`echo DB::table('auctions')->where('id', ${auction.id})->value('status');`) === 'CANCELLED', 'auction is CANCELLED')
+
+    const shop = data.shops.find((row) => row.owner_id === data.users[U('seller-2')])
+    await two.goto('/admin/shops?status=ACTIVE', 3000)
+    await two.clickText('Xem', `main [data-shop="${shop.id}"]`)
+    await two.wait("!!document.querySelector('main [name=\"reason\"]')", 'shop moderation form')
+    await two.fill('main [name="reason"]', 'Tạm đình chỉ để xác minh nhiều báo cáo.')
+    await two.shot('G-suspend-shop')
+    await two.click('main [data-target="SUSPENDED"]')
+    await sleep(1500)
+    check(php(`echo DB::table('shops')->where('id', ${shop.id})->value('status');`) === 'SUSPENDED', 'shop is SUSPENDED')
+    // Its products leave the public catalogue.
+    await one.call('Network.clearBrowserCookies')
+    await one.goto(`/shops/${shop.slug}`, 2500)
+    check((await one.text('main')).includes('Không tìm thấy'), 'suspended shop is no longer public')
+    await one.shot('G-suspended-shop-public')
+  })
+
+await fs.writeFile(new URL('./report.json', import.meta.url), JSON.stringify(report, null, 1))
+console.log(JSON.stringify({ journeys: report.journeys, shots: Object.keys(report.shots).length, overflow: Object.entries(report.shots).filter(([, v]) => v !== 'ok'), errors: report.errors }, null, 1))
+one.close()
+two.close()
+process.exit(0)

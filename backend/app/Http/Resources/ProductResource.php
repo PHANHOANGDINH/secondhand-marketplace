@@ -33,6 +33,27 @@ class ProductResource extends JsonResource
         ];
     }
 
+    /** The shop's best running voucher, without its code: the seller decides who gets the code. */
+    private function shopVoucher(): array
+    {
+        if (! $this->shop->relationLoaded('activeVouchers')) {
+            return [];
+        }
+        $best = $this->shop->activeVouchers->sortBy([fn ($a, $b) => strcmp($a->type, $b->type), fn ($a, $b) => bccomp($b->value, $a->value, 2)])->first();
+
+        return ['voucher' => $best ? ['type' => $best->type, 'value' => $best->value, 'min_order' => $best->min_order, 'max_discount' => $best->max_discount] : null];
+    }
+
+    /** Whole percent saved against the price before the discount, rounded down. */
+    private function discountPercent(): ?int
+    {
+        if ($this->compare_at_price === null || bccomp($this->compare_at_price, $this->price, 2) <= 0) {
+            return null;
+        }
+
+        return (int) bcdiv(bcmul(bcsub($this->compare_at_price, $this->price, 2), '100', 2), $this->compare_at_price, 0);
+    }
+
     public function toArray(Request $request): array
     {
         return [
@@ -41,14 +62,15 @@ class ProductResource extends JsonResource
             'reason_label' => $this->whenHas('reason_label'),
             'has_video' => $this->whenHas('has_video', fn (): bool => (bool) $this->has_video),
             'id' => (string) $this->id, 'name' => $this->name, 'slug' => $this->slug, 'description' => $this->description, 'price' => $this->price,
+            'compare_at_price' => $this->compare_at_price, 'discount_percent' => $this->discountPercent(),
             'average_rating' => $this->whenHas('average_rating', fn () => $this->average_rating === null ? null : round((float) $this->average_rating, 2)),
             'review_count' => $this->whenHas('review_count', fn () => (int) $this->review_count),
             'stock_quantity' => $this->stock_quantity, 'condition' => $this->condition->value,
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
             'primary_image' => $this->whenLoaded('images', fn () => ($primary = $this->images->firstWhere('is_primary', true)) ? new ProductImageResource($primary) : null),
-            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, ...$this->area(), ...$this->sellerStats()] : null),
+            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, ...$this->area(), ...$this->sellerStats(), ...$this->shopVoucher()] : null),
             'category' => $this->whenLoaded('category', fn () => $this->category ? ['id' => (string) $this->category->id, 'name' => $this->category->name, 'slug' => $this->category->slug] : null),
-            'auction' => $this->whenLoaded('auctionClaim', fn () => $this->auctionClaim ? ['id' => (string) $this->auctionClaim->id, 'status' => $this->auctionClaim->status->value, 'current_price' => $this->auctionClaim->current_price] : null),
+            'auction' => $this->whenLoaded('auctionClaim', fn () => $this->auctionClaim ? ['id' => (string) $this->auctionClaim->id, 'status' => $this->auctionClaim->status->value, 'current_price' => $this->auctionClaim->current_price, 'starts_at' => $this->auctionClaim->starts_at?->toISOString(), 'ends_at' => $this->auctionClaim->ends_at?->toISOString()] : null),
             'created_at' => $this->created_at?->toISOString(), 'published_at' => $this->published_at?->toISOString(),
         ];
     }

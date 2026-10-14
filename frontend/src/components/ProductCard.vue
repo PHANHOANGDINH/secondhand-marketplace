@@ -2,7 +2,13 @@
 import ProductPhoto from './ProductPhoto.vue'
 import FavoriteButton from './FavoriteButton.vue'
 import AppIcon from './ui/AppIcon.vue'
-import { formatPrice, conditionLabel, timeAgo } from '../composables/productPresentation'
+import {
+  formatPrice,
+  conditionLabel,
+  timeAgo,
+  auctionNote,
+  voucherNote,
+} from '../composables/productPresentation'
 import { getStatusLabel } from '../utils/labels'
 defineProps({ product: { type: Object, required: true } })
 const rating = (product) => Number(product.average_rating).toFixed(1)
@@ -54,9 +60,25 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
       <h2 class="h5">
         <RouterLink :to="`/products/${product.slug}`">{{ product.name }}</RouterLink>
       </h2>
-      <p class="product-card-price">
-        {{ formatPrice(product.auction?.current_price || product.price) }}
+      <p class="product-card-pricing">
+        <span class="product-card-price">{{
+          formatPrice(product.auction?.current_price || product.price)
+        }}</span>
+        <template v-if="product.discount_percent && !product.auction"
+          ><s class="product-card-compare" :aria-label="`Giá trước khi giảm ${formatPrice(product.compare_at_price)}`">{{
+            formatPrice(product.compare_at_price)
+          }}</s
+          ><span class="product-card-off">-{{ product.discount_percent }}%</span></template
+        >
       </p>
+      <ul v-if="product.auction || product.shop?.voucher" class="product-card-tags">
+        <li v-if="product.auction" class="product-card-tag is-auction">
+          <AppIcon name="gavel" :size="13" />{{ auctionNote(product.auction) }}
+        </li>
+        <li v-if="product.shop?.voucher" class="product-card-tag is-voucher">
+          <AppIcon name="tag" :size="13" />{{ voucherNote(product.shop.voucher) }}
+        </li>
+      </ul>
       <p class="product-card-meta">
         <span class="product-card-condition">{{ conditionLabel(product.condition) }}</span>
         <RouterLink
@@ -186,10 +208,59 @@ h2 a {
 h2 a:hover {
   color: var(--primary);
 }
+.product-card-pricing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  row-gap: 0.1rem;
+}
 .product-card-price {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--danger-ink);
+}
+.product-card-compare {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.product-card-off {
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+/* What is going on with the listing: an auction, a shop voucher. */
+.product-card-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0;
+  list-style: none;
+}
+.product-card-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.product-card-tag :deep(svg) {
+  flex: none;
+}
+.product-card-tag.is-auction {
+  background: var(--auction-accent-soft);
+  color: var(--auction-accent-ink);
+}
+.product-card-tag.is-voucher {
+  background: var(--band-soft);
+  color: var(--band-ink);
 }
 /* Bottom of the image: when it was posted and how many photos it has. */
 .product-card-overlay {

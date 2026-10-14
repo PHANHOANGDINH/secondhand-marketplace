@@ -3,7 +3,13 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProduct } from '../api/product.api'
 import { domainError } from '../api/domain.api'
-import { formatPrice, conditionLabel, timeAgo } from '../composables/productPresentation'
+import {
+  formatPrice,
+  conditionLabel,
+  timeAgo,
+  auctionNote,
+  voucherNote,
+} from '../composables/productPresentation'
 import AppIcon from '../components/ui/AppIcon.vue'
 import ProductGallery from '../components/ProductGallery.vue'
 import ProductReviews from '../components/ProductReviews.vue'
@@ -87,6 +93,14 @@ const joined = computed(() => {
         <h1 class="h3">{{ product.name }}</h1>
         <p class="buyer-product-price">
           {{ formatPrice(product.auction?.current_price || product.price) }}
+          <template v-if="product.discount_percent && !product.auction"
+            ><s class="product-compare-price">{{ formatPrice(product.compare_at_price) }}</s
+            ><span class="product-discount">-{{ product.discount_percent }}%</span></template
+          >
+        </p>
+        <p v-if="product.auction" class="product-deal is-auction">{{ auctionNote(product.auction) }}</p>
+        <p v-if="product.shop?.voucher" class="product-deal is-voucher">
+          {{ voucherNote(product.shop.voucher) }} · nhắn người bán để nhận mã
         </p>
         <p class="buyer-product-meta">
           <span>{{ conditionLabel(product.condition) }}</span
@@ -178,6 +192,36 @@ const joined = computed(() => {
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.02em;
+}
+.product-compare-price {
+  margin-left: 0.6rem;
+  font-size: 0.55em;
+  font-weight: 500;
+  color: var(--muted);
+}
+.product-discount {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.45em;
+  font-weight: 800;
+  vertical-align: middle;
+}
+.product-deal {
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.product-deal.is-auction {
+  background: var(--auction-accent-soft);
+  color: var(--auction-accent-ink);
+}
+.product-deal.is-voucher {
+  background: var(--band-soft);
+  color: var(--band-ink);
 }
 .product-detail-side .buyer-product-price {
   margin: 0;

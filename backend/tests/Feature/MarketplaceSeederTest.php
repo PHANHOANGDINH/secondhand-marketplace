@@ -50,7 +50,10 @@ class MarketplaceSeederTest extends TestCase
         $this->assertSame(5, DB::table('reviews')->count());
         $this->assertSame(['CANCELLED' => 0, 'ENDED' => 2, 'LIVE' => 2, 'SCHEDULED' => 1], collect(['CANCELLED' => 0, 'ENDED' => 0, 'LIVE' => 0, 'SCHEDULED' => 0])->merge(Auction::pluck('status')->map->value->countBy())->sortKeys()->all());
         $this->assertSame(1, Auction::where('status', 'ENDED')->whereNotNull('winner_user_id')->count());
-        $this->assertSame(2, DB::table('vouchers')->count());
+        $this->assertSame(3, DB::table('vouchers')->count());
+        // Some listings are marked down, always from a higher price.
+        $this->assertGreaterThan(10, Product::whereNotNull('compare_at_price')->count());
+        $this->assertSame(0, Product::whereColumn('compare_at_price', '<=', 'price')->count());
         $this->assertSame(1, DB::table('payments')->where('reconciliation_required', true)->count());
         $this->assertSame(8, DB::table('wishlists')->count());
         $this->assertSame(3, DB::table('conversations')->count());

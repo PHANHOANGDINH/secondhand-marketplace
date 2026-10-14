@@ -31,6 +31,8 @@ class ProductService
                     Gate::forUser($actor)->authorize('create', Product::class);
                     Category::orderBy('id')->lockForUpdate()->get();
                     $this->locks->validateCategory($data['category_id']);
+                    $data = $this->normalizeCompareAt($data);
+                    $this->assertCompareAt($data['price'], $data['compare_at_price'] ?? null);
                     $product = $shop->products()->create([...$data, 'price' => bcadd($data['price'], '0', 2), 'slug' => $this->slugs->generate(Product::withTrashed(), $data['name'], 240), 'status' => ProductStatus::DRAFT]);
                     $this->audit->record($actor, 'products', $product->id, 'product.created', null, ProductStatus::DRAFT->value, null);
 
@@ -57,13 +59,16 @@ class ProductService
             if (isset($data['price'])) {
                 $data['price'] = bcadd($data['price'], '0', 2);
             }
+            $data = $this->normalizeCompareAt($data);
             $from = $locked->status;
             $previousStock = $locked->stock_quantity;
             $locked->fill($data);
+            $this->assertCompareAt($locked->price, $locked->compare_at_price);
             if (! $locked->isDirty()) {
                 return $locked;
             }
-            $content = $locked->isDirty(['name', 'description', 'category_id', 'price', 'condition']);
+            // A new "price before the discount" is reviewed like a new price, so a seller cannot invent a discount unseen.
+            $content = $locked->isDirty(['name', 'description', 'category_id', 'price', 'compare_at_price', 'condition']);
             $stock = $locked->isDirty('stock_quantity');
             if ($stock && ! $content) {
                 // Restocking alone keeps a listing on sale; only an unsafe reopening returns to review.
@@ -183,5 +188,22 @@ class ProductService
             $this->audit->record($user, 'products', $locked->id, 'product.deleted', $locked->status->value, $locked->status->value, null);
             $locked->delete();
         }, 3);
+    }
+
+    /** Empty input clears the "price before the discount"; any other value is kept with two decimals. */
+    private function normalizeCompareAt(array $data): array
+    {
+        if (array_key_exists('compare_at_price', $data)) {
+            $data['compare_at_price'] = $data['compare_at_price'] === null || $data['compare_at_price'] === '' ? null : bcadd((string) $data['compare_at_price'], '0', 2);
+        }
+
+        return $data;
+    }
+
+    private function assertCompareAt(string $price, ?string $compareAt): void
+    {
+        if ($compareAt !== null && bccomp($compareAt, bcadd($price, '0', 2), 2) <= 0) {
+            throw ValidationException::withMessages(['compare_at_price' => 'Giá trước khi giảm phải cao hơn giá bán.']);
+        }
     }
 }

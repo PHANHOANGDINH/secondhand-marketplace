@@ -18,7 +18,7 @@ class StoreProductRequest extends DomainRequest
     {
         return [
             'name' => ['required', 'string', 'max:200'], 'description' => ['required', 'string', 'max:10000'],
-            'category_id' => ['required', 'integer', 'min:1', 'exists:categories,id'], 'price' => ['required', new DecimalPrice],
+            'category_id' => ['required', 'integer', 'min:1', 'exists:categories,id'], 'price' => ['required', new DecimalPrice], 'compare_at_price' => ['nullable', new DecimalPrice],
             'stock_quantity' => ['required', 'integer', 'min:0', 'max:4294967295'], 'condition' => ['required', Rule::enum(ProductCondition::class)],
         ];
     }

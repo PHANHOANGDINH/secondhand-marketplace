@@ -42,6 +42,7 @@ const blank = () => ({
   description: '',
   category_id: '',
   price: '',
+  compare_at_price: '',
   stock_quantity: '1',
   condition: 'GOOD',
 })
@@ -68,6 +69,7 @@ function fill(value) {
     description: value.description,
     category_id: value.category.id,
     price: value.price,
+    compare_at_price: value.compare_at_price ?? '',
     stock_quantity: String(value.stock_quantity),
     condition: value.condition,
   })
@@ -88,6 +90,11 @@ const load = () =>
 const save = () =>
   run(async () => {
     const data = { ...form }
+    // Empty means "no discount": sent as null only to clear one that was set before.
+    if (form.compare_at_price === '') {
+      if (product.value?.compare_at_price) data.compare_at_price = null
+      else delete data.compare_at_price
+    }
     if (creating.value) {
       fill(await productsApi.createProduct(data))
       if (props.embedded) internalId.value = product.value.id
@@ -258,6 +265,18 @@ defineExpose({ hasUnsavedChanges })
                   </div>
                   <div class="col-md-6">
                     <DomainField
+                      v-model="form.compare_at_price"
+                      :id-prefix="embedded ? 'quick-' : ''"
+                      name="compare_at_price"
+                      label="Giá trước khi giảm (không bắt buộc)"
+                      :errors="errors.compare_at_price"
+                    />
+                    <p class="form-text">
+                      Để trống nếu không giảm giá. Phải cao hơn giá bán; đổi giá này thì tin được duyệt lại.
+                    </p>
+                  </div>
+                  <div class="col-md-6">
+                    <DomainField
                       v-model="form.stock_quantity"
                       :id-prefix="embedded ? 'quick-' : ''"
                       name="stock_quantity"
@@ -313,7 +332,14 @@ defineExpose({ hasUnsavedChanges })
             />
             <p v-if="stagedPreviews.length" class="form-text">Ảnh đã chọn chưa được tải lên.</p>
             <p class="listing-preview-title">{{ form.name || 'Tên sản phẩm của bạn' }}</p>
-            <p class="money-value listing-preview-price">{{ formatPrice(form.price) }}</p>
+            <p class="money-value listing-preview-price">
+              {{ formatPrice(form.price)
+              }}<s
+                v-if="Number(form.compare_at_price) > Number(form.price)"
+                class="listing-preview-compare"
+                >{{ formatPrice(form.compare_at_price) }}</s
+              >
+            </p>
             <p class="text-muted small mb-0">{{ reviewCategory }}</p>
           </section>
           <section class="workspace-panel">
@@ -403,6 +429,12 @@ defineExpose({ hasUnsavedChanges })
   font-weight: 650;
   margin: var(--space-4) 0 var(--space-2);
   overflow-wrap: anywhere;
+}
+.listing-preview-compare {
+  margin-left: 0.5rem;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: var(--muted);
 }
 .listing-preview-price {
   font-size: 1.25rem;

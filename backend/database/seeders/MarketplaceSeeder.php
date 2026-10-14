@@ -173,6 +173,8 @@ class MarketplaceSeeder extends Seeder
         Voucher::firstOrCreate(['code' => 'PASSLAI10'], ['scope' => Voucher::PLATFORM, 'type' => Voucher::PERCENT, 'value' => '10.00', 'max_discount' => '50000.00', 'min_order' => '200000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => $this->admin->id]);
         $shop = Shop::where('slug', 'vn-goc-tao-cu')->firstOrFail();
         Voucher::firstOrCreate(['code' => 'GOCTAO50K'], ['scope' => Voucher::SHOP, 'shop_id' => $shop->id, 'type' => Voucher::FIXED, 'value' => '50000.00', 'min_order' => '1000000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addMonths(3), 'status' => Voucher::ACTIVE, 'created_by' => $shop->owner_id]);
+        $style = Shop::where('slug', 'vn-tu-do-secondhand')->firstOrFail();
+        Voucher::firstOrCreate(['code' => 'TUDO10'], ['scope' => Voucher::SHOP, 'shop_id' => $style->id, 'type' => Voucher::PERCENT, 'value' => '10.00', 'max_discount' => '30000.00', 'min_order' => '150000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addMonths(2), 'status' => Voucher::ACTIVE, 'created_by' => $style->owner_id]);
     }
 
     private function auction(Product $product, CarbonImmutable $start, CarbonImmutable $end): Auction

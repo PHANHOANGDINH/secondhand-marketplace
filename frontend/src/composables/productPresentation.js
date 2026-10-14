@@ -55,3 +55,46 @@ export function timeAgo(value, now = Date.now()) {
   if (days < 365) return `${Math.floor(days / 30)} tháng trước`
   return `${Math.floor(days / 365)} năm trước`
 }
+
+/** Short money for small labels: 50000 → "50K", 1500000 → "1,5tr". */
+export function compactMoney(value) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return ''
+  const trim = (number) => String(Math.round(number * 10) / 10).replace('.', ',')
+  if (amount >= 1000000) return `${trim(amount / 1000000)}tr`
+  if (amount >= 1000) return `${trim(amount / 1000)}K`
+  return String(amount)
+}
+
+/** "2 ngày", "3 giờ", "15 phút" until a moment; empty once it has passed. */
+export function timeUntil(value, now = Date.now()) {
+  const time = value ? Date.parse(value) : NaN
+  if (Number.isNaN(time) || time <= now) return ''
+  const minutes = Math.ceil((time - now) / 60000)
+  if (minutes < 60) return `${minutes} phút`
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} giờ`
+  return `${Math.floor(minutes / 1440)} ngày`
+}
+
+/** The card line for an auction holding the listing. */
+export function auctionNote(auction, now = Date.now()) {
+  if (!auction) return ''
+  if (auction.status === 'SCHEDULED') {
+    const left = timeUntil(auction.starts_at, now)
+    return left ? `Sắp đấu giá · mở sau ${left}` : 'Sắp đấu giá'
+  }
+  if (auction.status === 'LIVE') {
+    const left = timeUntil(auction.ends_at, now)
+    return left ? `Đang đấu giá · còn ${left}` : 'Đang đấu giá'
+  }
+  return 'Đấu giá đã kết thúc · chờ người thắng thanh toán'
+}
+
+/** The card line for the shop's best running voucher; the code itself is never shown on cards. */
+export function voucherNote(voucher) {
+  if (!voucher) return ''
+  const amount = voucher.type === 'PERCENT' ? `${Number(voucher.value)}%` : compactMoney(voucher.value)
+  return Number(voucher.min_order) > 0
+    ? `Shop giảm ${amount} · đơn từ ${compactMoney(voucher.min_order)}`
+    : `Shop giảm ${amount}`
+}

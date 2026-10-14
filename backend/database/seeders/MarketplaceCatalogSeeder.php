@@ -177,7 +177,8 @@ class MarketplaceCatalogSeeder extends Seeder
             'shop_id' => $shop->id, 'category_id' => $category->id, 'name' => $name, 'slug' => $slug,
             'description' => "{$name}, tình trạng ".self::CONDITION_LABELS[$condition].'. Đồ cá nhân dùng kỹ, còn hoạt động tốt, đã vệ sinh sạch sẽ. '
                 ."Xem hàng trực tiếp tại {$province} hoặc giao hàng toàn quốc. Nhắn tin để xem thêm ảnh thật.",
-            'price' => $price, 'stock_quantity' => $status === ProductStatus::SOLD ? 0 : 1 + $index % 3, 'condition' => $condition, 'status' => $status,
+            // Every fifth listing is marked down from a price about a fifth higher, rounded to 10,000 ₫.
+            'price' => $price, 'compare_at_price' => $index % 5 === 0 ? bcmul(bcdiv(bcmul($price, '1.2', 2), '10000', 0), '10000', 2) : null, 'stock_quantity' => $status === ProductStatus::SOLD ? 0 : 1 + $index % 3, 'condition' => $condition, 'status' => $status,
             'moderation_reason' => $status === ProductStatus::REJECTED ? 'Ảnh chưa đúng sản phẩm thật, vui lòng chụp lại và gửi duyệt.' : null,
             'published_at' => $published ? now()->subMinutes($minutesAgo) : null,
         ]);

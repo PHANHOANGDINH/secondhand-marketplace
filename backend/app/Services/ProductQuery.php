@@ -32,7 +32,7 @@ class ProductQuery
 
         $query->withExists(['videos as has_video' => $this->publicVideos()]);
 
-        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $this->sellerStats($q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at', 'created_at', 'province_code')), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price,starts_at,ends_at', 'shop' => fn (BelongsTo $q) => $this->sellerStats($q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at', 'created_at', 'province_code'))->with('activeVouchers:id,shop_id,type,value,min_order,max_discount'), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
     }
 
     /** Limits products to shops located in one province (config/provinces.php code). */

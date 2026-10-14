@@ -16,7 +16,7 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'stock_quantity', 'condition', 'status', 'moderation_reason', 'published_at'];
+    protected $fillable = ['shop_id', 'category_id', 'name', 'slug', 'description', 'price', 'compare_at_price', 'stock_quantity', 'condition', 'status', 'moderation_reason', 'published_at'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
@@ -24,6 +24,7 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'compare_at_price' => 'decimal:2',
             'stock_quantity' => 'integer',
             'condition' => ProductCondition::class,
             'status' => ProductStatus::class,

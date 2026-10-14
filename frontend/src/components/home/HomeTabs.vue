@@ -159,8 +159,8 @@ watch(
 }
 .home-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
 }
 .home-more {
   margin: var(--space-5) 0 var(--space-2);
@@ -173,7 +173,7 @@ watch(
 }
 @media (max-width: 1199px) {
   .home-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 767px) {

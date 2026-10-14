@@ -29,6 +29,14 @@ class Shop extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** Shop vouchers a buyer could use right now: active, within their dates and not used up. */
+    public function activeVouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class)->where('scope', Voucher::SHOP)->where('status', Voucher::ACTIVE)
+            ->where('starts_at', '<=', now())->where('ends_at', '>', now())
+            ->where(fn ($query) => $query->whereNull('usage_limit')->orWhereColumn('used_count', '<', 'usage_limit'));
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

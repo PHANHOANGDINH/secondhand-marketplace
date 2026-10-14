@@ -11,7 +11,7 @@ import api from '../api/axios'
 import { formatPrice, sellerActions } from '../composables/productPresentation'
 import ProductsView from '../views/ProductsView.vue'
 import ProductView from '../views/ProductView.vue'
-import SellerProductsView from '../views/SellerProductsView.vue'
+import MyAdsView from '../views/MyAdsView.vue'
 import SellerProductEditView from '../views/SellerProductEditView.vue'
 import AdminProductsView from '../views/AdminProductsView.vue'
 import ProductImagesEditor from '../components/ProductImagesEditor.vue'
@@ -196,7 +196,7 @@ it('seller list loads and renders valid submit/hide actions for each status', as
     ]),
   )
   vi.spyOn(productApi, 'productAction').mockResolvedValue({ ...product, status: 'PENDING' })
-  const { wrapper } = await setup(SellerProductsView, '/seller/products')
+  const { wrapper } = await setup(MyAdsView, '/seller/products')
   expect(wrapper.get('[data-product="10"] [data-action=submit]').exists()).toBe(true)
   expect(wrapper.get('[data-product="11"] [data-action=hide]').exists()).toBe(true)
   expect(wrapper.find('[data-product="12"] [data-action=submit]').exists()).toBe(false)

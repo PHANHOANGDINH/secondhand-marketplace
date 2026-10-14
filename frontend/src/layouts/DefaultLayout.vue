@@ -242,7 +242,7 @@ function closeAccountMenu(event) {
               <RouterLink to="/account/addresses">Địa chỉ</RouterLink>
               <RouterLink to="/seller/shop">Gian hàng của tôi</RouterLink>
               <RouterLink to="/seller/dashboard">Thống kê gian hàng</RouterLink>
-              <RouterLink to="/seller/products">Sản phẩm của tôi</RouterLink>
+              <RouterLink to="/my-ads">Quản lý tin</RouterLink>
               <template v-if="auth.isAdmin"
                 ><RouterLink v-if="auth.isAdmin" class="nav-link" to="/admin/dashboard"
                   >Tổng quan quản trị</RouterLink

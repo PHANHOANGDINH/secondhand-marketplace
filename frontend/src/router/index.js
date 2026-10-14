@@ -44,7 +44,7 @@ const router = createRouter({
     {
       path: '/my-ads',
       name: 'my-ads',
-      component: () => import('../views/SellerProductsView.vue'),
+      component: () => import('../views/MyAdsView.vue'),
       meta: { requiresAuth: true },
     },
     {
@@ -300,7 +300,7 @@ const router = createRouter({
     {
       path: '/seller/products',
       name: 'seller-products',
-      component: () => import('../views/SellerProductsView.vue'),
+      redirect: (to) => ({ path: '/my-ads', query: to.query }),
       meta: { requiresAuth: true, requiresAdmin: false },
     },
     {

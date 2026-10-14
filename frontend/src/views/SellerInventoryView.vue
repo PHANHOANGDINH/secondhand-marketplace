@@ -149,7 +149,7 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
       title="Quản lý tồn kho"
       eyebrow="Không gian người bán"
       description="Theo dõi số lượng và cập nhật tồn kho của gian hàng."
-      ><RouterLink to="/seller/products" class="btn btn-outline-secondary"
+      ><RouterLink to="/my-ads" class="btn btn-outline-secondary"
         >Quản lý sản phẩm</RouterLink
       ></PageHeader
     >

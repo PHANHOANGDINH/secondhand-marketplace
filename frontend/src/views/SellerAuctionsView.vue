@@ -225,7 +225,7 @@ onMounted(prepare)
       </div>
       <p v-if="!eligible.length" class="text-muted">
         Chưa có sản phẩm đủ điều kiện.
-        <RouterLink to="/seller/products">Quản lý sản phẩm</RouterLink>
+        <RouterLink to="/my-ads">Quản lý tin</RouterLink>
       </p>
       <div class="d-flex gap-2 mt-3">
         <button class="btn btn-primary" :disabled="busy || !eligible.length">

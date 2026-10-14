@@ -99,6 +99,7 @@ Route::middleware('throttle:public-read')->group(function (): void {
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
     Route::prefix('seller')->group(function (): void {
+        Route::get('/products/counts', [SellerProductController::class, 'counts']);
         Route::apiResource('products', SellerProductController::class);
         foreach (['submit', 'hide', 'withdraw', 'revise'] as $action) {
             Route::post('/products/{product}/'.$action, [SellerProductController::class, $action]);

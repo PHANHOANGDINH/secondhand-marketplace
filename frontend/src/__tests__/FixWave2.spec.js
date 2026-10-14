@@ -13,7 +13,7 @@ import {
   auctionLockRoute,
   sellerActions,
 } from '../composables/productPresentation'
-import SellerProductsView from '../views/SellerProductsView.vue'
+import MyAdsView from '../views/MyAdsView.vue'
 import SellerInventoryView from '../views/SellerInventoryView.vue'
 import SellerProductEditView from '../views/SellerProductEditView.vue'
 
@@ -105,7 +105,7 @@ it('offers no seller transition while an auction holds the product', () => {
 
 it('seller product list locks the held row and explains why with a link to the auction', async () => {
   vi.spyOn(productApi, 'listSellerProducts').mockResolvedValue(collection([product(), held()]))
-  const wrapper = await show(SellerProductsView, '/seller/products')
+  const wrapper = await show(MyAdsView, '/seller/products')
   const free = wrapper.get('[data-product="10"]'),
     locked = wrapper.get('[data-product="11"]')
   expect(free.find('[data-action="hide"]').exists()).toBe(true)

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Domain;
 use App\Http\Resources\ManagedProductResource;
 use App\Models\Product;
+use App\Services\FixedPriceEligibility;
 use App\Services\ProductQuery;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +29,21 @@ class SellerProductController extends Controller
         Gate::authorize('viewAny', Product::class);
         $shop = $request->user()->shop()->firstOrFail();
 
-        return ManagedProductResource::collection($this->query->apply(Product::where('shop_id', $shop->id), $request->validated())->paginate($request->integer('per_page', 20))->withQueryString());
+        $products = Product::where('shop_id', $shop->id)->when($request->boolean('auction'), fn ($query) => $query->whereHas('auctionClaim'));
+
+        return ManagedProductResource::collection($this->query->apply($products, $request->validated())->paginate($request->integer('per_page', 20))->withQueryString());
+    }
+
+    /** Tab counters for "Quản lý tin": every status plus products held by an auction, in one aggregate query. */
+    public function counts(Domain\DomainRequest $request, FixedPriceEligibility $eligibility): JsonResponse
+    {
+        Gate::authorize('viewAny', Product::class);
+        $shop = $request->user()->shop()->firstOrFail();
+        $claims = $eligibility->claims()->whereColumn('auctions.product_id', 'products.id')->selectRaw('1');
+        $sums = implode(', ', array_map(fn (ProductStatus $status): string => "COALESCE(SUM(status = '{$status->value}'), 0) AS `{$status->value}`", ProductStatus::cases()));
+        $row = Product::where('shop_id', $shop->id)->toBase()->selectRaw($sums.', COALESCE(SUM(EXISTS('.$claims->toSql().')), 0) AS `AUCTION`, COUNT(*) AS `ALL`', $claims->getBindings())->first();
+
+        return response()->json(['data' => array_map('intval', (array) $row)]);
     }
 
     public function store(Domain\StoreProductRequest $request): JsonResponse

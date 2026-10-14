@@ -2,6 +2,7 @@ import { read, mutate } from './domain.api'
 export const listProducts = (params) => read('products', params)
 export const getProduct = async (slug) => (await read(`products/${encodeURIComponent(slug)}`)).data
 export const listSellerProducts = (params) => read('seller/products', params)
+export const getSellerProductCounts = async () => (await read('seller/products/counts')).data
 export const getSellerProduct = async (id) => (await read(`seller/products/${id}`)).data
 export const createProduct = async (data) => (await mutate('post', 'seller/products', data)).data
 export const updateProduct = async (id, data) =>

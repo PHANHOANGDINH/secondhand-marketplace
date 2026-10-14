@@ -101,7 +101,7 @@ const action = (target) =>
   run(async () => {
     if (target === 'delete') {
       await productsApi.deleteProduct(product.value.id)
-      await router.push('/seller/products')
+      await router.push('/my-ads')
     } else fill(await productsApi.productAction(product.value.id, target))
   }, 'Đã cập nhật trạng thái.')
 const refreshImages = () =>
@@ -145,7 +145,7 @@ defineExpose({ hasUnsavedChanges })
 </script>
 <template>
   <section class="seller-editor">
-    <RouterLink v-if="!embedded" to="/seller/products">← Sản phẩm của tôi</RouterLink>
+    <RouterLink v-if="!embedded" to="/my-ads">← Quản lý tin</RouterLink>
     <PageHeader
       v-if="!embedded"
       :title="creating ? 'Đăng bán sản phẩm' : 'Chi tiết / sửa sản phẩm'"

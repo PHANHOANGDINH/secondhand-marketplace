@@ -10,7 +10,7 @@ class SellerProductListRequest extends DomainRequest
     public function rules(): array
     {
         return [
-            'search' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('keyword'))], 'keyword' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search'))], 'status' => ['sometimes', Rule::enum(ProductStatus::class)],
+            'search' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('keyword'))], 'keyword' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search'))], 'status' => ['sometimes', Rule::enum(ProductStatus::class)], 'auction' => ['sometimes', 'boolean'],
             'page' => ['sometimes', 'integer', 'min:1'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }

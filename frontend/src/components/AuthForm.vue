@@ -67,6 +67,11 @@ onMounted(async () => {
         .from('.auth-perk', { x: -16, autoAlpha: 0, stagger: 0.1, duration: 0.45 }, '<0.2')
         .from('.auth-form .auth-field', { y: 14, autoAlpha: 0, stagger: 0.07, duration: 0.4 }, '<')
         .from(
+          '.auth-divider, .auth-switch',
+          { y: 10, autoAlpha: 0, stagger: 0.08, duration: 0.4 },
+          '>-0.1',
+        )
+        .from(
           '.auth-tile',
           {
             scale: 0,
@@ -308,24 +313,30 @@ async function submit() {
         />
         <label for="auth-remember" class="form-check-label">Ghi nhớ đăng nhập</label>
       </div>
-      <RouterLink v-if="!registration" class="mb-3 text-end" to="/forgot-password"
-        >Quên mật khẩu?</RouterLink
+      <RouterLink v-if="!registration" class="auth-forgot" to="/forgot-password"
+        ><AppIcon name="lock" :size="15" />Quên mật khẩu?</RouterLink
       >
       <button class="btn btn-primary btn-icon auth-submit" type="submit" :disabled="auth.loading">
         <AppIcon :name="registration ? 'user' : 'arrowRight'" :size="18" />{{
           auth.loading ? 'Đang xử lý…' : registration ? 'Đăng ký' : 'Đăng nhập'
         }}
       </button>
-      <RouterLink
-        class="mt-3 text-center"
-        :to="{
-          path: registration ? '/login' : '/register',
-          query: route.query.redirect ? { redirect: route.query.redirect } : {},
-        }"
-        >{{
-          registration ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'
-        }}</RouterLink
-      >
+      <p class="auth-divider" aria-hidden="true"><span>hoặc</span></p>
+      <div class="auth-switch">
+        <span class="auth-switch-question">{{
+          registration ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'
+        }}</span>
+        <RouterLink
+          class="auth-switch-link"
+          :to="{
+            path: registration ? '/login' : '/register',
+            query: route.query.redirect ? { redirect: route.query.redirect } : {},
+          }"
+          ><AppIcon :name="registration ? 'user' : 'plus'" :size="16" />{{
+            registration ? 'Đăng nhập' : 'Tạo tài khoản mới'
+          }}<AppIcon name="arrowRight" :size="16" class="auth-switch-arrow"
+        /></RouterLink>
+      </div>
     </form>
   </div>
 </template>
@@ -497,6 +508,89 @@ async function submit() {
 .auth-submit {
   min-height: 48px;
   font-weight: 700;
+}
+.auth-forgot {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.35rem;
+  margin-bottom: var(--space-3);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-forgot:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+/* "hoặc" between the main button and the way to the other form. */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 var(--space-3);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.auth-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+}
+.auth-switch-question {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.auth-switch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1.5px solid var(--band-ink);
+  border-radius: var(--radius-pill);
+  color: var(--band-ink);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.auth-switch-link:hover {
+  background: var(--band-soft);
+  box-shadow: 0 6px 16px rgb(21 22 26 / 10%);
+  color: var(--band-ink);
+}
+.auth-switch-link:focus-visible,
+.auth-forgot:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.auth-switch-arrow {
+  transition: transform 0.2s ease;
+}
+.auth-switch-link:hover .auth-switch-arrow {
+  transform: translateX(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-switch-link,
+  .auth-switch-arrow {
+    transition: none;
+  }
 }
 @media (max-width: 991px) {
   .auth-page {

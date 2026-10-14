@@ -5,6 +5,7 @@ import { listCategories } from '../../api/category.api'
 import { areaPickerOpen, useArea } from '../../composables/useArea'
 import ProductSearch from '../ProductSearch.vue'
 import AppIcon from '../ui/AppIcon.vue'
+import HomePromoBanner from './HomePromoBanner.vue'
 // Primary band with the slogan and the large search box, then the category row.
 // Categories are optional: the row hides if they cannot be loaded.
 const router = useRouter()
@@ -79,6 +80,7 @@ onMounted(async () => {
           <AppIcon name="search" :size="18" /> Tìm kiếm
         </button>
       </form>
+    <HomePromoBanner />
     <div v-if="categories.length" class="home-categories">
       <nav ref="track" class="home-categories-track" aria-label="Danh mục nổi bật">
         <RouterLink

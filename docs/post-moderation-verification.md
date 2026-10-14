@@ -42,4 +42,6 @@ Test mới: `ReportAutoHideTest` (3 test). 19 test backend và 7 test frontend m
 
 ## DB dev
 
-Không có migration. Dữ liệu DB dev không bị sửa.
+Không có migration.
+
+Ngày 2026-10-15, theo đồng ý của chủ dự án, 7 tin còn PENDING trên DB dev (id 8, 15, 49, 56, 63, 97, 104) được mở bán qua `ProductService::moderate` bằng tài khoản `admin@passlai.local`: mỗi tin được kiểm tra lại điều kiện đăng, có lý do và một dòng audit. Backup trước: `.runtime/open-pending-backup.sql`; so sánh từng dòng (`frontend/e2e/rows.php`): chỉ 7 dòng `products` đổi, thêm 7 dòng `audit_logs`, không xoá dòng nào. Sau đó: 0 tin PENDING, 119 tin ACTIVE.

@@ -45,7 +45,7 @@ A working local system needs MySQL plus these four long-running processes, each 
 
 ### One command on Windows
 
-`start-dev.ps1` in the repository root checks that MySQL answers on port 3306, then opens the four processes above in four PowerShell windows using the Herd PHP 8.4 CLI and opens `http://localhost:5173`. Edit the two paths at the top of the script if the repository or Herd is installed elsewhere.
+`start-dev.ps1` in the repository root checks that MySQL answers on port 3306, then opens the four processes above in four PowerShell windows using the Herd PHP 8.4 CLI and opens `http://localhost:5173`. Set the `PHP_BIN` environment variable to use another PHP 8.4 CLI (default: the Herd path); edit `$root` at the top if the repository lives elsewhere.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
@@ -217,7 +217,7 @@ Demo accounts (all use the private `DEMO_PASSWORD` set when they were first seed
 | Seller 2 (C1 Demo · Nhà & Phong Cách) | `c1-seller-2@example.test` |
 | Buyers | `c1-buyer-a@example.test`, `c1-buyer-b@example.test`, `c1-buyer-c@example.test` |
 
-Demo voucher codes created by the current seeder: **`PASSLAI10`** (platform, 10 %, at most 50,000 ₫, order from 200,000 ₫) and **`CONGNGHE20K`** (shop "Góc Công Nghệ", 20,000 ₫, shop order from 100,000 ₫). The seeder also adds one payment awaiting reconciliation and view/search signals so the admin payments page and "Gợi ý cho bạn" are not empty. A database seeded with an older version of the seeder does not have them until the seeder is run again.
+Demo voucher codes created by the current seeder: **`PASSLAI10`** (platform, 10 %, at most 50,000 ₫, order from 200,000 ₫) and **`CONGNGHE20K`** (shop "Góc Công Nghệ", 20,000 ₫, shop order from 100,000 ₫). The seeder also adds one payment awaiting reconciliation and view/search signals so the admin payments page and "Gợi ý cho bạn" are not empty. The local development database was re-seeded with it on 2026-10-14.
 
 Keep four terminals running (start MySQL first):
 

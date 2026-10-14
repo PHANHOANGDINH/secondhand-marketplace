@@ -74,7 +74,7 @@ C3 changed only:
 - **Onboarding flags live in the browser.** The first-time tour is remembered per user in `localStorage`; another browser shows it again, and a browser without storage never shows it.
 - **Fonts are loaded from Google Fonts.** Without internet access the UI falls back to system fonts.
 - **Browser verification is automated on Edge only.** Journeys A–H ran headless at 1440 and 390 px on an isolated test stack; no physical devices, other browsers or automated contrast audit.
-- **The development database has not received the newest demo seed.** Running the current `FinalDemoSeeder` there would add the D4–D7 demo rows but also change two existing rows (stock of one demo product, one cart timestamp); it is waiting for a decision.
+- **The development database received the current demo seed once (2026-10-14).** It added 54 rows and changed two existing ones (stock of one demo product, one cart timestamp) because the demo order goes through the real checkout; a second run changed nothing.
 - **Every write transaction locks the whole `categories` table** (bids, cart writes, checkout, product edits, video comments). Correct, but it serialises writes and will not scale to high concurrency.
 - **Scheduler dependency.** Auctions become LIVE/ENDED and ZaloPay attempts are reconciled only while `php artisan schedule:work` (or cron) is running.
 

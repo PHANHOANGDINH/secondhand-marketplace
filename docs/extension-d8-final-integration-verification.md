@@ -2,7 +2,7 @@
 
 Ngày 2026-10-14, PHP 8.4.25 (Herd). Tài liệu này ghi kết quả tích hợp cuối: seeder demo, E2E theo hành trình A–H, regression và các việc còn mở.
 
-## Kết quả: PASS, còn 1 việc chờ quyết định (seeder trên DB dev)
+## Kết quả: PASS
 
 | Hạng mục | Kết quả |
 | --- | --- |
@@ -10,8 +10,8 @@ Ngày 2026-10-14, PHP 8.4.25 (Herd). Tài liệu này ghi kết quả tích hợ
 | Chạy lại riêng race test | 21 test PASS (`CheckoutConcurrencyTest` 6 gồm voucher, `AuctionConcurrencyTest` 13, `ReportConcurrencyTest` 2) |
 | Frontend | 479 test / 39 file PASS; oxlint, ESLint (không `--fix`), build PASS |
 | E2E A–H + voucher | 9/9 PASS, 64 ảnh ở 1440 và 390 px, không tràn ngang, 0 lỗi JS |
-| DB dev | 28 bảng, 407 dòng: không dòng nào đổi, mất hay thêm trong suốt D8 (so từng dòng bằng `frontend/e2e/rows.php`) |
-| `db:seed` trên DB dev | **CHƯA CHẠY** (xem mục "Seeder") |
+| DB dev trong lúc chạy E2E và regression | 28 bảng, 407 dòng: không dòng nào đổi, mất hay thêm (so từng dòng bằng `frontend/e2e/rows.php`) |
+| `db:seed` trên DB dev | Đã chạy theo cho phép của chủ dự án: +54 dòng, 2 dòng cũ đổi, 0 dòng bị xóa; lần 2 không đổi gì (xem mục "Seeder") |
 
 ## E2E
 
@@ -46,8 +46,14 @@ Kết quả trên là của một lượt chạy liền A→H trên dữ liệu 
 ## Seeder
 
 - `FinalDemoSeeder` thêm cho D5/D7: 1 đơn trực tuyến đã hủy có payment chờ đối soát (ghi bằng dòng mới, không qua giỏ hay tồn kho), 5 lượt xem và 3 lần tìm kiếm cho hai người mua demo, cùng 2 mã voucher đã có từ D6. Dữ liệu D4 (sắp hết hàng, đơn cần xử lý) và phiên LIVE/SCHEDULED để admin hủy đã có sẵn trong seeder. `FinalDemoSeederTest` kiểm cả lần chạy thứ hai không tạo thêm gì.
-- **Chưa chạy trên DB dev.** Tôi nạp bản sao DB dev vào DB test và chạy thử seeder ở đó. Kết quả: thêm 54 dòng, không xóa dòng nào, nhưng **sửa 2 dòng cũ**: sản phẩm `C1 Demo 07` (tồn kho 8 → 7) và giỏ hàng của một người mua demo (mốc thời gian). Nguyên nhân là phần D4 của seeder, vốn chưa từng chạy trên DB dev, tạo "đơn cần xử lý" qua luồng checkout thật nên trừ tồn kho. Điều kiện được giao là "không sửa/xóa dòng cũ", nên tôi dừng và chờ quyết định.
-- Hệ quả hiện tại trên DB dev: chưa có mã voucher demo, chưa có payment chờ đối soát, chưa có dữ liệu D4 và log gợi ý của seeder.
+- **Chạy thử trước trên bản sao.** Tôi nạp bản sao DB dev vào DB test và chạy seeder ở đó: thêm 54 dòng, không xóa dòng nào, sửa 2 dòng cũ. Vì điều kiện ban đầu là "không sửa dòng cũ", tôi dừng và hỏi.
+- **Quyết định của chủ dự án:** chấp nhận 2 dòng bị sửa, vì đây là dữ liệu demo và trừ tồn kho là hệ quả đúng của checkout thật; né checkout sẽ tạo dữ liệu không nhất quán.
+- **Chạy trên DB dev (2026-10-14).** mysqldump → `.runtime/d8-seed-backup.sql`, snapshot từng dòng trước và sau. Kết quả khớp bản chạy thử:
+  - Thêm 54 dòng: `audit_logs` 20, `product_views` 5, `product_images` 4, `products` 4, `wishlists` 4, `reports` 3, `search_logs` 3, `orders` 2, `shop_orders` 2, `order_items` 2, `payments` 2, `vouchers` 2, `notifications` 1.
+  - **2 dòng cũ bị đổi:** `products` id 242 (`C1 Demo 07 — AirPods Pro 2`, tồn kho 8 → 7, vẫn ACTIVE) và `carts` id 184 (giỏ rỗng của người mua demo, chỉ đổi mốc thời gian). Lý do: phần D4 của seeder tạo "đơn cần xử lý" bằng cách thêm sản phẩm vào giỏ rồi checkout thật.
+  - 0 dòng bị xóa.
+- **Chạy lần 2 ngay sau đó:** 461 dòng, 0 dòng thêm, 0 dòng đổi, 0 dòng xóa.
+- DB dev giờ có 2 mã `PASSLAI10`, `CONGNGHE20K`, 1 payment chờ đối soát, dữ liệu D4 và log gợi ý.
 
 ## Tài liệu đã cập nhật
 
@@ -57,7 +63,6 @@ README (chạy bằng Herd PHP 8.4 và `start-dev.ps1`, tài khoản demo, mã v
 
 ## Việc còn lại
 
-1. Quyết định về seeder trên DB dev: chấp nhận 2 dòng bị sửa nói trên, hay để tôi đổi phần D4 thành chỉ ghi dòng mới như đã làm với payment đối soát.
-2. Backend dev ở cổng 8000 không chạy trong suốt D8; cần khởi động lại bằng `start-dev.ps1`.
-3. Thay đổi chưa commit ở `backend/.env.example` đặt một giá trị cho `DEMO_PASSWORD`. Tôi không commit file này; nếu đó là mật khẩu thật thì không nên đưa vào file mẫu.
-4. Chưa có: hoàn tất thanh toán ZaloPay thật qua callback công khai, kiểm thử tải, thiết bị thật, kiểm tra contrast tự động, font đóng gói sẵn.
+1. Backend dev ở cổng 8000 không chạy trong suốt D8; cần khởi động lại bằng `start-dev.ps1` (đặt `PHP_BIN` nếu PHP 8.4 ở chỗ khác).
+2. `backend/.env.example` đã được đặt lại `DEMO_PASSWORD=` (trống) kèm chú thích. Lịch sử git: ở cả ba commit từng chạm file này giá trị đều trống; chưa có mật khẩu thật nào được commit.
+3. Chưa có: hoàn tất thanh toán ZaloPay thật qua callback công khai, kiểm thử tải, thiết bị thật, kiểm tra contrast tự động, font đóng gói sẵn.

@@ -1,5 +1,10 @@
 $root = "D:\CN\Web\secondhand-marketplace"
-$php  = "C:\Users\axyz5\.config\herd\bin\php84\php.exe"
+# PHP 8.4 CLI: set the PHP_BIN environment variable to override; the default is the Herd path.
+$php  = if ($env:PHP_BIN) { $env:PHP_BIN } else { "C:\Users\axyz5\.config\herd\bin\php84\php.exe" }
+if (-not (Test-Path $php)) {
+    Write-Host "Khong tim thay PHP tai $php. Dat bien moi truong PHP_BIN tro toi php.exe 8.4." -ForegroundColor Red
+    Read-Host "Nhan Enter de thoat"; exit
+}
 
 # Kiểm tra MySQL đã bật chưa
 if (-not (Test-NetConnection 127.0.0.1 -Port 3306 -InformationLevel Quiet)) {

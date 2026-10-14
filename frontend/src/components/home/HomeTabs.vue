@@ -113,17 +113,15 @@ watch(
 <style scoped>
 .home-tabs {
   margin-bottom: var(--space-10);
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
   background: var(--surface);
 }
 .home-tabs-bar {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-5);
   margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -133,24 +131,20 @@ watch(
 .home-tab {
   flex: none;
   min-height: 48px;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-1);
   border: 0;
-  border-bottom: 3px solid transparent;
   background: transparent;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: #9a9ba3;
+  font-size: 1.3rem;
   font-weight: 700;
   white-space: nowrap;
-  transition:
-    color var(--transition-fast),
-    border-color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 .home-tab:hover {
   color: var(--text);
 }
 .home-tab.is-active {
-  border-bottom-color: var(--primary);
-  color: var(--primary);
+  color: var(--text);
 }
 .home-tab:focus-visible {
   outline: var(--focus-ring);

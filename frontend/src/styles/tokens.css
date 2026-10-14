@@ -18,6 +18,11 @@
   --primary-soft: #e8ecfe;
   --accent: #c6ff3d;
   --accent-ink: #15161a;
+  /* The marketplace band: header and home banner. Text on it is always --band-ink. */
+  --band: #ffc928;
+  --band-hover: #ffb800;
+  --band-soft: #fff4c7;
+  --band-ink: #15161a;
   --danger: #e5243b;
   --danger-rgb: 229, 36, 59;
   /* #E5243B reaches 4.5:1 only on pure white; text on tinted backgrounds uses this. */

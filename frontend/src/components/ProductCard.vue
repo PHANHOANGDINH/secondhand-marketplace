@@ -84,14 +84,14 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
 <style scoped>
 .marketplace-product-card {
   padding: 0.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: var(--radius-xl);
   background: var(--surface);
   transition: border-color var(--transition-fast);
 }
 .marketplace-product-card:hover,
 .marketplace-product-card:focus-within {
-  border-color: var(--primary);
+  border-color: var(--border);
 }
 .product-card-media {
   position: relative;

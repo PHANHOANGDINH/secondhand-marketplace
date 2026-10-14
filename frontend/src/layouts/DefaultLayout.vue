@@ -307,40 +307,55 @@ function closeAccountMenu(event) {
   position: sticky;
   top: 0;
   z-index: var(--layer-header);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--band);
+  transition: box-shadow var(--transition-fast);
 }
 .marketplace-header.is-scrolled {
-  border-bottom-color: #d4d3cc;
+  box-shadow: 0 2px 10px rgb(21 22 26 / 12%);
 }
 .marketplace-nav {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding-block: 0.6rem;
+  padding-block: 0.75rem;
 }
 .marketplace-menu-toggle {
   flex: none;
   width: 44px;
   min-width: 44px;
   padding: 0;
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 0;
+  border-radius: 50%;
+  color: var(--band-ink);
   background: var(--surface);
 }
 .marketplace-menu-toggle:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  color: var(--band-ink);
+  background: var(--surface-2);
 }
 .marketplace-brand {
   flex: none;
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
+  padding: 0 0.9rem;
   text-decoration: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
 }
 .marketplace-mode {
   flex: none;
+}
+/* On the band the mode switcher is plain text with a chevron, whatever the mode. */
+.marketplace-header .marketplace-nav .marketplace-mode :deep(.mode-switcher-button) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--band-ink);
+  font-size: 0.9rem;
+}
+.marketplace-header .marketplace-nav .marketplace-mode :deep(.mode-switcher-button:hover),
+.marketplace-header .marketplace-nav .marketplace-mode :deep(.mode-switcher-button[aria-expanded='true']) {
+  background: rgb(255 255 255 / 45%);
 }
 .marketplace-directory {
   flex: 1;
@@ -355,9 +370,9 @@ function closeAccountMenu(event) {
   min-height: 44px;
   padding: 0 0.9rem;
   border-radius: var(--radius-pill);
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: rgb(21 22 26 / 55%);
+  font-size: 0.95rem;
+  font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
   transition:
@@ -365,11 +380,11 @@ function closeAccountMenu(event) {
     color var(--transition-fast);
 }
 .marketplace-directory a:hover {
-  background: var(--surface-2);
-  color: var(--primary);
+  background: rgb(255 255 255 / 45%);
+  color: var(--band-ink);
 }
 .marketplace-directory a.is-current {
-  color: var(--primary);
+  color: var(--band-ink);
 }
 .marketplace-compact {
   flex: 1;
@@ -386,9 +401,9 @@ function closeAccountMenu(event) {
 .marketplace-search :deep(input) {
   min-height: 44px;
   padding: 0.5rem 3rem 0.5rem 1rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   font-size: 0.9rem;
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid transparent;
 }
 .marketplace-search :deep(input):focus {
@@ -417,9 +432,9 @@ function closeAccountMenu(event) {
   gap: 0.35rem;
   min-height: 44px;
   max-width: 12rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  padding: 0 0.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--text);
   font-size: 0.85rem;
@@ -449,23 +464,40 @@ function closeAccountMenu(event) {
 }
 .marketplace-links a:hover,
 .marketplace-links a.router-link-active {
-  color: var(--primary);
+  color: var(--band-ink);
 }
-.marketplace-manage,
-.marketplace-admin-entry {
+/* Text links on the band are white pills. */
+.marketplace-links > a:not(.marketplace-icon-link) {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 0.6rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
   white-space: nowrap;
+  transition: background-color var(--transition-fast);
+}
+.marketplace-links > a:not(.marketplace-icon-link):hover {
+  background: var(--surface-2);
 }
 .marketplace-sell {
   white-space: nowrap;
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--band-ink);
+  --bs-btn-border-color: var(--band-ink);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #000;
+  --bs-btn-hover-border-color: #000;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #000;
+  --bs-btn-active-border-color: #000;
+  --bs-btn-disabled-bg: var(--band-ink);
+  --bs-btn-disabled-border-color: var(--band-ink);
   min-height: var(--control-height);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font-size: 0.85rem;
   font-weight: 700;
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.1rem;
 }
 .marketplace-avatar {
   display: inline-grid;
@@ -489,8 +521,9 @@ function closeAccountMenu(event) {
   cursor: pointer;
   list-style: none;
   border-radius: var(--radius-pill);
-  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
-  border: 1px solid var(--border);
+  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+  border: 0;
+  background: var(--surface);
 }
 .marketplace-account summary:hover {
   background: var(--surface-2);
@@ -565,17 +598,17 @@ function closeAccountMenu(event) {
   min-width: 44px;
   min-height: 44px;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text);
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--band-ink);
 }
 .marketplace-icon-link:hover,
 .marketplace-links :deep(.chat-launcher:hover),
 .marketplace-links :deep(.cart-icon-link:hover),
 .marketplace-links :deep(.notification-bell-button:hover) {
   background: var(--surface-2);
-  color: var(--primary);
+  color: var(--band-ink);
 }
 .marketplace-links :deep(.chat-launcher .badge),
 .marketplace-links :deep(.cart-icon-link .badge),
@@ -588,7 +621,7 @@ function closeAccountMenu(event) {
   padding: 2px 5px;
   border: 2px solid var(--surface);
   border-radius: var(--radius-pill);
-  background: var(--primary) !important;
+  background: var(--danger) !important;
   color: #fff !important;
   font-family: var(--font-money);
   font-size: 0.62rem;
@@ -602,7 +635,12 @@ function closeAccountMenu(event) {
 }
 /* Below a wide desktop the mode switcher already carries this link; the search needs the room. */
 @media (max-width: 1499px) {
-  .marketplace-manage {
+  .marketplace-links > a.marketplace-manage {
+    display: none;
+  }
+}
+@media (max-width: 575px) {
+  .marketplace-links > a.marketplace-admin-entry {
     display: none;
   }
 }

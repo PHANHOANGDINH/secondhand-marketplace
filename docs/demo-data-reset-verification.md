@@ -26,7 +26,7 @@ Dữ liệu ở `backend/resources/demo-marketplace/catalog-vn.json`. Seeder ch�
 | Nội dung | Số lượng |
 | --- | --- |
 | Danh mục cha | 12: Điện tử, Thời trang, Gia dụng, Sách & học tập, Xe cộ, Nội thất, Điện lạnh, Mẹ & bé, Thể thao & dã ngoại, Thú cưng, Đồ văn phòng, Nhạc cụ |
-| Danh mục con | 37 (dùng lại các danh mục con đã có như Laptop, Điện thoại, Áo…) |
+| Danh mục con | 42 (dùng lại các danh mục con đã có như Laptop, Điện thoại, Áo…) |
 | Gian hàng | 20, ở 18 tỉnh khác nhau; tài khoản `vn-seller-01…20@example.test`, mật khẩu = `DEMO_PASSWORD` |
 | Tin đăng | 137, đủ trạng thái (đang hiển thị, nháp, chờ duyệt, bị từ chối kèm lý do, đã ẩn, hết hàng) |
 | Ảnh | 1–2 ảnh mỗi tin, hình minh hoạ SVG tự vẽ theo loại hàng, màu theo danh mục |

@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute(),
   router = useRouter()
@@ -42,6 +43,9 @@ const actions = computed(() =>
     ? []
     : transitions[selected.value.status] || [],
 )
+// Lock, unlock, approve or refuse: one icon per shop action.
+const icon = (target) =>
+  ({ REJECTED: 'ban', SUSPENDED: 'lock' })[target] || (selected.value?.status === 'SUSPENDED' ? 'unlock' : 'check')
 const label = (target) =>
   target === 'REJECTED'
     ? 'Từ chối'
@@ -122,9 +126,7 @@ function closeDetail() {
             </option>
           </select></label
         >
-        <button class="btn btn-outline-secondary align-self-end" :disabled="busy">
-          Lọc / Tải lại
-        </button>
+        <IconButton type="submit" class="btn btn-outline-secondary align-self-end" :disabled="busy" icon="sliders" label="Lọc / Tải lại" show-label />
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
@@ -156,14 +158,11 @@ function closeDetail() {
                 </td>
                 <td data-label="Trạng thái"><StatusBadge :status="row.status" /></td>
                 <td>
-                  <button
+                  <IconButton
                     class="btn btn-sm btn-outline-primary"
                     :disabled="busy"
                     :aria-expanded="selected?.id === row.id"
-                    @click="show(row.id)"
-                  >
-                    Xem
-                  </button>
+                    @click="show(row.id)" icon="eye" label="Xem" />
                 </td>
               </tr>
             </tbody>
@@ -213,13 +212,10 @@ function closeDetail() {
           <p>{{ selected.description }}</p>
           <p>Khu vực: {{ selected.province_name || 'Chưa chọn' }}</p>
           <p v-if="selected.moderation_reason">Lý do gần nhất: {{ selected.moderation_reason }}</p>
-          <button
+          <IconButton
             class="btn btn-outline-secondary btn-sm mb-3"
             :disabled="busy"
-            @click="show(selected.id)"
-          >
-            Tải lại chi tiết
-          </button>
+            @click="show(selected.id)" icon="refresh" label="Tải lại chi tiết" />
           <div v-if="actions.length" class="admin-moderation">
             <p class="admin-moderation-title">Xác nhận kiểm duyệt</p>
             <p class="text-secondary">Ghi rõ lý do cho thay đổi trạng thái của gian hàng.</p>
@@ -236,16 +232,17 @@ function closeDetail() {
               {{ [...(errors.expected_status || []), ...(errors.status || [])].join(' ') }}
             </div>
             <div class="d-flex gap-2 flex-wrap">
-              <button
+              <IconButton
                 v-for="target in actions"
                 :key="target"
                 :data-target="target"
-                class="btn btn-outline-primary"
+                :class="['btn', ['REJECTED', 'SUSPENDED'].includes(target) ? 'btn-outline-danger' : 'btn-outline-primary']"
+                :icon="icon(target)"
+                :label="label(target)"
+                show-label
                 :disabled="busy || !reason.trim()"
                 @click="moderate(target)"
-              >
-                {{ label(target) }}
-              </button>
+              />
             </div>
           </div>
           <p v-else class="text-secondary">

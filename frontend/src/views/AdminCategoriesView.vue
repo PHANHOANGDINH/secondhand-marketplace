@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { getStatusLabel } from '../utils/labels'
 import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
@@ -130,9 +131,7 @@ function categoryDepth(row) {
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <div class="row g-4 admin-split">
       <div class="col-lg-7">
-        <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()">
-          Tải lại
-        </button>
+        <IconButton class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()" icon="refresh" label="Tải lại" />
         <div class="table-responsive admin-table-wrap">
           <table class="table align-middle admin-table">
             <thead>

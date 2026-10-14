@@ -136,6 +136,28 @@ const adminPage = computed(() => /^\/admin(\/|$)/.test(route?.path || ''))
 const accountPage = computed(() => /^\/account(\/|$)/.test(route?.path || ''))
 // The home page has its own large search box; every other page gets the compact one in the header.
 const homePage = computed(() => (route?.path || '/') === '/')
+// Account menu entries with an icon each: [path, label, icon].
+const accountLinks = [
+  ['/reports', 'Báo cáo của tôi', 'flag'],
+  ['/wishlist', 'Sản phẩm yêu thích', 'heart'],
+  ['/orders', 'Đơn mua', 'cart'],
+  ['/seller/orders', 'Đơn bán', 'truck'],
+  ['/account', 'Tài khoản', 'user'],
+  ['/account/profile', 'Hồ sơ', 'edit'],
+  ['/account/addresses', 'Địa chỉ', 'pin'],
+  ['/seller/shop', 'Gian hàng của tôi', 'store'],
+  ['/seller/dashboard', 'Thống kê gian hàng', 'chart'],
+  ['/my-ads', 'Quản lý tin', 'tag'],
+]
+const adminLinks = [
+  ['/admin/dashboard', 'Tổng quan quản trị', 'dashboard'],
+  ['/admin/users', 'Người dùng', 'users'],
+  ['/admin/reviews', 'Duyệt đánh giá', 'star'],
+  ['/admin/orders', 'Tổng quan đơn hàng', 'receipt'],
+  ['/admin/categories', 'Quản lý danh mục', 'grid'],
+  ['/admin/shops', 'Gian hàng', 'store'],
+  ['/admin/products', 'Tin đăng', 'box'],
+]
 function closeAccountMenu(event) {
   const menu = event.currentTarget.closest('details')
   if (event.type === 'keydown') {
@@ -233,35 +255,22 @@ function closeAccountMenu(event) {
               ><AppIcon name="chevronDown" :size="16" />
             </summary>
             <div class="marketplace-account-menu" @click="closeAccountMenu">
-              <RouterLink to="/reports">Báo cáo của tôi</RouterLink>
-              <RouterLink to="/wishlist">Sản phẩm yêu thích</RouterLink>
-              <RouterLink to="/orders">Đơn mua</RouterLink
-              ><RouterLink to="/seller/orders">Đơn bán</RouterLink>
-              <RouterLink to="/account">Tài khoản</RouterLink>
-              <RouterLink to="/account/profile">Hồ sơ</RouterLink>
-              <RouterLink to="/account/addresses">Địa chỉ</RouterLink>
-              <RouterLink to="/seller/shop">Gian hàng của tôi</RouterLink>
-              <RouterLink to="/seller/dashboard">Thống kê gian hàng</RouterLink>
-              <RouterLink to="/my-ads">Quản lý tin</RouterLink>
+              <RouterLink
+                v-for="[path, label, icon] in accountLinks"
+                :key="path"
+                :to="path"
+                ><AppIcon :name="icon" :size="18" />{{ label }}</RouterLink
+              >
               <template v-if="auth.isAdmin"
-                ><RouterLink v-if="auth.isAdmin" class="nav-link" to="/admin/dashboard"
-                  >Tổng quan quản trị</RouterLink
-                >
-                <RouterLink v-if="auth.isAdmin" class="nav-link" to="/admin/users"
-                  >Người dùng</RouterLink
-                >
-                <RouterLink v-if="auth.isAdmin" class="nav-link" to="/admin/reviews"
-                  >Duyệt đánh giá</RouterLink
-                >
-                <RouterLink v-if="auth.isAdmin" class="nav-link" to="/admin/orders"
-                  >Tổng quan đơn hàng</RouterLink
-                >
-                <RouterLink to="/admin/categories">Quản lý danh mục</RouterLink
-                ><RouterLink to="/admin/shops">Gian hàng</RouterLink
-                ><RouterLink to="/admin/products">Tin đăng</RouterLink></template
+                ><RouterLink
+                  v-for="[path, label, icon] in adminLinks"
+                  :key="path"
+                  :to="path"
+                  ><AppIcon :name="icon" :size="18" />{{ label }}</RouterLink
+                ></template
               >
               <button type="button" class="marketplace-menu-button" @click="replayGuides">
-                Xem lại hướng dẫn
+                <AppIcon name="refresh" :size="18" />Xem lại hướng dẫn
               </button>
               <LogoutButton />
             </div>
@@ -558,6 +567,7 @@ function closeAccountMenu(event) {
 .marketplace-account-menu :deep(a) {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
   color: var(--text);
@@ -571,6 +581,7 @@ function closeAccountMenu(event) {
 .marketplace-menu-button {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
   border: 0;

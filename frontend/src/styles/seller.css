@@ -79,6 +79,10 @@
   font-size: 0.9rem;
   font-weight: 550;
 }
+.seller-sidebar nav a svg {
+  flex: none;
+  opacity: 0.8;
+}
 .seller-sidebar nav a span {
   font-size: 0.7rem;
   align-self: center;

@@ -1,4 +1,6 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
 import OrderTimeline from '../components/OrderTimeline.vue'
 import { formatCancellationReason, getPaymentMethodLabel } from '../utils/labels'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
@@ -114,7 +116,7 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
     <p v-for="(messages, field) in errors" :key="field" class="text-danger">
       {{ messages.join(' ') }}
     </p>
-    <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">Tải lại</button>
+    <IconButton class="btn btn-outline-secondary mb-3" icon="refresh" label="Tải lại" :disabled="busy" @click="load" />
     <template v-if="order"
       ><OrderShipping :address="order.shipping_address" />
       <div v-if="!seller" class="buyer-order-overview">
@@ -192,7 +194,7 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
               {{ formatPrice(part.total_amount) }} khi nhận hàng</label
             >
             <button
-              class="btn btn-primary"
+              class="btn btn-primary btn-icon"
               data-next-status
               :disabled="
                 busy ||
@@ -200,7 +202,10 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
               "
               @click="action(part, nextOrderStatus[part.status])"
             >
-              Chuyển sang {{ orderStatuses[nextOrderStatus[part.status]] }}
+              <AppIcon
+                :name="{ CONFIRMED: 'check', PROCESSING: 'box', SHIPPING: 'truck', COMPLETED: 'check' }[nextOrderStatus[part.status]] || 'arrowRight'"
+                :size="18"
+              />Chuyển sang {{ orderStatuses[nextOrderStatus[part.status]] }}
             </button>
           </div>
           <form v-if="canCancel(part)" class="mt-3" @submit.prevent="action(part, 'CANCELLED')">
@@ -222,7 +227,9 @@ useSellerIdentity(() => (props.seller ? order.value?.shop : null))
               <option value="OUT_OF_STOCK">Hết hàng</option>
               <option value="DAMAGED">Hư hỏng</option>
               <option value="UNFULFILLABLE">Không giao được</option></select
-            ><button class="btn btn-outline-danger" :disabled="busy">Hủy phần đơn này</button>
+            ><button class="btn btn-outline-danger btn-icon" :disabled="busy">
+              <AppIcon name="close" :size="18" />Hủy phần đơn này
+            </button>
           </form>
         </div>
       </section></template

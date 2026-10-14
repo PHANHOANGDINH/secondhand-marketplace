@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { listInventory } from '../api/inventory.api'
@@ -181,7 +182,7 @@ const activeFilters = computed(() => [
         <select v-model="sort" class="form-select" aria-label="Sắp xếp tồn kho">
           <option v-for="[value, label] in sorts" :key="value" :value="value">{{ label }}</option>
         </select>
-        <button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
+        <IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="check" label="Áp dụng" show-label />
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" />
@@ -229,15 +230,12 @@ const activeFilters = computed(() => [
             @click="editing = null"
           >
             Đóng</button
-          ><button
+          ><IconButton
             v-if="stockError"
             type="button"
             class="btn btn-outline-secondary"
             :disabled="saving"
-            @click="reloadStock"
-          >
-            Tải lại
-          </button>
+            @click="reloadStock" icon="refresh" label="Tải lại" />
         </div>
       </div>
     </form>

@@ -1,4 +1,5 @@
 <script setup>
+import AppIcon from './ui/AppIcon.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -39,8 +40,8 @@ async function buyNow() {
 <template>
   <div v-if="product.auction" class="border-top pt-3">
     <p class="text-muted">Sản phẩm đang dành cho đấu giá.</p>
-    <RouterLink :to="`/auctions/${product.auction.id}`" class="btn btn-primary"
-      >Xem phiên đấu giá</RouterLink
+    <RouterLink :to="`/auctions/${product.auction.id}`" class="btn btn-primary btn-icon"
+      ><AppIcon name="gavel" :size="18" />Xem phiên đấu giá</RouterLink
     >
   </div>
   <form v-else class="border-top pt-3" @submit.prevent="add">
@@ -65,20 +66,22 @@ async function buyNow() {
       />
       <button
         type="submit"
-        class="btn btn-primary"
+        class="btn btn-primary btn-icon"
         :disabled="busy || cart.writing || auth.loading || product.stock_quantity < 1"
       >
-        {{ product.stock_quantity < 1 ? 'Tạm hết hàng' : 'Thêm vào giỏ' }}
+        <AppIcon name="cart" :size="18" />{{
+          product.stock_quantity < 1 ? 'Tạm hết hàng' : 'Thêm vào giỏ'
+        }}
       </button>
       <button
         v-if="product.stock_quantity >= 1"
         type="button"
-        class="btn btn-outline-primary"
+        class="btn btn-outline-primary btn-icon"
         data-buy-now
         :disabled="busy || cart.writing || auth.loading"
         @click="buyNow"
       >
-        Mua ngay
+        <AppIcon name="bolt" :size="18" />Mua ngay
       </button>
     </div>
     <RouterLink v-if="success" to="/cart" class="d-inline-block mt-2">Xem giỏ hàng</RouterLink>

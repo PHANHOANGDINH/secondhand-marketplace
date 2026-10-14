@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { localizeValidationErrors } from '../utils/validationLabels'
 
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
@@ -191,9 +192,7 @@ const activeFilters = computed(() =>
           }}
         </p>
         <RouterLink to="/products" class="btn btn-outline-secondary">Xóa bộ lọc</RouterLink>
-        <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
-          Tải lại
-        </button>
+        <IconButton type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load" icon="refresh" label="Tải lại" />
       </div>
     </form>
     <AccessibleDialog

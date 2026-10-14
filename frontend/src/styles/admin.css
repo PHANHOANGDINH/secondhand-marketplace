@@ -91,6 +91,10 @@
   font-size: 0.88rem;
   text-decoration: none;
 }
+.admin-sidebar nav a svg {
+  flex: none;
+  opacity: 0.8;
+}
 .admin-sidebar nav a span {
   font-size: 0.7rem;
   opacity: 0.65;

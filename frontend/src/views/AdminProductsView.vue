@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute(),
   router = useRouter()
@@ -38,6 +39,7 @@ const actions = computed(() =>
   selected.value?.can_moderate ? transitions[selected.value.status] || [] : [],
 )
 const labels = { ACTIVE: 'Mở lại tin', REJECTED: 'Gỡ tin' }
+const icons = { ACTIVE: 'check', REJECTED: 'ban' }
 const activeFilters = computed(() => [
   { label: 'Tìm', value: String(filters.search ?? '').trim() },
   { label: 'Trạng thái', value: filters.status && getStatusLabel(filters.status, 'product') },
@@ -153,7 +155,7 @@ onMounted(async () => {
             :errors="errors.category"
           />
         </div>
-        <div><button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button></div>
+        <div><IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="sliders" label="Lọc / Tải lại" show-label /></div>
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
@@ -205,14 +207,11 @@ onMounted(async () => {
                   <StatusBadge :status="product.status" domain="product" />
                 </td>
                 <td>
-                  <button
+                  <IconButton
                     class="btn btn-sm btn-outline-primary"
                     :disabled="busy"
                     :aria-expanded="selected?.id === product.id"
-                    @click="show(product.id)"
-                  >
-                    Xem
-                  </button>
+                    @click="show(product.id)" icon="eye" label="Xem" />
                 </td>
               </tr>
             </tbody>
@@ -242,13 +241,10 @@ onMounted(async () => {
           <ProductGallery :images="selected.images" :name="selected.name" />
           <p class="text-break mt-3" style="white-space: pre-wrap">{{ selected.description }}</p>
           <p v-if="selected.moderation_reason">Lý do gần nhất: {{ selected.moderation_reason }}</p>
-          <button
+          <IconButton
             class="btn btn-outline-secondary mb-3"
             :disabled="busy"
-            @click="show(selected.id)"
-          >
-            Tải lại chi tiết
-          </button>
+            @click="show(selected.id)" icon="refresh" label="Tải lại chi tiết" />
           <p v-if="auctionConflict" class="alert alert-warning" role="alert" data-auction-conflict>
             Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi gỡ tin.
             <RouterLink :to="{ path: '/admin/auctions', query: { auction: auctionConflict } }"
@@ -268,16 +264,17 @@ onMounted(async () => {
               :errors="errors.reason"
             />
             <div class="d-flex gap-2">
-              <button
+              <IconButton
                 v-for="target in actions"
                 :key="target"
                 :data-target="target"
-                class="btn btn-outline-primary"
+                :class="['btn', target === 'REJECTED' ? 'btn-outline-danger' : 'btn-outline-primary']"
+                :icon="icons[target]"
+                :label="labels[target]"
+                show-label
                 :disabled="busy || !reason.trim()"
                 @click="moderate(target)"
-              >
-                {{ labels[target] }}
-              </button>
+              />
             </div>
           </div>
           <p v-else>Không có thao tác hợp lệ cho tin này.</p>

@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { listWishlist } from '../api/wishlist.api'
@@ -46,7 +47,7 @@ onUnmounted(() => {
       title="Sản phẩm yêu thích"
       description="Những món đồ bạn đã lưu để xem lại. Việc lưu không giữ hàng hoặc giữ giá."
     />
-    <button class="btn btn-outline-secondary mb-4" :disabled="busy" @click="load">Tải lại</button>
+    <IconButton class="btn btn-outline-secondary mb-4" :disabled="busy" @click="load" icon="refresh" label="Tải lại" />
     <DomainFeedback :error="error" />
     <div v-if="busy" class="row g-4" aria-label="Đang tải sản phẩm yêu thích" aria-busy="true">
       <div v-for="n in 8" :key="n" class="col-6 col-lg-3">

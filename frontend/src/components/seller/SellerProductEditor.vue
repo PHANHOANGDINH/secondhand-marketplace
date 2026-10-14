@@ -12,8 +12,10 @@ import {
   conditions,
   sellerActions,
   actionLabels,
+  actionIcons,
   formatPrice,
 } from '../../composables/productPresentation'
+import IconButton from '../ui/IconButton.vue'
 import { useFeedback } from '../../composables/useFeedback'
 import DomainField from '../DomainField.vue'
 import DomainFeedback from '../DomainFeedback.vue'
@@ -173,9 +175,13 @@ defineExpose({ hasUnsavedChanges })
       <RouterLink to="/seller/shop">tạo hoặc kiểm tra gian hàng của bạn</RouterLink> trước khi đăng
       bán.
     </p>
-    <button class="btn btn-outline-secondary mb-3" :disabled="combinedBusy" @click="load">
-      Tải lại dữ liệu
-    </button>
+    <IconButton
+      class="btn btn-outline-secondary mb-3"
+      icon="refresh"
+      label="Tải lại dữ liệu"
+      :disabled="combinedBusy"
+      @click="load"
+    />
     <template v-if="loaded">
       <p v-if="product" class="seller-status-line">
         Trạng thái: <StatusBadge :status="product.status" domain="product" />
@@ -356,7 +362,7 @@ defineExpose({ hasUnsavedChanges })
                 Hiện không có thao tác chuyển trạng thái khả dụng.
               </p>
               <div class="d-flex flex-wrap gap-2">
-                <button
+                <IconButton
                   v-for="target in sellerActions(product)"
                   :key="target"
                   :data-action="target"
@@ -368,11 +374,12 @@ defineExpose({ hasUnsavedChanges })
                         ? 'btn-outline-danger'
                         : 'btn-outline-secondary',
                   ]"
+                  :icon="actionIcons[target]"
+                  :label="actionLabels[target]"
+                  show-label
                   :disabled="combinedBusy"
                   @click="action(target)"
-                >
-                  {{ actionLabels[target] }}
-                </button>
+                />
               </div>
             </template>
           </section>

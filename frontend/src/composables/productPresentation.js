@@ -35,6 +35,9 @@ export function sellerActions(product) {
     (action) => !['submit', 'reopen'].includes(action) || product.shop_status === 'ACTIVE',
   )
 }
+// Icon for each seller action; publish and reopen also keep their words on screen.
+export const actionIcons = { submit: 'upload', reopen: 'refresh', hide: 'eyeOff', delete: 'trash' }
+export const labelledActions = ['submit', 'reopen']
 export const actionLabels = {
   submit: 'Đăng bán',
   reopen: 'Yêu cầu mở lại',

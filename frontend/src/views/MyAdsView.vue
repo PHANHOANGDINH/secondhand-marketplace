@@ -5,7 +5,15 @@ import * as productsApi from '../api/product.api'
 import { getSellerShop } from '../api/shop.api'
 import { useAuthStore } from '../stores/auth'
 import { useFeedback } from '../composables/useFeedback'
-import { formatPrice, conditionLabel, sellerActions, actionLabels } from '../composables/productPresentation'
+import {
+  formatPrice,
+  conditionLabel,
+  sellerActions,
+  actionLabels,
+  actionIcons,
+  labelledActions,
+} from '../composables/productPresentation'
+import IconButton from '../components/ui/IconButton.vue'
 import InventoryBadge from '../components/seller/InventoryBadge.vue'
 import AuctionLockNotice from '../components/seller/AuctionLockNotice.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
@@ -184,19 +192,23 @@ onMounted(() => {
           <AuctionLockNotice :product="product" compact />
         </div>
         <div class="my-ad-actions">
-          <RouterLink :to="`/seller/products/${product.id}/edit`" class="btn btn-sm btn-outline-primary">{{
-            product.can_edit && !product.auction_locked ? 'Xem / Sửa' : 'Xem'
-          }}</RouterLink>
-          <button
+          <IconButton
+            :to="`/seller/products/${product.id}/edit`"
+            class="btn btn-sm btn-outline-primary"
+            :icon="product.can_edit && !product.auction_locked ? 'edit' : 'eye'"
+            :label="product.can_edit && !product.auction_locked ? 'Xem / Sửa' : 'Xem'"
+          />
+          <IconButton
             v-for="target in sellerActions(product)"
             :key="target"
             :data-action="target"
-            class="btn btn-sm btn-outline-secondary"
+            :class="['btn', 'btn-sm', target === 'delete' ? 'btn-outline-danger' : 'btn-outline-secondary']"
+            :icon="actionIcons[target]"
+            :label="actionLabels[target]"
+            :show-label="labelledActions.includes(target)"
             :disabled="busy"
             @click="action(product, target)"
-          >
-            {{ actionLabels[target] }}
-          </button>
+          />
         </div>
       </li>
     </ul>

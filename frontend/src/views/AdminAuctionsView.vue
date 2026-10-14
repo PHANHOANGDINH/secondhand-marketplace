@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as api from '../api/admin.api'
@@ -167,10 +168,7 @@ const activeFilters = computed(() => [
           </div>
         </div>
         <div class="col-sm-6 col-lg-3 d-flex gap-2">
-          <button class="btn btn-primary" :disabled="busy">Lọc</button
-          ><button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
-            Tải lại
-          </button>
+          <IconButton type="submit" class="btn btn-primary" :disabled="busy" icon="sliders" label="Lọc" show-label /><IconButton type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load" icon="refresh" label="Tải lại" />
         </div>
       </form>
     </FilterSheet>

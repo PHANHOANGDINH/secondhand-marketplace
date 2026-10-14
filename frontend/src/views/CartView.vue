@@ -1,4 +1,6 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
 import { computed, onMounted, reactive, watch } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useFeedback } from '../composables/useFeedback'
@@ -57,7 +59,8 @@ onMounted(() => cart.load())
     <div v-for="(messages, key) in errors" :key="key" class="text-danger">
       {{ messages.join(' ') }}
     </div>
-    <button class="btn btn-outline-secondary mb-3" :disabled="disabled" @click="cart.load">
+    <button class="btn btn-outline-secondary mb-3 btn-icon" :disabled="disabled" @click="cart.load">
+      <AppIcon name="refresh" :size="18" />
       Tải lại giỏ hàng
     </button>
     <template v-if="cart.data">
@@ -139,23 +142,23 @@ onMounted(() => cart.load())
                   </form>
                   <div class="col-md-3">
                     <p class="fw-bold mb-2">{{ formatPrice(item.subtotal) }}</p>
-                    <button
+                    <IconButton
                       class="btn btn-outline-danger btn-sm"
+                      icon="trash"
+                      label="Xóa"
                       :disabled="disabled"
                       @click="remove(item)"
-                    >
-                      Xóa
-                    </button>
+                    />
                   </div>
                 </div>
               </article>
             </section>
             <button
-              class="btn btn-outline-danger align-self-start"
+              class="btn btn-outline-danger align-self-start btn-icon"
               :disabled="disabled"
               @click="clear"
             >
-              Xóa toàn bộ giỏ
+              <AppIcon name="trash" :size="18" />Xóa toàn bộ giỏ
             </button>
           </div>
           <aside class="buyer-panel buyer-sticky-summary" aria-label="Tóm tắt giỏ hàng">

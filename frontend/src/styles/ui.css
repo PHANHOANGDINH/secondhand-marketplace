@@ -217,3 +217,14 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* A button or link with an icon before its words. */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.btn-icon > svg {
+  flex: none;
+}

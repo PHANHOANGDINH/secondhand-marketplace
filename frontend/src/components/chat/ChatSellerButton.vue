@@ -1,4 +1,5 @@
 <script setup>
+import AppIcon from '../ui/AppIcon.vue'
 import { localizeValidationMessage } from '../../utils/validationLabels'
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -53,11 +54,11 @@ watch(
   <div class="mt-3">
     <button
       type="button"
-      class="btn btn-outline-primary"
+      class="btn btn-outline-primary btn-icon"
       :disabled="busy || auth.loading"
       @click="start"
     >
-      {{ busy ? 'Đang mở hội thoại…' : 'Nhắn người bán' }}
+      <AppIcon name="message" :size="18" />{{ busy ? 'Đang mở hội thoại…' : 'Nhắn người bán' }}
     </button>
     <p v-if="error" class="text-danger mt-2 mb-0" role="alert">{{ error }}</p>
   </div>

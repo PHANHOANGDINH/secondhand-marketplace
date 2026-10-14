@@ -1,4 +1,5 @@
 <script setup>
+import AppIcon from './ui/AppIcon.vue'
 import { nextTick, onUnmounted, ref, useId, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -105,10 +106,10 @@ onUnmounted(() => {
   <button
     ref="trigger"
     type="button"
-    class="btn btn-sm btn-link text-secondary report-trigger"
+    class="btn btn-sm btn-link text-secondary report-trigger btn-icon"
     @click="open"
   >
-    {{ label }}
+    <AppIcon name="flag" :size="16" />{{ label }}
   </button>
   <dialog
     ref="dialog"

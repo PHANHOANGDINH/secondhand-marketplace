@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as api from '../api/auction.api'
@@ -172,7 +173,7 @@ const activeFilters = computed(() => [
           <option value="all">Tất cả đấu giá</option>
           <option value="live_now">Đang diễn ra</option>
           <option value="ending_soon">Sắp kết thúc</option></select
-        ><button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
+        ><IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="check" label="Áp dụng" show-label />
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />

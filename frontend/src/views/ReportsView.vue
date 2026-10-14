@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -271,15 +272,11 @@ function closeDetail() {
             :min="filters.from || undefined"
         /></label>
         <div class="col-12 d-flex gap-2">
-          <button class="btn btn-primary" :disabled="busy">Lọc báo cáo</button
-          ><button
+          <IconButton type="submit" class="btn btn-primary" :disabled="busy" icon="sliders" label="Lọc báo cáo" show-label /><IconButton
             type="button"
             class="btn btn-outline-secondary"
             :disabled="busy"
-            @click="load(meta?.current_page || 1)"
-          >
-            Tải lại
-          </button>
+            @click="load(meta?.current_page || 1)" icon="refresh" label="Tải lại" />
         </div>
       </form>
     </FilterSheet>
@@ -318,15 +315,12 @@ function closeDetail() {
               <time :datetime="row.created_at">{{ reportDate(row.created_at) }}</time>
             </td>
             <td>
-              <button
+              <IconButton
                 type="button"
                 class="btn btn-sm btn-outline-primary"
                 :disabled="actionBusy"
                 :aria-label="`Xem báo cáo số ${row.id}`"
-                @click="openReport(row.id)"
-              >
-                Xem
-              </button>
+                @click="openReport(row.id)" icon="eye" label="Xem" />
             </td>
           </tr>
         </tbody>
@@ -334,13 +328,10 @@ function closeDetail() {
     </div>
     <CollectionPager :meta="meta" :busy="busy" @page="load" />
     <DomainFeedback :busy="detailBusy" :error="actionError" :success="success" />
-    <button
+    <IconButton
       v-if="actionError && route.query.report"
       class="btn btn-outline-secondary"
-      @click="show(route.query.report)"
-    >
-      Tải lại báo cáo
-    </button>
+      @click="show(route.query.report)" icon="refresh" label="Tải lại báo cáo" />
     <DetailSheet
       id="report-detail"
       :open="!!selected"

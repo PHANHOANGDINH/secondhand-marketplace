@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as api from '../api/admin.api'
@@ -173,9 +174,7 @@ const activeFilters = computed(() => [
             </option>
           </select></label
         >
-        <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
-          Tải lại
-        </button>
+        <IconButton type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load" icon="refresh" label="Tải lại" />
       </form>
     </FilterSheet>
     <DomainFeedback :error="error" :success="success" />

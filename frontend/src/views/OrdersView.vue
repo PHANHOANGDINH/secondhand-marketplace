@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { useRoute } from 'vue-router'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -140,7 +141,7 @@ const activeFilters = computed(() => [
           >
             {{ orderStatuses[key] }}
           </option></select
-        ><button class="btn btn-outline-secondary" :disabled="busy">Lọc</button>
+        ><IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="sliders" label="Lọc" show-label />
       </form>
     </FilterSheet>
     <template v-if="result && !result.data.length && !busy && !error"

@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { getPaymentMethodLabel } from '../utils/labels'
 import AuctionOrderSource from '../components/auction/AuctionOrderSource.vue'
 import AdminRecordHeader from '../components/admin/AdminRecordHeader.vue'
@@ -135,7 +136,7 @@ function closeDetail() {
             max="9998-12-31"
             class="form-control"
         /></label>
-        <div><button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button></div>
+        <div><IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="sliders" label="Lọc / Tải lại" show-label /></div>
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" />
@@ -181,14 +182,11 @@ function closeDetail() {
             </td>
             <td data-label="Giá trị đơn">{{ formatPrice(order.total_amount) }}</td>
             <td>
-              <button
+              <IconButton
                 class="btn btn-outline-primary btn-sm"
                 :disabled="busy"
                 :aria-expanded="selected?.id === order.id"
-                @click="show(order.id)"
-              >
-                Xem
-              </button>
+                @click="show(order.id)" icon="eye" label="Xem" />
             </td>
           </tr>
         </tbody>
@@ -270,9 +268,7 @@ function closeDetail() {
             Chi tiết giao dịch thanh toán không được cung cấp trong dữ liệu quản trị hiện tại.
           </p>
         </section>
-        <button class="btn btn-outline-secondary mt-2" :disabled="busy" @click="show(selected.id)">
-          Tải lại chi tiết
-        </button>
+        <IconButton class="btn btn-outline-secondary mt-2" :disabled="busy" @click="show(selected.id)" icon="refresh" label="Tải lại chi tiết" />
       </section>
     </DetailSheet>
   </section>

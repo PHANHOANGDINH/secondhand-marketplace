@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from './ui/IconButton.vue'
 import { getStatusLabel, getRoleLabel } from '../utils/labels'
 import PageHeader from './ui/PageHeader.vue'
 import StatusBadge from './ui/StatusBadge.vue'
@@ -175,7 +176,7 @@ const activeFilters = computed(() => [
           ></template
         >
         <div class="col-md-3">
-          <button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button>
+          <IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="sliders" label="Lọc / Tải lại" show-label />
         </div>
       </form>
     </FilterSheet>
@@ -215,14 +216,11 @@ const activeFilters = computed(() => [
                 </td>
                 <td data-label="Trạng thái"><StatusBadge :status="row.status" /></td>
                 <td>
-                  <button
+                  <IconButton
                     class="btn btn-sm btn-outline-primary"
                     :disabled="busy"
                     :aria-expanded="selected?.id === row.id"
-                    @click="show(row.id)"
-                  >
-                    Xem
-                  </button>
+                    @click="show(row.id)" icon="eye" label="Xem" />
                 </td>
               </tr>
             </tbody>
@@ -272,13 +270,10 @@ const activeFilters = computed(() => [
               Lý do gần nhất: {{ selected.moderation_reason }}
             </p></template
           >
-          <button
+          <IconButton
             class="btn btn-outline-secondary mb-3"
             :disabled="busy"
-            @click="show(selected.id)"
-          >
-            Tải lại chi tiết
-          </button>
+            @click="show(selected.id)" icon="refresh" label="Tải lại chi tiết" />
           <form v-if="action" class="admin-moderation" @submit.prevent="moderate">
             <p class="admin-moderation-title">Xác nhận {{ actionLabel.toLowerCase() }}</p>
             <p class="text-secondary">
@@ -293,13 +288,15 @@ const activeFilters = computed(() => [
                 maxlength="1000"
                 class="form-control"
               /></label
-            ><button
-              class="btn btn-outline-danger"
+            ><IconButton
+              type="submit"
+              :class="['btn', ['SUSPENDED', 'HIDDEN'].includes(action) ? 'btn-outline-danger' : 'btn-outline-primary']"
               :data-target="action"
+              :icon="{ ACTIVE: 'unlock', SUSPENDED: 'lock', PUBLISHED: 'eye', HIDDEN: 'eyeOff' }[action]"
+              :label="actionLabel"
+              show-label
               :disabled="busy || !reason.trim()"
-            >
-              {{ actionLabel }}
-            </button>
+            />
           </form>
           <p v-else>Không có thao tác trạng thái được phép.</p>
           <p class="text-secondary">

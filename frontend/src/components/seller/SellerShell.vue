@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import LogoutButton from '../LogoutButton.vue'
 import ChatLauncher from '../chat/ChatLauncher.vue'
+import AppIcon from '../ui/AppIcon.vue'
 const shopIdentity = ref(null)
 provide(sellerIdentityKey, shopIdentity)
 const route = useRoute(),
@@ -17,13 +18,13 @@ const route = useRoute(),
   open = ref(false),
   toggle = ref(null)
 const links = [
-  ['/seller/dashboard', 'Tổng quan', '01'],
-  ['/seller/inventory', 'Tồn kho', '02'],
-  ['/seller/products', 'Sản phẩm', '03'],
-  ['/seller/orders', 'Đơn hàng', '04'],
-  ['/seller/shop', 'Gian hàng', '05'],
-  ['/seller/auctions', 'Đấu giá', '06'],
-  ['/seller/vouchers', 'Mã giảm giá', '07'],
+  ['/seller/dashboard', 'Tổng quan', 'chart'],
+  ['/seller/inventory', 'Tồn kho', 'box'],
+  ['/seller/products', 'Sản phẩm', 'tag'],
+  ['/seller/orders', 'Đơn hàng', 'receipt'],
+  ['/seller/shop', 'Gian hàng', 'store'],
+  ['/seller/auctions', 'Đấu giá', 'gavel'],
+  ['/seller/vouchers', 'Mã giảm giá', 'ticket'],
 ]
 const active = (path) => route.path === path || route.path.startsWith(`${path}/`)
 watch(
@@ -67,13 +68,12 @@ function close() {
         <p class="seller-sidebar-caption">QUẢN LÝ BÁN HÀNG</p>
         <nav aria-label="Điều hướng người bán">
           <RouterLink
-            v-for="[path, label, number] in links"
+            v-for="[path, label, icon] in links"
             :key="path"
             :to="path"
             :class="{ active: active(path) }"
             :aria-current="active(path) ? 'page' : undefined"
-            ><span aria-hidden="true">{{ number }}</span
-            >{{ label }}</RouterLink
+            ><AppIcon :name="icon" :size="18" />{{ label }}</RouterLink
           >
         </nav>
         <div class="seller-sidebar-note">

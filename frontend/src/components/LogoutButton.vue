@@ -1,4 +1,5 @@
 <script setup>
+import AppIcon from './ui/AppIcon.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -20,11 +21,11 @@ async function logout() {
   <div>
     <button
       type="button"
-      class="btn btn-outline-secondary"
+      class="btn btn-outline-secondary btn-icon"
       :disabled="auth.loading"
       @click="logout"
     >
-      Đăng xuất
+      <AppIcon name="logout" :size="18" />Đăng xuất
     </button>
     <p v-if="error" class="text-danger mt-2 mb-0" role="alert">{{ error }}</p>
   </div>

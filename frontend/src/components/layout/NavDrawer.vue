@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import AccessibleDialog from '../ui/AccessibleDialog.vue'
+import AppIcon from '../ui/AppIcon.vue'
 import { categoryOptions } from '../../api/catalogOptions'
 // Side drawer behind the menu button: every category plus the main destinations.
 defineEmits(['dismiss'])
@@ -25,11 +26,13 @@ onMounted(async () => {
     @dismiss="$emit('dismiss')"
   >
     <nav class="nav-drawer-section" aria-label="Trang chính" @click="$emit('dismiss')">
-      <RouterLink to="/">Trang chủ</RouterLink>
-      <RouterLink to="/products">Tất cả tin đăng</RouterLink>
-      <RouterLink to="/shops">Gian hàng</RouterLink>
-      <RouterLink to="/auctions">Sàn đấu giá</RouterLink>
-      <RouterLink to="/?discovery=video#home-discovery">Video đánh giá</RouterLink>
+      <RouterLink to="/"><AppIcon name="home" :size="18" />Trang chủ</RouterLink>
+      <RouterLink to="/products"><AppIcon name="tag" :size="18" />Tất cả tin đăng</RouterLink>
+      <RouterLink to="/shops"><AppIcon name="store" :size="18" />Gian hàng</RouterLink>
+      <RouterLink to="/auctions"><AppIcon name="gavel" :size="18" />Sàn đấu giá</RouterLink>
+      <RouterLink to="/?discovery=video#home-discovery"
+        ><AppIcon name="play" :size="18" />Video đánh giá</RouterLink
+      >
     </nav>
     <h3 class="nav-drawer-title">Tất cả danh mục</h3>
     <p v-if="busy" role="status" class="text-muted">Đang tải danh mục…</p>
@@ -52,6 +55,7 @@ onMounted(async () => {
 .nav-drawer-section a {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
   min-height: 44px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-sm);

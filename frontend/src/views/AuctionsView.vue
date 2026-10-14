@@ -1,4 +1,5 @@
 <script setup>
+import IconButton from '../components/ui/IconButton.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listAuctions } from '../api/auction.api'
 import { domainError } from '../api/domain.api'
@@ -51,7 +52,7 @@ const activeFilters = computed(() => [{ label: 'Trạng thái', value: auctionLa
           <option v-for="state in ['LIVE', 'SCHEDULED', 'ENDED']" :key="state" :value="state">
             {{ auctionLabels[state] }}
           </option></select
-        ><button class="btn btn-outline-secondary" :disabled="busy">Lọc / tải lại</button>
+        ><IconButton type="submit" class="btn btn-outline-secondary" :disabled="busy" icon="sliders" label="Lọc / tải lại" show-label />
       </form>
     </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" /><EmptyState

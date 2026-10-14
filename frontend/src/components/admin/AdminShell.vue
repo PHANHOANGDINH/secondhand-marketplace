@@ -8,23 +8,24 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import LogoutButton from '../LogoutButton.vue'
 import ChatLauncher from '../chat/ChatLauncher.vue'
+import AppIcon from '../ui/AppIcon.vue'
 const route = useRoute(),
   auth = useAuthStore(),
   open = ref(false),
   toggle = ref(null)
 const links = [
-  ['/admin', 'Việc cần xử lý', '01'],
-  ['/admin/dashboard', 'Tổng quan', '02'],
-  ['/admin/users', 'Người dùng', '03'],
-  ['/admin/shops', 'Gian hàng', '04'],
-  ['/admin/products', 'Sản phẩm', '05'],
-  ['/admin/categories', 'Danh mục', '06'],
-  ['/admin/orders', 'Đơn hàng', '07'],
-  ['/admin/auctions', 'Phiên đấu giá', '08'],
-  ['/admin/payments', 'Đối soát thanh toán', '09'],
-  ['/admin/reviews', 'Đánh giá', '10'],
-  ['/admin/reports', 'Báo cáo vi phạm', '11'],
-  ['/admin/vouchers', 'Mã giảm giá', '12'],
+  ['/admin', 'Việc cần xử lý', 'inbox'],
+  ['/admin/dashboard', 'Tổng quan', 'dashboard'],
+  ['/admin/users', 'Người dùng', 'users'],
+  ['/admin/shops', 'Gian hàng', 'store'],
+  ['/admin/products', 'Tin đăng', 'box'],
+  ['/admin/categories', 'Danh mục', 'grid'],
+  ['/admin/orders', 'Đơn hàng', 'receipt'],
+  ['/admin/auctions', 'Phiên đấu giá', 'gavel'],
+  ['/admin/payments', 'Đối soát thanh toán', 'wallet'],
+  ['/admin/reviews', 'Đánh giá', 'star'],
+  ['/admin/reports', 'Báo cáo vi phạm', 'flag'],
+  ['/admin/vouchers', 'Mã giảm giá', 'ticket'],
 ]
 // "/admin" is the Action Center itself, not a prefix that every admin page shares.
 const active = (path) =>
@@ -71,13 +72,12 @@ function close() {
         <p class="admin-sidebar-caption">QUẢN TRỊ SÀN MUA BÁN</p>
         <nav aria-label="Điều hướng quản trị">
           <RouterLink
-            v-for="[path, label, number] in links"
+            v-for="[path, label, icon] in links"
             :key="path"
             :to="path"
             :class="{ active: active(path) }"
             :aria-current="active(path) ? 'page' : undefined"
-            ><span aria-hidden="true">{{ number }}</span
-            >{{ label }}</RouterLink
+            ><AppIcon :name="icon" :size="18" />{{ label }}</RouterLink
           >
         </nav>
         <div class="admin-sidebar-note">

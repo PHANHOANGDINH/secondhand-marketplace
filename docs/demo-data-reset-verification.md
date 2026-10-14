@@ -45,6 +45,25 @@ Kết quả trên DB dev: 179 tin (152 đang hiển thị), 25 gian hàng (khôn
 
 Lưu ý: tất cả tài khoản cũ trên DB dev đã mất; các tài khoản demo được tạo lại với mật khẩu `DEMO_PASSWORD` trong `backend/.env`. Phiên đăng nhập đang mở trên trình duyệt sẽ không còn hợp lệ.
 
+## Lần dựng lại cuối: dữ liệu như thật (`MarketplaceSeeder`)
+
+Theo yêu cầu tiếp theo của chủ dự án ("không có các ký tự demo hay mẫu"), DB dev được dựng lại chỉ bằng `MarketplaceSeeder`. Bộ này không chạy `DemoUserSeeder`, `DemoMarketplaceSeeder`, `FinalDemoSeeder` (các seeder đó vẫn được giữ cho DB test và E2E).
+
+- **Người dùng (29):** 1 quản trị (`admin@passlai.local`), 20 người bán, 8 người mua. Tên người Việt, email `ho.ten@passlai.local`, mật khẩu = `DEMO_PASSWORD`.
+- **Địa chỉ:** hai cấp (số nhà, phường, tỉnh mới), không có quận/huyện.
+- **Hoạt động (tạo qua service nên mọi quy tắc vẫn áp dụng):**
+  - Đơn hàng: 5 hoàn tất kèm đánh giá, 1 đang giao, 1 đã xác nhận, 1 chờ xác nhận, 1 thanh toán ZaloPay chờ đối soát. Đơn rải trong 9 ngày gần đây.
+  - Đấu giá: 1 sắp mở, 2 đang diễn ra có lượt trả giá, 1 đã kết thúc có người thắng đã thanh toán, 1 kết thúc không ai trả giá.
+  - Khác: 2 voucher (PASSLAI10, GOCTAO50K), 3 cuộc chat, 8 tin yêu thích, lượt xem và lịch sử tìm kiếm, 1 báo cáo vi phạm, 2 video sản phẩm có bình luận.
+- **Kiểm tra chữ:**
+  - Test `MarketplaceSeederTest` dò mọi cột chữ người dùng đọc được, tìm "demo", "mẫu", "example", "minh họa", "C1", "test" (so trong PHP vì collation MySQL bỏ qua dấu, "mẫu" sẽ khớp nhầm "màu").
+  - Trên DB dev, quét **mọi** cột chữ của mọi bảng (kể cả thông báo, audit log): 0 kết quả.
+- **Kiểm chứng:** backend đầy đủ 484 test / 6.378 assertions PASS trên DB test, Pint PASS (frontend không đổi trong lần này).
+- **Backup trước lần này:** `.runtime/reset-backup-3.sql`.
+- **Kết quả trên DB dev:** 29 người dùng, 20 gian hàng ở 18 tỉnh, 137 tin (112 đang hiển thị; số còn lại là nháp, chờ duyệt, bị từ chối, đã ẩn, hết hàng hoặc đã bán qua đơn).
+
+Còn một câu ở trang tĩnh (`StaticPageView.vue`, mục "Phạm vi"): "đồ án học tập… dữ liệu minh họa, không có giao dịch tiền thật". Đây là lời cảnh báo cho người xem nên chưa sửa; chủ dự án quyết định.
+
 ## Việc còn mở
 
 - Hành trình E2E A–H và voucher chưa chạy lại trên dữ liệu mới.

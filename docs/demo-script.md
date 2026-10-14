@@ -22,12 +22,12 @@ Set a private `DEMO_PASSWORD` of at least 12 characters in `backend/.env`, then:
 
 ```powershell
 php artisan config:clear
-php artisan db:seed --no-interaction
-php artisan db:seed --class=FinalDemoSeeder --no-interaction
-php artisan db:seed --class=MarketplaceCatalogSeeder --no-interaction
+php artisan db:seed --class=MarketplaceSeeder --no-interaction
 ```
 
-`MarketplaceCatalogSeeder` adds the varied catalogue: 12 top-level categories, 20 shops in 18 of the 34 current provinces (accounts `vn-seller-01…20@example.test`, password = `DEMO_PASSWORD`), 137 listings in every status with drawn SVG illustrations. The development database was rebuilt this way once on 2026-10-14 at the owner's request; see [demo data reset](demo-data-reset-verification.md).
+`MarketplaceSeeder` is the data set of the development database since 2026-10-14 (rebuilt at the owner's request, see [demo data reset](demo-data-reset-verification.md)). Nothing in it is labelled as sample data: real-looking Vietnamese names, `@passlai.local` addresses, 12 top-level categories, 20 shops in 18 of the 34 current provinces, 137 listings in every status, orders, reviews, auctions, vouchers, chats, wishlists, one report and two product videos. A second run adds nothing.
+
+`FinalDemoSeeder` (the `c1-*` accounts and "C1 Demo NN" listings) is now used only on the **test** database by the E2E harness. The sections below that name C1 records describe that data; on the development database use the accounts and records of "Current data on the development database".
 
 The seeder is restricted to local/testing and the project's development/test database names. It never resets existing passwords or progresses existing orders/auctions again. It preserves moderation, stock changes and existing user data. Reserved identifier conflicts fail rather than overwrite a local account. Re-running is additive, **not a reset**. To reset a dedicated demo password, use Forgot Password with `MAIL_MAILER=log` and privately read its link in `backend/storage/logs/laravel.log`; do not publish that token or log. Changing DEMO_PASSWORD affects only newly created accounts.
 
@@ -54,7 +54,27 @@ npm run dev
 
 If PHP is absent from PATH, use its full compatible executable path. On Windows use `npm.cmd` if PowerShell blocks npm.ps1. For larger video uploads, configure PHP upload/post limits or use the existing `backend/serve.ps1` helper. The demo clip itself is only about 12 KB.
 
-## Accounts
+## Current data on the development database
+
+All accounts use `DEMO_PASSWORD` from `backend/.env`.
+
+| Role | Email | Use it for |
+| --- | --- | --- |
+| Admin | `admin@passlai.local` | moderation, action center, reconciliation (one ZaloPay payment waits for a decision), report queue |
+| Seller | `nguyen.minh.anh@passlai.local` | shop "Góc Táo Cũ" (TP. Hồ Chí Minh), shop voucher **GOCTAO50K** |
+| Other sellers | `<ho.ten.khong.dau>@passlai.local`, e.g. `tran.quoc.bao`, `le.thu.ha`, `vu.duc.long` | 20 shops in total, one per owner |
+| Buyer | `le.thanh.huong@passlai.local` | completed order with review, wishlist, live auction bids |
+| Buyer | `nguyen.hoang.viet@passlai.local` | chat about "Loa soundbar Samsung HW-T450", live auction bids |
+| Buyer | `pham.quang.khai@passlai.local` | won "Xe đạp mini Nhật bãi" at auction, order completed and reviewed |
+
+| Screen | Records |
+| --- | --- |
+| Auctions | LIVE: "Xiaomi Redmi Note 12 8/128GB" (4 bids), "Vợt tennis Wilson Blade 98" (2 bids); SCHEDULED: "Trống cajon gỗ"; ENDED: "Xe đạp mini Nhật bãi" (won and paid), "Giường gỗ thông 1m6" (no bids). Live ones end 2–3 days after seeding. |
+| Orders | 5 completed with reviews, 1 shipping, 1 confirmed, 1 pending, 1 cancelled online payment awaiting reconciliation |
+| Video | "Fujifilm X-A5 kèm lens", "Amply Marantz PM6006", each with a buyer comment |
+| Vouchers | platform **PASSLAI10** (10 %, max 50,000 ₫, from 200,000 ₫), shop **GOCTAO50K** |
+
+## Accounts (test database / E2E harness)
 
 All six use the privately configured password **at first creation**. Seller is a normal USER who owns a shop.
 

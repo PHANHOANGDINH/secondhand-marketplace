@@ -19,7 +19,7 @@ use RuntimeException;
 
 /**
  * A varied demo catalogue: twelve top-level categories, twenty shops spread over the current
- * provinces and about 140 listings in every status, with drawn SVG illustrations.
+ * provinces and about 140 listings in every status, with drawn SVG pictures.
  * Additive and repeatable: existing users, shops, categories and products are never changed.
  */
 class MarketplaceCatalogSeeder extends Seeder
@@ -125,7 +125,7 @@ class MarketplaceCatalogSeeder extends Seeder
 
     private function shop(array $row, string $password): Shop
     {
-        $email = 'vn-seller-'.$row['key'].'@example.test';
+        $email = Str::slug($row['owner'], '.').'@passlai.local';
         $owner = User::withTrashed()->where('email', $email)->first();
         if (! $owner) {
             $owner = new User;
@@ -185,7 +185,7 @@ class MarketplaceCatalogSeeder extends Seeder
         for ($view = 1; $view <= $views; $view++) {
             $path = 'products/'.$product->id.'/vn-'.$view.'.svg';
             Storage::disk('public')->put($path, $this->illustration($glyph, $hue + ($view - 1) * 40, $view));
-            $product->images()->create(['image_path' => $path, 'alt_text' => $name.' — ảnh minh họa', 'is_primary' => $view === 1, 'sort_order' => $view - 1]);
+            $product->images()->create(['image_path' => $path, 'alt_text' => $name, 'is_primary' => $view === 1, 'sort_order' => $view - 1]);
         }
     }
 

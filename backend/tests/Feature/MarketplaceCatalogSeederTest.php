@@ -47,7 +47,7 @@ class MarketplaceCatalogSeederTest extends TestCase
         $this->assertGreaterThanOrEqual(18, $provinces->count());
         $this->assertEmpty($provinces->diff(array_map('strval', array_keys(config('provinces.list')))));
         $this->assertSame(['demo-pack-home' => '01', 'demo-pack-style' => '48', 'demo-pack-tech' => '79'], Shop::where('slug', 'like', 'demo-pack-%')->pluck('province_code', 'slug')->sortKeys()->all());
-        $this->assertTrue(Hash::check('seed-test-password-1', User::where('email', 'vn-seller-01@example.test')->value('password')));
+        $this->assertTrue(Hash::check('seed-test-password-1', User::where('email', 'nguyen.minh.anh@passlai.local')->value('password')));
 
         // The province filter finds the listings of one province only.
         $hue = $this->getJson('/api/v1/products?province=46&per_page=50')->assertOk();
@@ -58,7 +58,7 @@ class MarketplaceCatalogSeederTest extends TestCase
         config(['demo.password' => 'another-seed-password-2']);
         $this->seed(MarketplaceCatalogSeeder::class);
         $this->assertSame($counts, ['users' => User::count(), 'shops' => Shop::count(), 'categories' => Category::count(), 'products' => Product::count()]);
-        $this->assertTrue(Hash::check('seed-test-password-1', User::where('email', 'vn-seller-01@example.test')->value('password')));
+        $this->assertTrue(Hash::check('seed-test-password-1', User::where('email', 'nguyen.minh.anh@passlai.local')->value('password')));
     }
 
     public function test_a_private_password_is_required(): void

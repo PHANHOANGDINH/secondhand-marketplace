@@ -18,6 +18,7 @@ import ProductFilters from '../components/ProductFilters.vue'
 import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { normalizeDiscoveryQuery } from '../utils/discoveryQuery'
+import { useArea } from '../composables/useArea'
 const route = useRoute(),
   router = useRouter()
 const form = reactive({
@@ -29,6 +30,7 @@ const form = reactive({
   shop: '',
   has_video: '',
   sale_type: '',
+  province: '',
   sort: 'newest',
 })
 const rows = ref([]),
@@ -40,6 +42,7 @@ const rows = ref([]),
   shops = ref([]),
   optionError = ref('')
 const drawer = ref(false)
+const { provinces } = useArea()
 const keywordKey = computed(() => (typeof route.query.q === 'string' ? 'q' : 'search'))
 const sorts = [
   { value: 'newest', label: 'Mới nhất' },
@@ -216,6 +219,7 @@ onMounted(async () => {
               min_price: 'Giá từ',
               max_price: 'Giá đến',
               shop: 'Gian hàng',
+              province: 'Khu vực',
             }[key] || 'Bộ lọc'
           }}:
           {{
@@ -223,6 +227,8 @@ onMounted(async () => {
               ? categories.find((option) => String(option.value) === String(value))?.label || value
               : key === 'shop'
                 ? shops.find((option) => String(option.value) === String(value))?.label || value
+                : key === 'province'
+                  ? provinces.find((row) => row.code === value)?.name || value
                 : key === 'condition'
                   ? conditions.find((option) => option.value === value)?.label || 'Không xác định'
                   : key === 'has_video'

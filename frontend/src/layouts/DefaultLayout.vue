@@ -16,41 +16,61 @@ import AppIcon from '../components/ui/AppIcon.vue'
 import AdminShell from '../components/admin/AdminShell.vue'
 import SellerShell from '../components/seller/SellerShell.vue'
 import AccountNav from '../components/account/AccountNav.vue'
+import ModeSwitcher from '../components/layout/ModeSwitcher.vue'
+import SiteFooter from '../components/layout/SiteFooter.vue'
 import { useAuthStore } from '../stores/auth'
 import LogoutButton from '../components/LogoutButton.vue'
 import CartLink from '../components/CartLink.vue'
 import ProductSearch from '../components/ProductSearch.vue'
-import { listCategories } from '../api/category.api'
 import { brand } from '../config/brand'
 import FirstTimeGuide from '../components/onboarding/FirstTimeGuide.vue'
 import { resetFirstTime } from '../composables/useFirstTime'
-const searchKeyword = ref('')
-const searchProducts = () =>
-  router.push({ path: '/products', query: { q: searchKeyword.value.trim() } })
+import { areaPickerOpen, useArea } from '../composables/useArea'
 const auth = useAuthStore()
+provideMessaging()
+provideNotifications()
+const route = useRoute(),
+  router = useRouter()
+const { code: areaCode, label: areaLabel, setArea, loadProvinces } = useArea()
+const searchKeyword = ref('')
+// The chosen area travels with every search from the header.
+const searchProducts = () =>
+  router.push({
+    path: '/products',
+    query: { q: searchKeyword.value.trim(), ...(areaCode.value ? { province: areaCode.value } : {}) },
+  })
+async function confirmArea(next) {
+  setArea(next)
+  areaPickerOpen.value = false
+  if (route.path === '/products') {
+    const query = { ...route.query }
+    delete query.page
+    if (areaCode.value) query.province = areaCode.value
+    else delete query.province
+    await router.replace({ path: '/products', query })
+  }
+}
 // The welcome tour opens on every page view of a signed-in user until it is finished or skipped
 // (FirstTimeGuide keeps the per-user flag); "Xem lại hướng dẫn" clears the flags and reopens it.
 const guideRun = ref(0)
 const welcomeSteps = [
-  { title: 'Tìm kiếm', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm ở đầu trang để xem gợi ý.' },
-  { title: 'Đăng bán nhanh', text: 'Nút "Đăng bán nhanh" mở biểu mẫu đăng tin ngay tại trang bạn đang xem.' },
-  { title: 'Đấu giá', text: 'Vào "Sàn đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
+  { title: 'Tìm kiếm', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm để xem gợi ý, và chọn khu vực gần bạn.' },
+  { title: 'Đăng tin', text: 'Nút "Đăng tin" mở biểu mẫu đăng bán nhanh ngay tại trang bạn đang xem.' },
+  { title: 'Đấu giá', text: 'Vào "Đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
 ]
 function replayGuides() {
   accountMenu.value?.removeAttribute('open')
   if (resetFirstTime(auth.user?.id)) guideRun.value += 1
 }
-// Top-level categories for the browse row; the row stays hidden if they cannot be loaded.
-const categories = ref([])
-provideMessaging()
-provideNotifications()
-const route = useRoute(),
-  router = useRouter()
 const OutbidToasts = defineAsyncComponent(() => import('../components/auction/OutbidToasts.vue'))
 const QuickListingDialog = defineAsyncComponent(
   () => import('../components/seller/QuickListingDialog.vue'),
 )
-const menuOpen = ref(false),
+const NavDrawer = defineAsyncComponent(() => import('../components/layout/NavDrawer.vue'))
+const AreaPickerDialog = defineAsyncComponent(
+  () => import('../components/layout/AreaPickerDialog.vue'),
+)
+const drawerOpen = ref(false),
   scrolled = ref(false),
   menuToggle = ref(null),
   accountMenu = ref(null)
@@ -65,9 +85,7 @@ const initials = computed(() =>
     .toLocaleUpperCase('vi-VN'),
 )
 function closeNavigation() {
-  menuOpen.value = false
   accountMenu.value?.removeAttribute('open')
-  menuToggle.value?.focus()
 }
 async function openQuickListing() {
   const guestPage =
@@ -98,16 +116,12 @@ function outsideMenu(event) {
 watch(
   () => route.fullPath,
   () => {
-    menuOpen.value = false
+    drawerOpen.value = false
     accountMenu.value?.removeAttribute('open')
   },
 )
 onMounted(() => {
-  listCategories()
-    .then((result) => {
-      categories.value = Array.isArray(result?.data) ? result.data : []
-    })
-    .catch(() => {})
+  loadProvinces()
   updateScroll()
   window.addEventListener('scroll', updateScroll, { passive: true })
   document.addEventListener('pointerdown', outsideMenu)
@@ -120,6 +134,8 @@ const buyerPage = computed(() => !/^\/(seller|admin)(\/|$)/.test(route?.path || 
 const sellerPage = computed(() => /^\/seller(\/|$)/.test(route?.path || ''))
 const adminPage = computed(() => /^\/admin(\/|$)/.test(route?.path || ''))
 const accountPage = computed(() => /^\/account(\/|$)/.test(route?.path || ''))
+// The home page has its own large search box; every other page gets the compact one in the header.
+const homePage = computed(() => (route?.path || '/') === '/')
 function closeAccountMenu(event) {
   const menu = event.currentTarget.closest('details')
   if (event.type === 'keydown') {
@@ -132,61 +148,79 @@ function closeAccountMenu(event) {
   <header
     v-if="!sellerPage && !adminPage"
     class="marketplace-header"
-    :class="{ 'is-scrolled': scrolled }"
+    :class="{ 'is-scrolled': scrolled, 'is-home': homePage }"
     @keydown.esc="closeNavigation"
   >
     <nav class="container marketplace-nav" aria-label="Điều hướng chính">
-      <RouterLink to="/" class="marketplace-brand" :aria-label="`${brand.name} · Trang chủ`"
-        ><BrandLogo
-      /></RouterLink>
-      <form
-        action="/products"
-        method="get"
-        class="marketplace-search"
-        role="search"
-        @submit.prevent="searchProducts"
-      >
-        <ProductSearch
-          id="header-product-search"
-          v-model="searchKeyword"
-          @submit="searchProducts"
-        /><button class="btn" type="submit" aria-label="Tìm sản phẩm">
-          <AppIcon name="search" />
-        </button>
-      </form>
-      <button
-        type="button"
-        class="btn btn-primary marketplace-sell"
-        :disabled="auth.loading"
-        @click="openQuickListing"
-      >
-        <AppIcon name="plus" :size="18" /> Đăng bán nhanh
-      </button>
       <button
         ref="menuToggle"
         type="button"
-        class="btn btn-outline-secondary marketplace-menu-toggle"
-        :aria-expanded="menuOpen"
-        aria-controls="marketplace-navigation"
-        aria-label="Điều hướng sàn mua bán"
-        @click="menuOpen = !menuOpen"
+        class="btn marketplace-menu-toggle"
+        :aria-expanded="drawerOpen"
+        aria-controls="nav-drawer"
+        aria-label="Mở danh mục"
+        @click="drawerOpen = true"
       >
         <AppIcon name="menu" />
       </button>
-      <div id="marketplace-navigation" class="marketplace-links" :class="{ 'is-open': menuOpen }">
-        <div class="marketplace-directory">
-          <RouterLink to="/products">Sản phẩm</RouterLink
-          ><RouterLink to="/shops">Gian hàng</RouterLink
-          ><RouterLink to="/auctions">Sàn đấu giá</RouterLink>
-          <RouterLink to="/?discovery=video#home-discovery">Video đánh giá</RouterLink>
-        </div>
-        <NotificationBell v-if="auth.isAuthenticated" />
+      <RouterLink to="/" class="marketplace-brand" :aria-label="`${brand.name} · Trang chủ`"
+        ><BrandLogo
+      /></RouterLink>
+      <ModeSwitcher class="marketplace-mode" />
+      <div v-if="homePage" class="marketplace-directory">
+        <RouterLink to="/" class="is-current">Trang chủ</RouterLink>
+        <RouterLink to="/auctions">Đấu giá</RouterLink>
+        <RouterLink to="/?discovery=video#home-discovery">Video</RouterLink>
+      </div>
+      <div v-else class="marketplace-compact">
+        <form
+          action="/products"
+          method="get"
+          class="marketplace-search"
+          role="search"
+          @submit.prevent="searchProducts"
+        >
+          <ProductSearch
+            id="header-product-search"
+            v-model="searchKeyword"
+            @submit="searchProducts"
+          /><button class="btn" type="submit" aria-label="Tìm sản phẩm">
+            <AppIcon name="search" />
+          </button>
+        </form>
+        <button
+          type="button"
+          class="marketplace-area"
+          data-area-open
+          :aria-label="`Chọn khu vực, đang chọn ${areaLabel}`"
+          @click="areaPickerOpen = true"
+        >
+          <AppIcon name="pin" :size="18" /><span>{{ areaCode ? areaLabel : 'Chọn khu vực' }}</span
+          ><AppIcon name="chevronDown" :size="14" />
+        </button>
+      </div>
+      <div class="marketplace-links">
         <template v-if="auth.isAuthenticated">
+          <RouterLink to="/wishlist" class="marketplace-icon-link" aria-label="Sản phẩm yêu thích"
+            ><AppIcon name="heart"
+          /></RouterLink>
+          <NotificationBell />
           <ChatLauncher compact />
           <CartLink icon-only />
+          <RouterLink to="/my-ads" class="marketplace-manage">Quản lý tin</RouterLink>
           <RouterLink v-if="auth.isAdmin" to="/admin/dashboard" class="marketplace-admin-entry"
             >Quản trị</RouterLink
           >
+        </template>
+        <button
+          type="button"
+          class="btn btn-primary marketplace-sell"
+          :disabled="auth.loading"
+          @click="openQuickListing"
+        >
+          <AppIcon name="plus" :size="18" /> Đăng tin
+        </button>
+        <template v-if="auth.isAuthenticated">
           <details
             ref="accountMenu"
             class="marketplace-account"
@@ -240,20 +274,12 @@ function closeAccountMenu(event) {
       </div>
     </nav>
   </header>
-  <nav
-    v-if="!sellerPage && !adminPage && categories.length"
-    class="marketplace-categories"
-    aria-label="Danh mục"
-  >
-    <ul class="container">
-      <li><RouterLink to="/products">Tất cả</RouterLink></li>
-      <li v-for="category in categories" :key="category.id">
-        <RouterLink :to="{ path: '/products', query: { category: category.id } }">{{
-          category.name
-        }}</RouterLink>
-      </li>
-    </ul>
-  </nav>
+  <NavDrawer v-if="drawerOpen" @dismiss="drawerOpen = false" />
+  <AreaPickerDialog
+    v-if="areaPickerOpen"
+    @confirm="confirmArea"
+    @dismiss="areaPickerOpen = false"
+  />
   <QuickListingDialog v-if="quickOpen" @close="closeQuickListing" />
   <FirstTimeGuide
     v-if="auth.isAuthenticated && !quickOpen"
@@ -273,6 +299,7 @@ function closeAccountMenu(event) {
   >
     <AccountNav v-if="accountPage" /><slot />
   </main>
+  <SiteFooter v-if="!sellerPage && !adminPage" />
 </template>
 
 <style scoped>
@@ -287,45 +314,49 @@ function closeAccountMenu(event) {
   border-bottom-color: #d4d3cc;
 }
 .marketplace-nav {
-  display: grid;
-  grid-template-columns: auto minmax(180px, 1fr) auto auto;
-  grid-template-areas: 'brand search sell actions';
+  display: flex;
   align-items: center;
-  gap: 1rem;
-  padding-block: 0.75rem;
+  gap: 0.75rem;
+  padding-block: 0.6rem;
+}
+.marketplace-menu-toggle {
+  flex: none;
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+.marketplace-menu-toggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 .marketplace-brand {
-  grid-area: brand;
+  flex: none;
   display: inline-flex;
   align-items: center;
   text-decoration: none;
   border-radius: var(--radius-sm);
 }
-/* Browse row under the header: scrolls sideways on narrow screens, scrolls away with the page. */
-.marketplace-categories {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+.marketplace-mode {
+  flex: none;
 }
-.marketplace-categories ul {
+.marketplace-directory {
+  flex: 1;
   display: flex;
+  justify-content: center;
   gap: 0.25rem;
-  margin-block: 0;
-  padding-block: 0.35rem;
-  list-style: none;
-  overflow-x: auto;
-  scrollbar-width: none;
+  min-width: 0;
 }
-.marketplace-categories ul::-webkit-scrollbar {
-  display: none;
-}
-.marketplace-categories a {
+.marketplace-directory a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 0.85rem;
+  padding: 0 0.9rem;
   border-radius: var(--radius-pill);
   color: var(--text);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
@@ -333,22 +364,28 @@ function closeAccountMenu(event) {
     background-color var(--transition-fast),
     color var(--transition-fast);
 }
-.marketplace-categories a:hover {
+.marketplace-directory a:hover {
   background: var(--surface-2);
   color: var(--primary);
 }
-.marketplace-categories a:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: -3px;
+.marketplace-directory a.is-current {
+  color: var(--primary);
+}
+.marketplace-compact {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 .marketplace-search {
-  grid-area: search;
   position: relative;
+  flex: 1;
   min-width: 0;
 }
 .marketplace-search :deep(input) {
-  min-height: 48px;
-  padding: 0.75rem 3.25rem 0.75rem 1rem;
+  min-height: 44px;
+  padding: 0.5rem 3rem 0.5rem 1rem;
   border-radius: var(--radius-md);
   font-size: 0.9rem;
   background: var(--surface-2);
@@ -361,8 +398,8 @@ function closeAccountMenu(event) {
 }
 .marketplace-search button {
   position: absolute;
-  right: 2px;
-  top: 2px;
+  right: 0;
+  top: 0;
   width: 44px;
   height: 44px;
   min-height: 44px;
@@ -373,11 +410,36 @@ function closeAccountMenu(event) {
 .marketplace-search button:hover {
   color: var(--primary);
 }
+.marketplace-area {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  max-width: 12rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: border-color var(--transition-fast);
+}
+.marketplace-area span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.marketplace-area:hover {
+  border-color: var(--primary);
+}
 .marketplace-links {
-  grid-area: actions;
+  flex: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  margin-left: auto;
   font-size: 0.85rem;
 }
 .marketplace-links a {
@@ -385,41 +447,25 @@ function closeAccountMenu(event) {
   text-decoration: none;
   font-weight: 600;
 }
-.marketplace-directory {
-  display: flex;
-  gap: 0.25rem;
-  margin-right: 0.25rem;
-}
-.marketplace-directory a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-.marketplace-directory a:hover {
-  background: var(--surface-2);
-}
 .marketplace-links a:hover,
 .marketplace-links a.router-link-active {
   color: var(--primary);
 }
+.marketplace-manage,
+.marketplace-admin-entry {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  white-space: nowrap;
+}
 .marketplace-sell {
-  grid-area: sell;
   white-space: nowrap;
   min-height: var(--control-height);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   font-weight: 700;
   padding: 0.6rem 1rem;
-}
-.marketplace-admin-entry {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0.6rem;
 }
 .marketplace-avatar {
   display: inline-grid;
@@ -505,15 +551,8 @@ function closeAccountMenu(event) {
   background: var(--surface-2);
   color: var(--primary);
 }
-.marketplace-menu-toggle {
-  display: none;
-  grid-area: toggle;
-  padding: 0;
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
-}
 /* Icon actions: one 44px hit area each, badge on the corner. */
+.marketplace-icon-link,
 .marketplace-links :deep(.chat-launcher),
 .marketplace-links :deep(.cart-icon-link),
 .marketplace-links :deep(.notification-bell-button) {
@@ -531,6 +570,7 @@ function closeAccountMenu(event) {
   background: transparent;
   color: var(--text);
 }
+.marketplace-icon-link:hover,
 .marketplace-links :deep(.chat-launcher:hover),
 .marketplace-links :deep(.cart-icon-link:hover),
 .marketplace-links :deep(.notification-bell-button:hover) {
@@ -561,59 +601,48 @@ function closeAccountMenu(event) {
   }
 }
 @media (max-width: 1199px) {
-  .marketplace-nav {
-    grid-template-columns: 1fr auto auto;
-    grid-template-areas: 'brand sell toggle' 'search search search' 'actions actions actions';
-    gap: 0.6rem;
-    padding-block: 0.6rem;
-  }
-  .marketplace-brand {
-    justify-self: start;
-  }
-  .marketplace-menu-toggle {
-    display: inline-flex;
-  }
-  .marketplace-links {
+  .marketplace-manage {
     display: none;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--border);
   }
-  .marketplace-links.is-open {
-    display: flex;
+}
+/* Tablets and phones: the search (or the page links) drops to a second row. */
+@media (max-width: 991px) {
+  .marketplace-nav {
+    flex-wrap: wrap;
+  }
+  .marketplace-directory,
+  .marketplace-compact {
+    order: 10;
+    flex: 1 0 100%;
   }
   .marketplace-directory {
-    flex-wrap: wrap;
-    margin-right: auto;
+    justify-content: flex-start;
+    overflow-x: auto;
   }
-  .marketplace-account-name {
-    display: inline;
+  .marketplace-icon-link {
+    display: none;
   }
 }
 @media (max-width: 575px) {
   .marketplace-nav {
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
-  .marketplace-brand :deep(.brand-logo-mark) {
-    width: 34px;
-    height: 34px;
+  .marketplace-mode {
+    order: 9;
+    flex: 1 0 100%;
   }
   .marketplace-brand :deep(.brand-logo-word) {
-    font-size: 1.05rem;
-  }
-  .marketplace-sell {
-    font-size: 0.78rem;
-    padding-inline: 0.7rem;
-  }
-  .marketplace-account-name {
     display: none;
   }
-  .marketplace-search :deep(input) {
-    min-height: 44px;
+  .marketplace-sell {
+    padding-inline: 0.7rem;
+    font-size: 0.8rem;
   }
-  .marketplace-search button {
-    top: 0;
+  .marketplace-links :deep(.cart-icon-link) {
+    display: none;
+  }
+  .marketplace-area {
+    max-width: 8.5rem;
   }
 }
 </style>

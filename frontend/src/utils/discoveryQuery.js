@@ -19,6 +19,7 @@ export function normalizeDiscoveryQuery(query) {
       normalized[key] = text
     else if (key === 'sort' && sorts.includes(text)) normalized[key] = text
     else if (key === 'has_video' && ['0', '1'].includes(text)) normalized[key] = text
+    else if (key === 'province' && /^\d{2}$/.test(text)) normalized[key] = text
     else if (key === 'sale_type' && ['fixed', 'auction'].includes(text)) normalized[key] = text
     else if (key === 'quick-listing' && text === '1') normalized[key] = text
   }

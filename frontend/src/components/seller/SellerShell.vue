@@ -1,6 +1,7 @@
 <script setup>
 import { brand } from '../../config/brand'
 import BrandLogo from '../ui/BrandLogo.vue'
+import ModeSwitcher from '../layout/ModeSwitcher.vue'
 import NotificationBell from '../notifications/NotificationBell.vue'
 import { provide, ref, watch } from 'vue'
 import { sellerIdentityKey } from './useSellerIdentity'
@@ -43,6 +44,7 @@ function close() {
       <RouterLink class="seller-brand" to="/"
         ><BrandLogo compact /> <span>{{ brand.sellerArea }}</span></RouterLink
       >
+      <ModeSwitcher />
       <div class="seller-topbar-actions">
         <RouterLink to="/products">← Sàn mua bán</RouterLink
         ><RouterLink to="/account/profile" class="seller-user">{{

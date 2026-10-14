@@ -7,6 +7,8 @@ const STORAGE_KEY = 'passlai:area'
 const provinces = ref([])
 const code = ref('')
 let loading = null
+// One area dialog for the whole app (rendered by the layout); anything may open it.
+export const areaPickerOpen = ref(false)
 
 try {
   const saved = window.localStorage.getItem(STORAGE_KEY)

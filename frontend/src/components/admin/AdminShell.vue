@@ -1,6 +1,7 @@
 <script setup>
 import { brand } from '../../config/brand'
 import BrandLogo from '../ui/BrandLogo.vue'
+import ModeSwitcher from '../layout/ModeSwitcher.vue'
 import NotificationBell from '../notifications/NotificationBell.vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -46,6 +47,7 @@ function close() {
       <RouterLink class="admin-brand" to="/"
         ><BrandLogo compact /> <span>{{ brand.adminArea }}</span></RouterLink
       >
+      <ModeSwitcher />
       <div class="admin-topbar-actions">
         <span class="admin-identity">Quản trị</span
         ><RouterLink to="/products">← Sàn mua bán</RouterLink

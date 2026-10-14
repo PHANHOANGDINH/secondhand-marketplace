@@ -2,7 +2,6 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import * as categoryApi from '../api/category.api'
 import { timeAgo } from '../composables/productPresentation'
 import { brand, brandLine, sellerBrand, adminBrand, pageTitle, pageNames } from '../config/brand'
 import router from '../router'
@@ -130,39 +129,13 @@ it('interim logo, line icons and empty state use SVG with text labels and no emo
   expect(empty.text()).toBe('Chưa có sản phẩm')
 })
 
-it('header shows the logo and a category row that links into the product list', async () => {
-  vi.spyOn(categoryApi, 'listCategories').mockResolvedValue({
-    data: [
-      { id: '3', name: 'Điện thoại', slug: 'dien-thoai' },
-      { id: '4', name: 'Sách', slug: 'sach' },
-    ],
-  })
-  const { wrapper } = await setup(DefaultLayout)
-  expect(categoryApi.listCategories).toHaveBeenCalledTimes(1)
+it('header shows the logo, the post button and no emoji glyphs', async () => {
+  const { wrapper } = await setup(DefaultLayout, { path: '/products' })
   expect(wrapper.get('.marketplace-brand').text()).toBe('pass lại')
   expect(wrapper.get('.marketplace-brand').attributes('href')).toBe('/')
-  const row = wrapper.get('nav[aria-label="Danh mục"]')
-  expect(row.findAll('a').map((link) => [link.text(), link.attributes('href')])).toEqual([
-    ['Tất cả', '/products'],
-    ['Điện thoại', '/products?category=3'],
-    ['Sách', '/products?category=4'],
-  ])
-  expect(wrapper.get('.marketplace-sell').text()).toBe('Đăng bán nhanh')
+  expect(wrapper.get('.marketplace-sell').text()).toBe('Đăng tin')
   expect(wrapper.get('[role="search"] button').attributes('aria-label')).toBe('Tìm sản phẩm')
-  expect(wrapper.get('header').text()).not.toMatch(/[↗＋⌄♥♡★]/)
-})
-
-it('category row is absent when categories cannot be loaded and in the seller and admin areas', async () => {
-  vi.spyOn(categoryApi, 'listCategories').mockRejectedValue(new Error('offline'))
-  const failed = await setup(DefaultLayout)
-  expect(failed.wrapper.find('nav[aria-label="Danh mục"]').exists()).toBe(false)
-  expect(failed.wrapper.find('header').exists()).toBe(true)
-
-  categoryApi.listCategories.mockResolvedValue({ data: [{ id: '3', name: 'Điện thoại', slug: 'dien-thoai' }] })
-  for (const path of ['/seller/shop', '/admin']) {
-    const area = await setup(DefaultLayout, { path })
-    expect(area.wrapper.find('nav[aria-label="Danh mục"]').exists()).toBe(false)
-  }
+  expect(wrapper.get('header').text()).not.toMatch(/[↗＋⌄♥♡★☰▾]/)
 })
 
 it('listing card marks a video on the image and ends the meta line with a compact rating', async () => {

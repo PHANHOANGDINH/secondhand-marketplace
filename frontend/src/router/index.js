@@ -6,6 +6,48 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/help',
+      name: 'static-help',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'help' },
+    },
+    {
+      path: '/safety',
+      name: 'static-safety',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'safety' },
+    },
+    {
+      path: '/contact',
+      name: 'static-contact',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'contact' },
+    },
+    {
+      path: '/about',
+      name: 'static-about',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'about' },
+    },
+    {
+      path: '/terms',
+      name: 'static-terms',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'terms' },
+    },
+    {
+      path: '/privacy',
+      name: 'static-privacy',
+      component: () => import('../views/StaticPageView.vue'),
+      props: { page: 'privacy' },
+    },
+    {
+      path: '/my-ads',
+      name: 'my-ads',
+      component: () => import('../views/SellerProductsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/seller/vouchers',
       name: 'seller-vouchers',
       component: () => import('../views/VouchersView.vue'),

@@ -55,6 +55,6 @@ Dữ liệu: nạp `.runtime/p1-backup.sql` vào DB test, chạy `migrate` trên
 
 ## Việc còn mở
 
-1. **Gian hàng demo trên DB dev chưa có khu vực** (`province_code` là `NULL`) vì `db:seed` đã bị cấm trở lại. Hệ quả: khi demo trên DB dev, chọn một tỉnh sẽ cho danh sách rỗng. Cách xử lý: người bán tự chọn khu vực ở trang "Gian hàng của tôi", hoặc chủ dự án cho phép chạy `FinalDemoSeeder` thêm một lần.
+1. ~~**Gian hàng demo trên DB dev chưa có khu vực**~~ Đã xử lý ngày 2026-10-14: DB dev được dựng lại theo yêu cầu của chủ dự án, mọi gian hàng đều có tỉnh (xem [demo-data-reset-verification.md](demo-data-reset-verification.md)). Ghi chú cũ: (`province_code` là `NULL`) vì `db:seed` đã bị cấm trở lại. Hệ quả: khi demo trên DB dev, chọn một tỉnh sẽ cho danh sách rỗng. Cách xử lý: người bán tự chọn khu vực ở trang "Gian hàng của tôi", hoặc chủ dự án cho phép chạy `FinalDemoSeeder` thêm một lần.
 2. Hành trình A–H và voucher nên được chạy lại một lần với phép kiểm tra tràn ngang mới (mục 2 ở trên).
 3. Trong lúc dò lỗi Vite, `npx` đã tải một bản Vite vào bộ đệm npm của máy (`npm-cache/_npx`), không vào dự án; thư mục `.vite/` sinh ra ở gốc repo đã được xóa.

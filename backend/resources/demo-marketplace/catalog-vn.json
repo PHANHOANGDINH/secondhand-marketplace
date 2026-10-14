@@ -1,0 +1,92 @@
+{
+  "categories": [
+    {"slug": "dien-tu", "name": "Điện tử", "children": [
+      {"slug": "dien-thoai", "name": "Điện thoại", "glyph": "phone", "items": [["iPhone 13 128GB xanh dương", 9200000], ["Samsung Galaxy A54 5G 8/128GB", 5300000], ["Xiaomi Redmi Note 12 8/128GB", 3100000], ["OPPO Reno8 T 5G", 4200000], ["iPhone 11 64GB trắng", 5400000]]},
+      {"slug": "laptop", "name": "Laptop", "glyph": "laptop", "items": [["MacBook Pro 14 M1 Pro 16/512GB", 26500000], ["Dell Latitude 7420 i5 16GB", 9800000], ["Lenovo IdeaPad 5 Ryzen 5 5500U", 8900000], ["HP Pavilion 15 i5 thế hệ 11", 7600000]]},
+      {"slug": "phu-kien", "name": "Phụ kiện", "glyph": "headphones", "items": [["Tai nghe JBL Tune 510BT", 650000], ["Sạc dự phòng Anker 20000mAh", 450000], ["Chuột không dây Logitech G304", 520000], ["Bàn phím cơ Akko 3068B", 1150000]]},
+      {"slug": "may-anh", "name": "Máy ảnh", "glyph": "camera", "items": [["Canon EOS M50 kèm lens kit 15-45", 9500000], ["Sony ZV-E10 body", 10800000], ["Fujifilm X-A5 kèm lens", 5200000], ["GoPro Hero 9 Black", 4900000]]},
+      {"slug": "am-thanh", "name": "Âm thanh", "glyph": "speaker", "items": [["Loa Marshall Emberton", 2600000], ["Loa JBL Charge 5", 2900000], ["Tai nghe Sony WF-1000XM4", 3300000], ["Loa soundbar Samsung HW-T450", 2400000]]},
+      {"slug": "may-tinh-bang", "name": "Máy tính bảng", "glyph": "tablet", "items": [["iPad Gen 9 64GB Wi-Fi", 5600000], ["Samsung Galaxy Tab S7 FE", 6900000], ["Xiaomi Pad 6 8/256GB", 5900000]]},
+      {"slug": "dong-ho-thong-minh", "name": "Đồng hồ thông minh", "glyph": "watch", "items": [["Apple Watch SE 2 40mm", 3600000], ["Samsung Galaxy Watch5 44mm", 2900000], ["Xiaomi Smart Band 8", 520000]]}
+    ]},
+    {"slug": "thoi-trang", "name": "Thời trang", "children": [
+      {"slug": "ao", "name": "Áo", "glyph": "shirt", "items": [["Áo khoác bomber Uniqlo size M", 280000], ["Áo sơ mi linen trắng size L", 180000], ["Áo len cổ lọ nữ màu kem", 150000], ["Áo hoodie local brand màu đen", 220000]]},
+      {"slug": "quan", "name": "Quần", "glyph": "pants", "items": [["Quần jean Levi's 511 W32", 450000], ["Quần tây nam xám size 30", 200000], ["Chân váy midi xếp ly", 160000]]},
+      {"slug": "giay", "name": "Giày", "glyph": "shoe", "items": [["Giày Nike Air Force 1 size 42", 1200000], ["Adidas Ultraboost 22 size 41", 1500000], ["Giày da nam Oxford size 41", 600000], ["Sandal Birkenstock Arizona size 39", 900000]]},
+      {"slug": "tui-xach", "name": "Túi xách", "glyph": "bag", "items": [["Túi tote vải canvas", 120000], ["Balo laptop Xiaomi chống nước", 300000], ["Túi đeo chéo Charles & Keith", 650000]]},
+      {"slug": "dong-ho", "name": "Đồng hồ", "glyph": "watch", "items": [["Đồng hồ Casio MTP-1374", 900000], ["Đồng hồ Orient Bambino gen 2", 2800000], ["Đồng hồ Citizen Eco-Drive", 2300000]]}
+    ]},
+    {"slug": "gia-dung", "name": "Gia dụng", "children": [
+      {"slug": "nha-bep", "name": "Nhà bếp", "glyph": "pot", "items": [["Nồi chiên không dầu Philips 4,1L", 1300000], ["Máy xay sinh tố Sunhouse", 350000], ["Bộ nồi inox 3 đáy 5 món", 600000], ["Lò vi sóng Sharp 20L", 900000]]},
+      {"slug": "ban-ghe", "name": "Bàn ghế", "glyph": "chair", "items": [["Bộ bàn ăn gỗ 4 ghế", 2500000], ["Ghế đẩu gỗ cao quầy bar", 180000], ["Bàn trà mặt kính", 700000]]},
+      {"slug": "trang-tri", "name": "Trang trí", "glyph": "vase", "items": [["Đèn ngủ gốm men lam", 250000], ["Tranh canvas phong cảnh 60x90", 300000], ["Bình hoa gốm Bát Tràng", 220000]]}
+    ]},
+    {"slug": "sach-hoc-tap", "name": "Sách & học tập", "children": [
+      {"slug": "giao-trinh", "name": "Giáo trình", "glyph": "book", "items": [["Bộ sách IELTS Cambridge 14–18", 350000], ["Giáo trình Giải tích 1", 60000], ["Sách Clean Code bản tiếng Việt", 150000]]},
+      {"slug": "truyen-tieu-thuyet", "name": "Truyện & tiểu thuyết", "glyph": "book", "items": [["Bộ truyện Doraemon 45 tập", 900000], ["Harry Potter trọn bộ 7 tập", 1100000], ["Tiểu thuyết Nhà giả kim", 50000]]},
+      {"slug": "dung-cu-hoc-tap", "name": "Dụng cụ học tập", "glyph": "pencil", "items": [["Máy tính Casio fx-580VN X", 450000], ["Bảng vẽ Wacom Intuos S", 1000000], ["Bộ màu Faber-Castell 48 màu", 250000]]}
+    ]},
+    {"slug": "xe-co", "name": "Xe cộ", "children": [
+      {"slug": "xe-may", "name": "Xe máy", "glyph": "motorbike", "items": [["Honda Vision 2021 xanh đen", 26000000], ["Yamaha Sirius FI 2019", 13500000], ["Honda Air Blade 125 2020", 32000000], ["Vespa Sprint 125 2018", 48000000]]},
+      {"slug": "xe-dap", "name": "Xe đạp", "glyph": "bicycle", "items": [["Xe đạp thể thao Giant ATX 830", 4800000], ["Xe đạp gấp Fornix", 2300000], ["Xe đạp mini Nhật bãi", 1500000]]},
+      {"slug": "phu-tung-xe", "name": "Phụ tùng & mũ bảo hiểm", "glyph": "helmet", "items": [["Mũ bảo hiểm Royal M139 3/4", 350000], ["Baga sau xe Vision", 180000], ["Gương chiếu hậu Rizoma", 250000]]}
+    ]},
+    {"slug": "noi-that", "name": "Nội thất", "children": [
+      {"slug": "sofa", "name": "Sofa", "glyph": "sofa", "items": [["Sofa băng nỉ 3 chỗ màu xám", 3200000], ["Sofa đơn thư giãn", 1400000], ["Ghế lười hạt xốp", 350000]]},
+      {"slug": "giuong-tu", "name": "Giường & tủ", "glyph": "wardrobe", "items": [["Tủ quần áo gỗ MDF 3 cánh", 2200000], ["Giường gỗ thông 1m6", 2600000], ["Kệ sách 5 tầng", 450000]]},
+      {"slug": "den", "name": "Đèn", "glyph": "lamp", "items": [["Đèn cây đứng đọc sách", 480000], ["Đèn bàn học chống cận Rạng Đông", 220000], ["Đèn thả trần mây tre", 380000]]}
+    ]},
+    {"slug": "dien-lanh", "name": "Điện lạnh", "children": [
+      {"slug": "tu-lanh", "name": "Tủ lạnh", "glyph": "fridge", "items": [["Tủ lạnh Panasonic Inverter 255L", 4500000], ["Tủ lạnh mini Aqua 90L", 1600000], ["Tủ lạnh Samsung side by side", 9900000]]},
+      {"slug": "may-giat", "name": "Máy giặt & máy sấy", "glyph": "washer", "items": [["Máy giặt LG Inverter 9kg", 4200000], ["Máy giặt Toshiba 8kg cửa trên", 2800000], ["Máy sấy Electrolux 7kg", 3900000]]},
+      {"slug": "dieu-hoa", "name": "Điều hòa & quạt", "glyph": "aircon", "items": [["Điều hòa Daikin Inverter 1HP", 5200000], ["Điều hòa Panasonic 1,5HP", 6000000], ["Quạt điều hòa Sunhouse", 1300000]]}
+    ]},
+    {"slug": "me-va-be", "name": "Mẹ & bé", "children": [
+      {"slug": "xe-day-ghe-an", "name": "Xe đẩy & ghế ăn", "glyph": "stroller", "items": [["Xe đẩy Joie gấp gọn", 1800000], ["Ghế ăn dặm Mastela", 650000], ["Nôi điện tự đưa", 900000]]},
+      {"slug": "do-choi", "name": "Đồ chơi", "glyph": "blocks", "items": [["Bộ LEGO City 60292", 650000], ["Xe điện trẻ em 2 động cơ", 1700000], ["Bộ đồ chơi nấu ăn bằng gỗ", 280000]]},
+      {"slug": "quan-ao-tre-em", "name": "Quần áo trẻ em", "glyph": "onesie", "items": [["Set 5 body suit sơ sinh", 150000], ["Áo khoác phao bé 3–4 tuổi", 180000], ["Giày tập đi cho bé", 120000]]}
+    ]},
+    {"slug": "the-thao", "name": "Thể thao & dã ngoại", "children": [
+      {"slug": "dung-cu-tap", "name": "Dụng cụ tập", "glyph": "dumbbell", "items": [["Tạ tay 2 quả 10kg", 600000], ["Máy chạy bộ Kingsport", 6500000], ["Thảm yoga TPE 8mm", 180000], ["Xe đạp tập thể dục", 2400000]]},
+      {"slug": "cam-trai", "name": "Cắm trại", "glyph": "tent", "items": [["Lều cắm trại 4 người Naturehike", 1300000], ["Ghế xếp dã ngoại", 250000], ["Bếp gas mini du lịch", 300000]]},
+      {"slug": "bong-vot", "name": "Bóng & vợt", "glyph": "racket", "items": [["Vợt cầu lông Yonex Astrox 77", 1600000], ["Vợt tennis Wilson Blade 98", 2200000], ["Bóng đá Molten số 5", 350000]]}
+    ]},
+    {"slug": "thu-cung", "name": "Thú cưng", "children": [
+      {"slug": "chuong-nha", "name": "Chuồng & nhà", "glyph": "pethouse", "items": [["Chuồng chó sơn tĩnh điện size L", 900000], ["Nhà cây cho mèo 3 tầng", 650000], ["Lồng vận chuyển thú cưng", 350000]]},
+      {"slug": "phu-kien-thu-cung", "name": "Phụ kiện thú cưng", "glyph": "paw", "items": [["Máy lọc nước cho mèo", 320000], ["Vòng cổ kèm dây dắt chó", 120000], ["Bát ăn tự động hẹn giờ", 550000]]},
+      {"slug": "do-choi-thu-cung", "name": "Đồ chơi thú cưng", "glyph": "ball", "items": [["Cần câu mèo lông vũ", 50000], ["Bóng gặm cao su cho chó", 80000], ["Bàn cào móng cho mèo", 150000]]}
+    ]},
+    {"slug": "van-phong", "name": "Đồ văn phòng", "children": [
+      {"slug": "ban-lam-viec", "name": "Bàn làm việc", "glyph": "desk", "items": [["Bàn nâng hạ điện 1m4", 3900000], ["Bàn làm việc chữ L", 1500000], ["Bàn gấp gọn", 400000]]},
+      {"slug": "ghe-van-phong", "name": "Ghế văn phòng", "glyph": "officechair", "items": [["Ghế công thái học Sihoo M57", 2300000], ["Ghế lưới văn phòng", 900000], ["Ghế gaming E-Dra", 1600000]]},
+      {"slug": "may-in", "name": "Máy in & thiết bị", "glyph": "printer", "items": [["Máy in Canon LBP2900", 1400000], ["Máy in màu Epson L3150", 2700000], ["Máy hủy tài liệu", 1100000]]}
+    ]},
+    {"slug": "nhac-cu", "name": "Nhạc cụ", "children": [
+      {"slug": "guitar", "name": "Guitar & ukulele", "glyph": "guitar", "items": [["Đàn guitar acoustic Yamaha F310", 1900000], ["Đàn ukulele concert", 600000], ["Guitar điện Squier Stratocaster", 4500000]]},
+      {"slug": "dan-phim", "name": "Đàn phím", "glyph": "keyboard", "items": [["Đàn organ Casio CT-S300", 2900000], ["Piano điện Roland FP-30X", 13500000], ["Đàn kalimba 17 phím", 180000]]},
+      {"slug": "thiet-bi-am-nhac", "name": "Thiết bị âm nhạc", "glyph": "speaker", "items": [["Amply Marantz PM6006", 7800000], ["Micro thu âm Rode NT1", 3900000], ["Trống cajon gỗ", 1100000]]}
+    ]}
+  ],
+  "shops": [
+    {"key": "01", "owner": "Nguyễn Minh Anh", "name": "Góc Táo Cũ", "province": "79", "groups": ["dien-tu"]},
+    {"key": "02", "owner": "Trần Quốc Bảo", "name": "Laptop Sinh Viên", "province": "01", "groups": ["dien-tu", "van-phong"]},
+    {"key": "03", "owner": "Lê Thu Hà", "name": "Tủ Đồ Secondhand", "province": "79", "groups": ["thoi-trang"]},
+    {"key": "04", "owner": "Phạm Gia Huy", "name": "Nhà Bếp Xinh", "province": "48", "groups": ["gia-dung", "dien-lanh"]},
+    {"key": "05", "owner": "Hoàng Ngọc Lan", "name": "Hiệu Sách Cũ Cố Đô", "province": "46", "groups": ["sach-hoc-tap"]},
+    {"key": "06", "owner": "Vũ Đức Long", "name": "Xe Máy Lướt Tây Đô", "province": "92", "groups": ["xe-co"]},
+    {"key": "07", "owner": "Đặng Mai Phương", "name": "Nội Thất Thanh Lý Biên Hòa", "province": "75", "groups": ["noi-that"]},
+    {"key": "08", "owner": "Bùi Thanh Tùng", "name": "Điện Lạnh Đất Cảng", "province": "31", "groups": ["dien-lanh", "gia-dung"]},
+    {"key": "09", "owner": "Đỗ Khánh Linh", "name": "Mẹ Bỉm Xứ Nghệ", "province": "40", "groups": ["me-va-be"]},
+    {"key": "10", "owner": "Ngô Hải Nam", "name": "Thể Thao Phố Núi", "province": "68", "groups": ["the-thao"]},
+    {"key": "11", "owner": "Dương Bích Ngọc", "name": "Pet Corner Biển Xanh", "province": "56", "groups": ["thu-cung"]},
+    {"key": "12", "owner": "Lý Hoàng Phúc", "name": "Văn Phòng Gọn", "province": "24", "groups": ["van-phong"]},
+    {"key": "13", "owner": "Hồ Thị Quỳnh", "name": "Nhạc Cụ Cũ Hồ Gươm", "province": "01", "groups": ["nhac-cu"]},
+    {"key": "14", "owner": "Phan Văn Sơn", "name": "Điện Tử Vùng Mỏ", "province": "22", "groups": ["dien-tu"]},
+    {"key": "15", "owner": "Trịnh Thu Trang", "name": "Thời Trang Đồi Chè", "province": "19", "groups": ["thoi-trang"]},
+    {"key": "16", "owner": "Mai Anh Tuấn", "name": "Xe Đạp Tràng An", "province": "37", "groups": ["xe-co", "the-thao"]},
+    {"key": "17", "owner": "Cao Hồng Nhung", "name": "Góc Nhà Cao Nguyên", "province": "66", "groups": ["noi-that", "gia-dung"]},
+    {"key": "18", "owner": "Lâm Gia Bảo", "name": "Bé Yêu Đất Mũi", "province": "96", "groups": ["me-va-be", "thu-cung"]},
+    {"key": "19", "owner": "Tạ Minh Châu", "name": "Sách & Nhạc Xứ Thanh", "province": "38", "groups": ["sach-hoc-tap", "nhac-cu"]},
+    {"key": "20", "owner": "Châu Ngọc Diệp", "name": "Chợ Đồ Cũ Miền Tây", "province": "91", "groups": ["dien-tu", "thoi-trang", "gia-dung"]}
+  ]
+}

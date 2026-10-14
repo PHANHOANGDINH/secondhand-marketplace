@@ -27,7 +27,7 @@ await journey('M1 home and area picker (guest)', async () => {
   await one.click('.home-hero [data-area-open]')
   await one.wait("!!document.querySelector('#area-dialog')", 'area dialog')
   check((await one.evaluate("document.querySelectorAll('.area-card').length")) === 3, 'three featured cities')
-  check((await one.evaluate("document.querySelectorAll('.area-option').length")) === 64, '63 provinces plus "Toàn quốc"')
+  check((await one.evaluate("document.querySelectorAll('.area-option').length")) === 35, '34 provinces plus "Toàn quốc"')
   await one.shot('M-area-dialog')
   await one.fill('#area-search', 'hà n')
   await sleep(300)
@@ -124,10 +124,9 @@ await journey('M3 admin mode', async () => {
   await sleep(1500)
   check((await one.evaluate("document.querySelector('.mode-switcher').dataset.mode")) === 'admin', 'admin shell carries the switcher')
   await one.shot('M-admin-shell')
-  await one.goto('/admin/shops', 2500)
-  const shop = php("echo DB::table('shops')->where('province_code', '79')->value('id');")
-  await one.wait(`!!document.querySelector('[data-shop="${shop}"] button')`, 'shop row')
-  await one.click(`[data-shop="${shop}"] button`)
+  const shop = php(`echo DB::table('shops')->where('owner_id', ${data.users[U('seller-1')]})->value('id');`)
+  // The list is paginated and now holds many shops: open this one's details directly.
+  await one.goto(`/admin/shops?inspect=${shop}`, 2500)
   await one.wait("document.querySelector('main').innerText.includes('Khu vực: TP. Hồ Chí Minh')", 'admin sees the shop area')
   await one.shot('M-admin-shops')
   // Menu drawer and footer on the buyer side.

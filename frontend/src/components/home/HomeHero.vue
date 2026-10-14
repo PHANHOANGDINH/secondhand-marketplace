@@ -23,10 +23,18 @@ const art = [
 ]
 const iconFor = (name) => {
   const text = String(name || '').toLocaleLowerCase('vi-VN')
+  if (/điện lạnh|tủ lạnh|máy giặt|điều hòa/.test(text)) return 'fridge'
+  if (/xe cộ|xe máy|xe đạp/.test(text)) return 'motorbike'
+  if (/nội thất|sofa|giường/.test(text)) return 'sofa'
+  if (/mẹ|bé/.test(text)) return 'stroller'
+  if (/thể thao|dã ngoại/.test(text)) return 'dumbbell'
+  if (/thú cưng/.test(text)) return 'paw'
+  if (/văn phòng/.test(text)) return 'desk'
+  if (/nhạc/.test(text)) return 'guitar'
   if (/điện|máy|công nghệ|phone/.test(text)) return 'device'
   if (/thời trang|quần|áo|giày|túi/.test(text)) return 'shirt'
-  if (/gia dụng|nhà|nội thất|bếp/.test(text)) return 'home'
-  if (/sách|văn phòng|học/.test(text)) return 'book'
+  if (/gia dụng|nhà|bếp/.test(text)) return 'home'
+  if (/sách|học/.test(text)) return 'book'
   return 'tag'
 }
 const search = () =>

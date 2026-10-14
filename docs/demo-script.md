@@ -22,8 +22,12 @@ Set a private `DEMO_PASSWORD` of at least 12 characters in `backend/.env`, then:
 
 ```powershell
 php artisan config:clear
+php artisan db:seed --no-interaction
 php artisan db:seed --class=FinalDemoSeeder --no-interaction
+php artisan db:seed --class=MarketplaceCatalogSeeder --no-interaction
 ```
+
+`MarketplaceCatalogSeeder` adds the varied catalogue: 12 top-level categories, 20 shops in 18 of the 34 current provinces (accounts `vn-seller-01…20@example.test`, password = `DEMO_PASSWORD`), 137 listings in every status with drawn SVG illustrations. The development database was rebuilt this way once on 2026-10-14 at the owner's request; see [demo data reset](demo-data-reset-verification.md).
 
 The seeder is restricted to local/testing and the project's development/test database names. It never resets existing passwords or progresses existing orders/auctions again. It preserves moderation, stock changes and existing user data. Reserved identifier conflicts fail rather than overwrite a local account. Re-running is additive, **not a reset**. To reset a dedicated demo password, use Forgot Password with `MAIL_MAILER=log` and privately read its link in `backend/storage/logs/laravel.log`; do not publish that token or log. Changing DEMO_PASSWORD affects only newly created accounts.
 

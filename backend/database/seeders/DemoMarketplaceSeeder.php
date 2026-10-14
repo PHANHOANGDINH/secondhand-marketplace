@@ -120,7 +120,7 @@ class DemoMarketplaceSeeder extends Seeder
             throw new RuntimeException('Demo seller identifier conflicts with an existing account; nothing is overwritten.');
         }
         $shop = Shop::withTrashed()->firstOrCreate(['owner_id' => $owner->id], [
-            'name' => self::SHOPS[$key], 'slug' => 'demo-pack-'.$key, 'description' => 'Gian hàng minh họa đồ đã qua sử dụng. Dữ liệu dành cho demo marketplace.', 'status' => ShopStatus::ACTIVE,
+            'name' => self::SHOPS[$key], 'slug' => 'demo-pack-'.$key, 'province_code' => ['tech' => '79', 'home' => '01', 'style' => '48'][$key], 'description' => 'Gian hàng minh họa đồ đã qua sử dụng. Dữ liệu dành cho demo marketplace.', 'status' => ShopStatus::ACTIVE,
         ]);
         if ($shop->trashed() || $shop->status !== ShopStatus::ACTIVE || $shop->slug !== 'demo-pack-'.$key) {
             throw new RuntimeException('Demo shop identifier conflicts with an existing shop; nothing is overwritten.');

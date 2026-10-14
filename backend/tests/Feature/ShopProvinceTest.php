@@ -34,11 +34,11 @@ class ShopProvinceTest extends TestCase
         return Product::factory()->active()->create(['shop_id' => Shop::factory()->create(['province_code' => $province])->id, ...$attributes]);
     }
 
-    public function test_province_list_has_63_entries_and_three_featured_cities(): void
+    public function test_province_list_has_the_34_current_units_and_three_featured_cities(): void
     {
         $rows = $this->getJson('/api/v1/provinces')->assertOk()->json('data');
-        $this->assertCount(63, $rows);
-        $this->assertCount(63, array_unique(array_column($rows, 'code')));
+        $this->assertCount(34, $rows);
+        $this->assertCount(34, array_unique(array_column($rows, 'code')));
         $this->assertSame(['01' => 'Hà Nội', '48' => 'Đà Nẵng', '79' => 'TP. Hồ Chí Minh'], collect($rows)->where('featured', true)->sortBy('code')->pluck('name', 'code')->all());
         foreach ($rows as $row) {
             $this->assertMatchesRegularExpression('/^\d{2}$/', $row['code']);
@@ -56,7 +56,9 @@ class ShopProvinceTest extends TestCase
         $this->postJson('/api/v1/shops', ['name' => 'Tiệm thử', 'province_code' => '79'])->assertCreated()
             ->assertJsonPath('data.province_code', '79')->assertJsonPath('data.province_name', 'TP. Hồ Chí Minh');
         $this->patchJson('/api/v1/seller/shop', ['province_code' => 'XX'])->assertUnprocessable();
-        $this->patchJson('/api/v1/seller/shop', ['province_code' => '10'])->assertOk()->assertJsonPath('data.province_code', '10')->assertJsonPath('data.province_name', 'Lào Cai');
+        // A code that disappeared in the 2025 merger (old Lào Cai, 10) is refused; the current code is 15.
+        $this->patchJson('/api/v1/seller/shop', ['province_code' => '10'])->assertUnprocessable();
+        $this->patchJson('/api/v1/seller/shop', ['province_code' => '15'])->assertOk()->assertJsonPath('data.province_code', '15')->assertJsonPath('data.province_name', 'Lào Cai');
         $this->assertSame('fields: province_code', DB::table('audit_logs')->where('action', 'shop.updated')->latest('id')->value('reason'));
         $this->patchJson('/api/v1/seller/shop', ['province_code' => null])->assertOk()->assertJsonPath('data.province_code', null)->assertJsonPath('data.province_name', null);
         // Changing the area alone does not send the shop back to moderation.

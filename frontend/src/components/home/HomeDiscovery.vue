@@ -11,7 +11,8 @@ import EmptyState from '../ui/EmptyState.vue'
 import CollectionPager from '../CollectionPager.vue'
 import '../../styles/auction.css'
 // The tab shown first when the URL does not ask for one.
-const props = defineProps({ defaultMode: { type: String, default: 'auction' } })
+// `hideSwitch`: the parent (home tabs) already chose the mode, so the heading and the two buttons are not shown.
+const props = defineProps({ defaultMode: { type: String, default: 'auction' }, hideSwitch: Boolean })
 const route = useRoute(),
   router = useRouter()
 const mode = ref(
@@ -164,9 +165,11 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <section id="home-discovery" class="home-discovery" aria-labelledby="home-discovery-title">
-    <p class="buyer-eyebrow">Khám phá theo cách của bạn</p>
-    <h2 id="home-discovery-title">Món đồ thật. Câu chuyện thật.</h2>
-    <div class="discovery-switch" role="group" aria-label="Nội dung khám phá">
+    <p v-if="!hideSwitch" class="buyer-eyebrow">Khám phá theo cách của bạn</p>
+    <h2 id="home-discovery-title" :class="{ 'visually-hidden': hideSwitch }">
+      Món đồ thật. Câu chuyện thật.
+    </h2>
+    <div v-if="!hideSwitch" class="discovery-switch" role="group" aria-label="Nội dung khám phá">
       <button
         class="btn"
         :class="mode === 'auction' ? 'btn-primary' : 'btn-outline-secondary'"

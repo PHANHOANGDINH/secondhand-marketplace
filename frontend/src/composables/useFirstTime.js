@@ -2,7 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 
 const PREFIX = 'passlai:first-time'
-export const firstTimeKeys = ['welcome', 'quick-listing', 'auction-room', 'shop-created']
+export const firstTimeKeys = ['welcome', 'quick-listing', 'auction-room', 'shop-created', 'area']
 const storageKey = (userId, key) => `${PREFIX}:${userId}:${key}`
 
 // Storage can be missing, full or blocked. Any failure counts as "already seen",

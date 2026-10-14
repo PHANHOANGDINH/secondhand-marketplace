@@ -2,9 +2,9 @@
 import { onMounted, ref } from 'vue'
 import api from '../api/axios'
 import HomeHero from '../components/home/HomeHero.vue'
-import HomeLiveAuctions from '../components/home/HomeLiveAuctions.vue'
-import HomeDiscovery from '../components/home/HomeDiscovery.vue'
-import ProductSuggestions from '../components/ProductSuggestions.vue'
+import HomeTabs from '../components/home/HomeTabs.vue'
+import { useFirstTime } from '../composables/useFirstTime'
+import { areaPickerOpen } from '../composables/useArea'
 import { brandLine } from '../config/brand'
 
 const status = ref('checking')
@@ -18,21 +18,21 @@ async function checkHealth() {
   }
 }
 onMounted(checkHealth)
+// A signed-in user is asked for their area once, on the home page, after the welcome tour is out of the way.
+const welcome = useFirstTime('welcome'),
+  areaGuide = useFirstTime('area')
+onMounted(() => {
+  if (areaGuide.pending.value && !welcome.pending.value) {
+    areaGuide.markSeen()
+    areaPickerOpen.value = true
+  }
+})
 </script>
 
 <template>
   <h1 class="visually-hidden">{{ brandLine }}</h1>
   <HomeHero />
-  <HomeLiveAuctions />
-  <ProductSuggestions title="Gợi ý cho bạn" :limit="8" />
-  <ProductSuggestions
-    title="Tin mới đăng"
-    latest
-    :limit="8"
-    more-to="/products"
-    more-label="Xem tất cả tin"
-  />
-  <HomeDiscovery default-mode="video" />
+  <HomeTabs />
   <section class="marketplace-entry" aria-labelledby="marketplace-entry-title">
     <div class="marketplace-entry-copy">
       <p class="marketplace-entry-eyebrow">Tiếp tục khám phá</p>

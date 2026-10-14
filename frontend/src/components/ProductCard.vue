@@ -31,6 +31,23 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
         · Xem phiên</RouterLink
       >
       <div class="product-card-favorite"><FavoriteButton :product="product" compact /></div>
+      <p
+        v-if="timeAgo(product.published_at) || product.images?.length"
+        class="product-card-overlay"
+      >
+        <time
+          v-if="timeAgo(product.published_at)"
+          class="product-card-time"
+          :datetime="product.published_at"
+          >{{ timeAgo(product.published_at) }}</time
+        >
+        <span
+          v-if="product.images?.length"
+          class="product-card-photos"
+          :aria-label="`${product.images.length} ảnh`"
+          ><AppIcon name="image" :size="13" />{{ product.images.length }}</span
+        >
+      </p>
     </div>
     <div class="card-body">
       <p v-if="product.reason_label" class="product-card-reason">{{ product.reason_label }}</p>
@@ -48,12 +65,9 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
           :to="`/shops/${product.shop.slug}`"
           >{{ product.shop.name }}</RouterLink
         >
-        <time
-          v-if="timeAgo(product.published_at)"
-          class="product-card-time"
-          :datetime="product.published_at"
-          >{{ timeAgo(product.published_at) }}</time
-        >
+        <span v-if="product.shop?.province_name" class="product-card-area">{{
+          product.shop.province_name
+        }}</span>
         <span
           v-if="product.review_count > 0"
           class="product-card-rating"
@@ -129,7 +143,10 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
   color: var(--accent-ink);
 }
 .product-card-badge-auction {
-  bottom: 0.5rem;
+  top: 0.5rem;
+}
+.product-card-badge-video + .product-card-badge-auction {
+  top: 2.4rem;
 }
 .product-card-badge-auction:hover {
   background: var(--primary);
@@ -170,9 +187,35 @@ h2 a:hover {
   color: var(--primary);
 }
 .product-card-price {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--danger-ink);
+}
+/* Bottom of the image: when it was posted and how many photos it has. */
+.product-card-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1.25rem 0.6rem 0.4rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: linear-gradient(to top, rgb(21 22 26 / 72%), rgb(21 22 26 / 0%));
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.3;
+  pointer-events: none;
+}
+.product-card-photos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: auto;
 }
 .product-card-meta {
   display: flex;

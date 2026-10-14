@@ -126,13 +126,26 @@ it('product card shows the reason only when the API sends one', async () => {
   expect(plain.wrapper.find('.product-card-reason').exists()).toBe(false)
 })
 
-it('home page has the "Gợi ý cho bạn" area and product detail the "Sản phẩm tương tự" area', async () => {
+it('home page opens on the "Dành cho bạn" tab with recommendations, and product detail has "Sản phẩm tương tự"', async () => {
   vi.spyOn(domainApi, 'get').mockResolvedValue({ data: { status: 'ok' } })
   api.listRecommendations.mockResolvedValue([item(1, { reason_label: 'Mới đăng gần đây' })])
-  const home = await setup(HomeView, {}, { stubs: { HomeDiscovery: true, HomeScrollStory: true } })
+  vi.spyOn(productApi, 'listProducts').mockResolvedValue({ data: [item(7), item(8)] })
+  const home = await setup(HomeView, {}, { stubs: { HomeDiscovery: true, HomeHero: true } })
   await flushPromises()
-  expect(home.wrapper.get('#recommendations-title').text()).toBe('Gợi ý cho bạn')
+  expect(home.wrapper.findAll('[data-home-tab]').map((tab) => tab.text())).toEqual(['Dành cho bạn', 'Mới nhất', 'Video', 'Đấu giá'])
+  expect(home.wrapper.get('[data-home-tab="foryou"]').attributes('aria-pressed')).toBe('true')
+  expect(api.listRecommendations).toHaveBeenCalledWith(12, {})
   expect(home.wrapper.findAll('[data-product]')).toHaveLength(1)
+  expect(home.wrapper.get('.product-card-reason').text()).toBe('Mới đăng gần đây')
+  await home.wrapper.get('[data-home-tab="latest"]').trigger('click')
+  await flushPromises()
+  expect(productApi.listProducts).toHaveBeenLastCalledWith({ sort: 'newest', per_page: 12 })
+  expect(home.wrapper.findAll('[data-product]')).toHaveLength(2)
+  expect(home.wrapper.get('.home-more a').attributes('href')).toBe('/products?sort=newest')
+  await home.wrapper.get('[data-home-tab="video"]').trigger('click')
+  await flushPromises()
+  expect(home.wrapper.find('[data-product]').exists()).toBe(false)
+  expect(home.wrapper.findComponent({ name: 'HomeDiscovery' }).exists()).toBe(true)
 
   vi.spyOn(productApi, 'getProduct').mockResolvedValue({
     ...item(10, { slug: 'may-a' }),

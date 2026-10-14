@@ -83,12 +83,18 @@ it('formats how long ago a listing was published, in Vietnamese', () => {
   for (const missing of [null, undefined, '', 'not-a-date']) expect(timeAgo(missing, NOW)).toBe('')
 })
 
-it('listing card shows price, then one muted line: condition, shop, time since publishing', async () => {
-  const { wrapper } = await setup(ProductCard, { props: { product: product() } })
+it('listing card: time and photo count over the image, then price and a muted line with condition, shop and area', async () => {
+  const { wrapper } = await setup(ProductCard, {
+    props: { product: product({ images: [{ id: '1' }, { id: '2' }, { id: '3' }], shop: { id: '2', name: 'Tiệm Cũ', slug: 'tiem-cu', province_code: '79', province_name: 'TP. Hồ Chí Minh' } }) },
+  })
   const meta = wrapper.get('.product-card-meta')
-  expect(meta.findAll(':scope > *').map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', '3 giờ trước'])
+  expect(meta.findAll(':scope > *').map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', 'TP. Hồ Chí Minh'])
   expect(meta.get('a').attributes('href')).toBe('/shops/tiem-cu')
-  expect(meta.get('time').attributes('datetime')).toBe('2026-10-13T09:00:00Z')
+  const overlay = wrapper.get('.product-card-media .product-card-overlay')
+  expect(overlay.get('time').text()).toBe('3 giờ trước')
+  expect(overlay.get('time').attributes('datetime')).toBe('2026-10-13T09:00:00Z')
+  expect(overlay.get('.product-card-photos').text()).toBe('3')
+  expect(overlay.get('.product-card-photos').attributes('aria-label')).toBe('3 ảnh')
   expect(wrapper.get('.product-card-price').text()).toContain('1.500.000')
   expect(wrapper.get('h2 a').attributes('href')).toBe('/products/may-anh-phim')
   expect(wrapper.find('.product-card-badge').exists()).toBe(false)
@@ -99,6 +105,10 @@ it('listing card shows price, then one muted line: condition, shop, time since p
 
   const bare = await setup(ProductCard, { props: { product: product({ shop: null, published_at: null }) } })
   expect(bare.wrapper.get('.product-card-meta').text()).toBe('Tốt')
+  expect(bare.wrapper.find('.product-card-overlay').exists()).toBe(false)
+  // A shop without an area simply has no area segment.
+  const noArea = await setup(ProductCard, { props: { product: product() } })
+  expect(noArea.wrapper.find('.product-card-area').exists()).toBe(false)
 })
 
 it('listing card labels an auction on the image corner and keeps the link to the session', async () => {
@@ -144,7 +154,7 @@ it('listing card marks a video on the image and ends the meta line with a compac
   })
   expect(wrapper.get('.product-card-media .product-card-badge-video').text()).toBe('Có video')
   const parts = wrapper.get('.product-card-meta').findAll(':scope > *')
-  expect(parts.map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', '3 giờ trước', '4.8 (12)'])
+  expect(parts.map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', '4.8 (12)'])
   expect(parts.at(-1).attributes('aria-label')).toBe('4.8 trên 5, 12 đánh giá')
   expect(parts.at(-1).get('svg').attributes('aria-hidden')).toBe('true')
 

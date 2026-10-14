@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listAuctions } from '../api/auction.api'
 import { domainError } from '../api/domain.api'
 import PageHeader from '../components/ui/PageHeader.vue'
@@ -9,6 +9,7 @@ import CollectionPager from '../components/CollectionPager.vue'
 import AuctionCard from '../components/auction/AuctionCard.vue'
 import { auctionLabels } from '../composables/auctionPresentation'
 import '../styles/auction.css'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const rows = ref([]),
   meta = ref(null),
   status = ref(''),
@@ -33,6 +34,7 @@ async function load(page = 1) {
 }
 onMounted(() => load())
 onUnmounted(() => request++)
+const activeFilters = computed(() => [{ label: 'Trạng thái', value: auctionLabels[status.value] }])
 </script>
 <template>
   <section class="auction-discovery theme-auction">
@@ -41,15 +43,17 @@ onUnmounted(() => request++)
       eyebrow="Mỗi món đồ, một cơ hội mới"
       description="Khám phá các phiên đấu giá thật. Theo dõi giá và ra giá trực tiếp."
     />
-    <form class="auction-filter" @submit.prevent="load()">
-      <label for="auction-status">Trạng thái phiên</label
-      ><select id="auction-status" v-model="status" class="form-select">
-        <option value="">Tất cả</option>
-        <option v-for="state in ['LIVE', 'SCHEDULED', 'ENDED']" :key="state" :value="state">
-          {{ auctionLabels[state] }}
-        </option></select
-      ><button class="btn btn-outline-secondary" :disabled="busy">Lọc / tải lại</button>
-    </form>
+    <FilterSheet :active="activeFilters">
+      <form class="auction-filter" @submit.prevent="load()">
+        <label for="auction-status">Trạng thái phiên</label
+        ><select id="auction-status" v-model="status" class="form-select">
+          <option value="">Tất cả</option>
+          <option v-for="state in ['LIVE', 'SCHEDULED', 'ENDED']" :key="state" :value="state">
+            {{ auctionLabels[state] }}
+          </option></select
+        ><button class="btn btn-outline-secondary" :disabled="busy">Lọc / tải lại</button>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" /><EmptyState
       v-if="!busy && !error && !rows.length"
       title="Chưa có phiên đấu giá"

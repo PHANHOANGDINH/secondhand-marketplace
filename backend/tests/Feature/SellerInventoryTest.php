@@ -177,10 +177,10 @@ class SellerInventoryTest extends TestCase
         $this->patchJson($url($approved), ['stock_quantity' => 0, 'expected_updated_at' => $fresh($approved)])->assertOk()->assertJsonPath('data.status', 'SOLD');
         $this->patchJson($url($approved), ['stock_quantity' => 2, 'expected_updated_at' => $fresh($approved)])->assertOk()->assertJsonPath('data.status', 'ACTIVE')->assertJsonPath('data.inventory_state', 'LOW_STOCK');
 
-        // A listing that was never approved still returns to review when it reopens from SOLD.
+        // Listings are not reviewed before sale, so any sold-out listing reopens on restock.
         $unapproved = $this->product($shop, 'ACTIVE', 3);
         $this->patchJson($url($unapproved), ['stock_quantity' => 0, 'expected_updated_at' => $fresh($unapproved)])->assertOk()->assertJsonPath('data.status', 'SOLD');
-        $this->patchJson($url($unapproved), ['stock_quantity' => 2, 'expected_updated_at' => $fresh($unapproved)])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->patchJson($url($unapproved), ['stock_quantity' => 2, 'expected_updated_at' => $fresh($unapproved)])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
     }
 
     public function test_stock_validation_and_idor(): void

@@ -12,6 +12,8 @@ import { useAuthStore } from '../stores/auth'
 import { useFeedback } from '../composables/useFeedback'
 import DomainFeedback from './DomainFeedback.vue'
 import CollectionPager from './CollectionPager.vue'
+import DetailSheet from './ui/DetailSheet.vue'
+import FilterSheet from './ui/FilterSheet.vue'
 const props = defineProps({ kind: { type: String, required: true } })
 const isUser = computed(() => props.kind === 'users'),
   auth = useAuthStore()
@@ -99,6 +101,14 @@ const moderate = () =>
     }
   }, 'Đã cập nhật trạng thái và ghi nhật ký quản lý.')
 onMounted(() => load())
+const activeFilters = computed(() => [
+  { label: 'Tìm', value: isUser.value ? String(filters.search ?? '').trim() : '' },
+  { label: 'Trạng thái', value: filters.status && getStatusLabel(filters.status) },
+  { label: 'Vai trò', value: isUser.value && filters.role ? getRoleLabel(filters.role) : '' },
+  { label: 'Bị báo cáo nhiều', value: isUser.value && filters.flagged ? 'Có' : '' },
+  { label: 'Mã sản phẩm', value: isUser.value ? '' : String(filters.product ?? '') },
+  { label: 'Số sao', value: isUser.value ? '' : String(filters.rating ?? '') },
+])
 </script>
 <template>
   <section v-if="auth.isAdmin">
@@ -111,64 +121,68 @@ onMounted(() => load())
           : 'Xem nội dung đánh giá và quản lý khả năng hiển thị.'
       "
     />
-    <form class="row g-2 align-items-end my-3 admin-toolbar" @submit.prevent="load()">
-      <label v-if="isUser" class="col-md-4"
-        >Tên hoặc thư điện tử<input
-          v-model="filters.search"
-          name="search"
-          maxlength="100"
-          class="form-control"
-      /></label>
-      <label class="col-md-2"
-        >Trạng thái<select v-model="filters.status" name="status" class="form-select">
-          <option value="">Tất cả</option>
-          <option v-for="state in states" :key="state" :value="state">{{ getStatusLabel(state) }}</option>
-        </select></label
-      >
-      <label v-if="isUser" class="col-md-2"
-        >Vai trò<select v-model="filters.role" name="role" class="form-select">
-          <option value="">Tất cả</option>
-          <option value="USER">{{ getRoleLabel('USER') }}</option>
-          <option value="ADMIN">{{ getRoleLabel('ADMIN') }}</option>
-        </select></label
-      >
-      <div v-if="isUser" class="col-md-3">
-        <div class="form-check mb-2">
-          <input
-            id="users-flagged"
-            v-model="filters.flagged"
-            class="form-check-input"
-            type="checkbox"
-            name="flagged"
-          /><label class="form-check-label" for="users-flagged"
-            >Chỉ tài khoản bị báo cáo nhiều</label
-          >
-        </div>
-      </div>
-      <template v-else
-        ><label class="col-md-3"
-          >Mã sản phẩm<input
-            v-model="filters.product"
-            name="product"
-            type="number"
-            min="1"
-            step="1"
-            class="form-control" /></label
-        ><label class="col-md-2"
-          >Số sao<select v-model="filters.rating" name="rating" class="form-select">
+    <FilterSheet :active="activeFilters">
+      <form class="row g-2 align-items-end admin-toolbar" @submit.prevent="load()">
+        <label v-if="isUser" class="col-md-4"
+          >Tên hoặc thư điện tử<input
+            v-model="filters.search"
+            name="search"
+            maxlength="100"
+            class="form-control"
+        /></label>
+        <label class="col-md-2"
+          >Trạng thái<select v-model="filters.status" name="status" class="form-select">
             <option value="">Tất cả</option>
-            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+            <option v-for="state in states" :key="state" :value="state">
+              {{ getStatusLabel(state) }}
+            </option>
           </select></label
-        ></template
-      >
-      <div class="col-md-3">
-        <button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button>
-      </div>
-    </form>
+        >
+        <label v-if="isUser" class="col-md-2"
+          >Vai trò<select v-model="filters.role" name="role" class="form-select">
+            <option value="">Tất cả</option>
+            <option value="USER">{{ getRoleLabel('USER') }}</option>
+            <option value="ADMIN">{{ getRoleLabel('ADMIN') }}</option>
+          </select></label
+        >
+        <div v-if="isUser" class="col-md-3">
+          <div class="form-check mb-2">
+            <input
+              id="users-flagged"
+              v-model="filters.flagged"
+              class="form-check-input"
+              type="checkbox"
+              name="flagged"
+            /><label class="form-check-label" for="users-flagged"
+              >Chỉ tài khoản bị báo cáo nhiều</label
+            >
+          </div>
+        </div>
+        <template v-else
+          ><label class="col-md-3"
+            >Mã sản phẩm<input
+              v-model="filters.product"
+              name="product"
+              type="number"
+              min="1"
+              step="1"
+              class="form-control" /></label
+          ><label class="col-md-2"
+            >Số sao<select v-model="filters.rating" name="rating" class="form-select">
+              <option value="">Tất cả</option>
+              <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+            </select></label
+          ></template
+        >
+        <div class="col-md-3">
+          <button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button>
+        </div>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <p v-for="(messages, key) in errors" :key="key" class="text-danger">{{ messages.join(' ') }}</p>
-    <div class="row g-4 admin-split">
-      <div class="col-lg-7">
+    <div>
+      <div>
         <div class="table-responsive admin-table-wrap">
           <table class="table admin-table">
             <thead>
@@ -190,7 +204,8 @@ onMounted(() => load())
                     ><strong>{{ row.name }}</strong
                     ><small class="d-block">{{ row.email }}</small
                     ><small class="d-block"
-                      >{{ getRoleLabel(row.role) }} <span v-if="row.archived">(Đã lưu trữ)</span></small
+                      >{{ getRoleLabel(row.role) }}
+                      <span v-if="row.archived">(Đã lưu trữ)</span></small
                     ></template
                   ><template v-else
                     ><strong>{{ row.product.name }}</strong
@@ -220,8 +235,20 @@ onMounted(() => load())
         />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
-      <aside v-if="selected" class="col-lg-5" data-selected>
-        <div class="admin-detail">
+      <DetailSheet
+        :id="isUser ? 'admin-user-detail' : 'admin-review-detail'"
+        :open="!!selected"
+        :title="
+          selected
+            ? isUser
+              ? `Người dùng: ${selected.name}`
+              : `Đánh giá: ${selected.product.name}`
+            : 'Chi tiết'
+        "
+        :busy="busy"
+        @close="selected = null"
+      >
+        <div v-if="selected" class="admin-detail" data-selected>
           <AdminRecordHeader
             :title="isUser ? selected.name : selected.product.name"
             :status="selected.status"
@@ -255,7 +282,8 @@ onMounted(() => load())
           <form v-if="action" class="admin-moderation" @submit.prevent="moderate">
             <p class="admin-moderation-title">Xác nhận {{ actionLabel.toLowerCase() }}</p>
             <p class="text-secondary">
-              {{ getStatusLabel(selected.status) }} → {{ getStatusLabel(action) }}. Ghi rõ lý do trước khi xác nhận.
+              {{ getStatusLabel(selected.status) }} → {{ getStatusLabel(action) }}. Ghi rõ lý do
+              trước khi xác nhận.
             </p>
             <label class="form-label w-100"
               >Lý do thay đổi<textarea
@@ -282,13 +310,7 @@ onMounted(() => load())
             }}
           </p>
         </div>
-      </aside>
-      <aside v-else class="col-lg-5">
-        <EmptyState
-          title="Chọn bản ghi để xem chi tiết"
-          description="Thông tin và các thao tác hợp lệ sẽ xuất hiện tại đây."
-        />
-      </aside>
+      </DetailSheet>
     </div>
   </section>
 </template>

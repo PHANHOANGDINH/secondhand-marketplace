@@ -15,6 +15,7 @@ import DomainFeedback from '../components/DomainFeedback.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import '../styles/auction.css'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const route = useRoute(),
   router = useRouter()
 const auctionFilter = ref(
@@ -143,6 +144,12 @@ async function cancel() {
   }, 'Đã huỷ phiên đấu giá.')
 }
 onMounted(prepare)
+const activeFilters = computed(() => [
+  {
+    label: 'Lọc',
+    value: { live_now: 'Đang diễn ra', ending_soon: 'Sắp kết thúc' }[auctionFilter.value] || '',
+  },
+])
 </script>
 <template>
   <section>
@@ -159,13 +166,15 @@ onMounted(prepare)
         {{ open ? 'Đóng biểu mẫu' : '+ Tạo đấu giá' }}
       </button></PageHeader
     >
-    <form class="d-flex flex-wrap gap-2 mb-3" @submit.prevent="filterAuctions">
-      <select v-model="auctionFilter" aria-label="Lọc đấu giá" class="form-select">
-        <option value="all">Tất cả đấu giá</option>
-        <option value="live_now">Đang diễn ra</option>
-        <option value="ending_soon">Sắp kết thúc</option></select
-      ><button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
-    </form>
+    <FilterSheet :active="activeFilters">
+      <form class="d-flex flex-wrap gap-2 mb-3" @submit.prevent="filterAuctions">
+        <select v-model="auctionFilter" aria-label="Lọc đấu giá" class="form-select">
+          <option value="all">Tất cả đấu giá</option>
+          <option value="live_now">Đang diễn ra</option>
+          <option value="ending_soon">Sắp kết thúc</option></select
+        ><button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <p v-if="shop && shop.status !== 'ACTIVE'" class="alert alert-info">
       Gian hàng phải đang hoạt động để mở đấu giá.

@@ -7,15 +7,17 @@ const dateLabel = (value) =>
 const actionLabel = (type) =>
   type === 'REPORT_RESULT'
     ? 'Xem báo cáo'
-    : type === 'OUTBID'
-      ? 'Ra giá lại'
-      : ['AUCTION_WON', 'WINNER_CHECKOUT_EXPIRING'].includes(type)
-        ? 'Hoàn tất mua hàng'
-        : type === 'AUCTION_ORDER_CREATED'
-          ? 'Xem đơn hàng'
-          : type === 'AUCTION_CHECKOUT_UNAVAILABLE'
-            ? 'Xem các phiên khác'
-            : 'Xem phiên'
+    : type === 'PRODUCT_HIDDEN'
+      ? 'Xem tin đăng'
+      : type === 'OUTBID'
+        ? 'Ra giá lại'
+        : ['AUCTION_WON', 'WINNER_CHECKOUT_EXPIRING'].includes(type)
+          ? 'Hoàn tất mua hàng'
+          : type === 'AUCTION_ORDER_CREATED'
+            ? 'Xem đơn hàng'
+            : type === 'AUCTION_CHECKOUT_UNAVAILABLE'
+              ? 'Xem các phiên khác'
+              : 'Xem phiên'
 </script>
 <template>
   <ul class="notification-list">

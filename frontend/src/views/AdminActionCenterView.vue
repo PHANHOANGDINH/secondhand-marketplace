@@ -12,8 +12,8 @@ const auth = useAuthStore(),
 const { busy, error, run } = useFeedback()
 // Every card leads to the list that is already filtered to the counted records.
 const cards = computed(() => [
-  ['shops_pending', 'Gian hàng chờ duyệt', 'Hồ sơ gian hàng mới hoặc gửi lại.', '/admin/shops?status=PENDING'],
-  ['products_pending', 'Sản phẩm chờ duyệt', 'Tin đăng đang chờ kiểm duyệt.', '/admin/products?status=PENDING'],
+  ['shops_pending', 'Gian hàng chờ duyệt (cũ)', 'Gian hàng tạo trước khi bỏ bước duyệt.', '/admin/shops?status=PENDING'],
+  ['products_pending', 'Tin cần xem xét', 'Tin bị nhiều người báo cáo hoặc người bán xin mở lại.', '/admin/products?status=PENDING'],
   ['reports_pending', 'Báo cáo chờ xử lý', 'Báo cáo chưa có người tiếp nhận.', '/admin/reports?status=PENDING'],
   ['reports_in_review', 'Báo cáo đang xem xét', 'Báo cáo đã tiếp nhận, chưa kết luận.', '/admin/reports?status=IN_REVIEW'],
   [

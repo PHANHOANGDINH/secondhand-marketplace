@@ -13,6 +13,7 @@ import CollectionPager from '../components/CollectionPager.vue'
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import InventoryBadge from '../components/seller/InventoryBadge.vue'
 import AuctionLockNotice from '../components/seller/AuctionLockNotice.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const route = useRoute(),
   router = useRouter()
 const result = ref(null),
@@ -36,9 +37,9 @@ const filters = [
   ['low_stock', 'Sắp hết hàng'],
   ['out_of_stock', 'Hết hàng'],
   ['active', 'Đang bán'],
-  ['pending', 'Chờ duyệt'],
+  ['pending', 'Chờ xem xét'],
   ['hidden', 'Đã ẩn'],
-  ['rejected', 'Bị từ chối'],
+  ['rejected', 'Bị gỡ'],
 ]
 const sorts = [
   ['updated', 'Vừa cập nhật'],
@@ -142,6 +143,17 @@ watch(
 )
 onBeforeUnmount(() => sequence++)
 const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—')
+const activeFilters = computed(() => [
+  { label: 'Tìm', value: String(search.value ?? '').trim() },
+  {
+    label: 'Lọc',
+    value: filter.value === 'all' ? '' : filters.find(([value]) => value === filter.value)?.[1],
+  },
+  {
+    label: 'Sắp xếp',
+    value: sort.value === 'updated' ? '' : sorts.find(([value]) => value === sort.value)?.[1],
+  },
+])
 </script>
 <template>
   <section>
@@ -153,23 +165,25 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
         >Quản lý sản phẩm</RouterLink
       ></PageHeader
     >
-    <form class="seller-toolbar inventory-toolbar mb-3" @submit.prevent="apply()">
-      <input
-        v-model="search"
-        class="form-control"
-        type="search"
-        maxlength="200"
-        aria-label="Tìm tên sản phẩm"
-        placeholder="Tìm tên sản phẩm"
-      />
-      <select v-model="filter" class="form-select" aria-label="Lọc tồn kho">
-        <option v-for="[value, label] in filters" :key="value" :value="value">{{ label }}</option>
-      </select>
-      <select v-model="sort" class="form-select" aria-label="Sắp xếp tồn kho">
-        <option v-for="[value, label] in sorts" :key="value" :value="value">{{ label }}</option>
-      </select>
-      <button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
-    </form>
+    <FilterSheet :active="activeFilters">
+      <form class="seller-toolbar inventory-toolbar mb-3" @submit.prevent="apply()">
+        <input
+          v-model="search"
+          class="form-control"
+          type="search"
+          maxlength="200"
+          aria-label="Tìm tên sản phẩm"
+          placeholder="Tìm tên sản phẩm"
+        />
+        <select v-model="filter" class="form-select" aria-label="Lọc tồn kho">
+          <option v-for="[value, label] in filters" :key="value" :value="value">{{ label }}</option>
+        </select>
+        <select v-model="sort" class="form-select" aria-label="Sắp xếp tồn kho">
+          <option v-for="[value, label] in sorts" :key="value" :value="value">{{ label }}</option>
+        </select>
+        <button class="btn btn-outline-secondary" :disabled="busy">Áp dụng</button>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" />
     <p v-if="success" class="alert alert-success" role="status">{{ success }}</p>
     <button v-if="error" class="btn btn-outline-secondary" :disabled="busy" @click="load">
@@ -177,7 +191,7 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
     </button>
     <p v-if="result" class="text-muted small">
       Ngưỡng sắp hết: {{ result.low_stock_threshold }}. Cảnh báo tồn kho chỉ tính sản phẩm đang bán
-      hoặc đã bán hết; sản phẩm ẩn và chờ duyệt được theo dõi riêng.
+      hoặc đã bán hết; tin đã ẩn và tin chờ quản trị viên xem xét được theo dõi riêng.
     </p>
     <form v-if="editing" class="card mb-3" aria-label="Cập nhật tồn kho" @submit.prevent="save">
       <div class="card-body">
@@ -198,9 +212,9 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
           aria-describedby="inventory-help inventory-error"
         />
         <p id="inventory-help" class="small text-muted mt-2">
-          Chỉ thay đổi tồn kho thì sản phẩm đang bán vẫn tiếp tục được bán. Sản phẩm đã bán hết sẽ mở
-          bán lại ngay nếu đã được duyệt và không có chỉnh sửa nào chưa duyệt; nếu không sẽ chuyển sang
-          chờ duyệt.
+          Chỉ thay đổi tồn kho thì sản phẩm đang bán vẫn tiếp tục được bán. Sản phẩm đã bán hết sẽ
+          mở bán lại ngay nếu đã được duyệt và không có chỉnh sửa nào chưa duyệt; nếu không sẽ
+          chuyển sang chờ duyệt.
         </p>
         <p id="inventory-error" v-if="stockError" class="text-danger" role="alert">
           {{ stockError }}
@@ -258,7 +272,9 @@ const time = (value) => (value ? new Date(value).toLocaleString('vi-VN') : '—'
                 /><strong>{{ product.name }}</strong>
               </div>
             </td>
-            <td data-label="Trạng thái"><StatusBadge :status="product.status" /></td>
+            <td data-label="Trạng thái">
+              <StatusBadge :status="product.status" domain="product" />
+            </td>
             <td data-label="Tồn kho"><InventoryBadge :product="product" /></td>
             <td data-label="Cập nhật" class="small">{{ time(product.updated_at) }}</td>
             <td data-label="Thao tác">

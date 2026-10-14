@@ -1,6 +1,7 @@
 <script setup>
-import { useRoute } from 'vue-router'
-const route = useRoute()
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute(),
+  router = useRouter()
 import { getStatusLabel } from '../utils/labels'
 import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
@@ -14,6 +15,8 @@ import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const auth = useAuthStore()
 const rows = ref([]),
   meta = ref(null),
@@ -84,33 +87,49 @@ onMounted(async () => {
   await load()
   await inspectTarget(route.query.inspect)
 })
+const activeFilters = computed(() => [
+  { label: 'Tìm', value: search.value.trim() },
+  { label: 'Trạng thái', value: status.value && getStatusLabel(status.value) },
+])
+// Closing the details also drops ?inspect= so a reload does not open them again.
+function closeDetail() {
+  selected.value = null
+  reason.value = ''
+  if (route.query.inspect) {
+    const query = { ...route.query }
+    delete query.inspect
+    router.replace({ query })
+  }
+}
 </script>
 <template>
   <section>
     <PageHeader
-      title="Kiểm duyệt gian hàng"
+      title="Gian hàng"
       eyebrow="Quản trị · Sàn mua bán"
-      description="Xem thông tin gian hàng và thực hiện các thao tác kiểm duyệt hợp lệ."
+      description="Gian hàng hoạt động ngay khi tạo. Khoá gian hàng bị báo cáo nhiều, mở lại khi đã xử lý xong."
     />
-    <form class="d-flex gap-2 flex-wrap my-3 admin-toolbar" @submit.prevent="load()">
-      <label class="flex-grow-1"
-        >Tìm tên<input v-model="search" name="search" maxlength="100" class="form-control"
-      /></label>
-      <label
-        >Trạng thái<select v-model="status" name="filter_status" class="form-select">
-          <option value="">Tất cả</option>
-          <option v-for="state in Object.keys(transitions)" :key="state" :value="state">
-            {{ getStatusLabel(state) }}
-          </option>
-        </select></label
-      >
-      <button class="btn btn-outline-secondary align-self-end" :disabled="busy">
-        Lọc / Tải lại
-      </button>
-    </form>
+    <FilterSheet :active="activeFilters">
+      <form class="d-flex gap-2 flex-wrap admin-toolbar" @submit.prevent="load()">
+        <label class="flex-grow-1"
+          >Tìm tên<input v-model="search" name="search" maxlength="100" class="form-control"
+        /></label>
+        <label
+          >Trạng thái<select v-model="status" name="filter_status" class="form-select">
+            <option value="">Tất cả</option>
+            <option v-for="state in Object.keys(transitions)" :key="state" :value="state">
+              {{ getStatusLabel(state) }}
+            </option>
+          </select></label
+        >
+        <button class="btn btn-outline-secondary align-self-end" :disabled="busy">
+          Lọc / Tải lại
+        </button>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
-    <div class="row g-4 admin-split">
-      <div class="col-lg-7">
+    <div>
+      <div>
         <div class="table-responsive admin-table-wrap">
           <table class="table align-middle admin-table">
             <thead>
@@ -157,8 +176,14 @@ onMounted(async () => {
         />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
-      <aside v-if="selected" class="col-lg-5">
-        <div class="admin-detail">
+      <DetailSheet
+        id="admin-shop-detail"
+        :open="!!selected"
+        :title="selected ? `Gian hàng: ${selected.name}` : 'Chi tiết gian hàng'"
+        :busy="busy"
+        @close="closeDetail"
+      >
+        <div v-if="selected" class="admin-detail">
           <ProductPhoto
             v-if="selected.logo_path"
             :src="
@@ -227,8 +252,7 @@ onMounted(async () => {
             Không có thao tác kiểm duyệt hợp lệ cho gian hàng này.
           </p>
         </div>
-      </aside>
-      <aside v-else class="col-lg-5"><EmptyState title="Chọn gian hàng để xem chi tiết" /></aside>
+      </DetailSheet>
     </div>
   </section>
 </template>

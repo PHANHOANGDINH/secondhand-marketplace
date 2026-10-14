@@ -447,30 +447,30 @@ class AdminActionCenterTest extends TestCase
         $this->getJson('/api/v1/admin/auctions?status=OPEN')->assertUnprocessable();
     }
 
-    public function test_admin_cannot_hide_a_product_with_a_running_auction(): void
+    public function test_admin_cannot_take_down_a_product_with_a_running_auction(): void
     {
         $this->admin();
         foreach (['SCHEDULED', 'LIVE'] as $status) {
             $auction = Auction::factory()->create($status === 'SCHEDULED' ? ['status' => 'SCHEDULED', 'starts_at' => now()->addHour(), 'ends_at' => now()->addHours(2)] : []);
-            $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Vi phạm'])
-                ->assertConflict()->assertJsonPath('message', 'Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.')->assertJsonPath('auction_id', (string) $auction->id);
+            $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Vi phạm'])
+                ->assertConflict()->assertJsonPath('message', 'Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi gỡ tin.')->assertJsonPath('auction_id', (string) $auction->id);
             $this->assertSame('ACTIVE', Product::find($auction->product_id)->status->value);
             $this->assertSame($status, $auction->refresh()->status->value);
             // Cancelling first is the documented path.
             $this->postJson('/api/v1/admin/auctions/'.$auction->id.'/cancel', ['reason' => 'Vi phạm', 'expected_status' => $status])->assertOk();
-            $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Vi phạm'])->assertOk()->assertJsonPath('data.status', 'HIDDEN');
+            $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Vi phạm'])->assertOk()->assertJsonPath('data.status', 'REJECTED');
         }
         $this->assertSame(0, DB::table('notifications')->where('type', 'AUCTION_CHECKOUT_UNAVAILABLE')->count());
     }
 
-    public function test_hiding_a_product_awaiting_winner_checkout_notifies_the_winner_and_blocks_checkout(): void
+    public function test_taking_down_a_product_awaiting_winner_checkout_notifies_the_winner_and_blocks_checkout(): void
     {
         $auction = $this->awaitingCheckout();
         $winner = User::find($auction->winner_user_id);
         $address = Address::factory()->for($winner, 'user')->create();
         $this->admin();
         Event::fake([NotificationCreated::class]);
-        $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Hàng cấm'])->assertOk()->assertJsonPath('data.status', 'HIDDEN');
+        $this->patchJson('/api/v1/admin/products/'.$auction->product_id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Hàng cấm'])->assertOk()->assertJsonPath('data.status', 'REJECTED');
         $this->assertSame(1, $this->notifications($winner->id, 'AUCTION_CHECKOUT_UNAVAILABLE'));
         Event::assertDispatchedTimes(NotificationCreated::class, 1);
         $this->assertSame('ENDED', $auction->refresh()->status->value);

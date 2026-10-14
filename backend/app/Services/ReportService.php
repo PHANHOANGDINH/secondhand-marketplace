@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProductStatus;
 use App\Enums\ReportStatus;
 use App\Enums\ReportTargetType;
 use App\Enums\VideoCommentStatus;
@@ -41,6 +42,9 @@ class ReportService
             abort_if(Report::where('reporter_user_id', $actor->id)->where('target_type', $type)->where('target_id', $target->id)->whereIn('status', ['PENDING', 'IN_REVIEW'])->exists(), 409, 'Bạn đã có báo cáo đang được xem xét cho nội dung này.');
             $report = new Report;
             $report->forceFill(['reporter_user_id' => $actor->id, 'target_type' => $type, 'target_id' => $target->id, 'target_name' => $type === ReportTargetType::VideoComment ? 'Bình luận video #'.$target->id : mb_substr($target->name, 0, 255), 'reason' => $data['reason'], 'description' => $data['description'] ?? null, 'status' => ReportStatus::Pending])->save();
+            if ($type === ReportTargetType::Product) {
+                $this->hideWhenReportedEnough($actor, $target);
+            }
 
             return $report;
         }, 3);
@@ -74,6 +78,33 @@ class ReportService
 
             return $locked;
         }, 3);
+    }
+
+    /**
+     * Listings go live without review, so the community is the first filter: once enough different users
+     * have an open report on a live listing, it is hidden and waits for an admin (PENDING). The listing row is
+     * already locked by create(). A listing held by an auction is left to the admin, so bidders are not cut off.
+     */
+    private function hideWhenReportedEnough(User $actor, Product $product): void
+    {
+        $threshold = max(1, (int) config('moderation.auto_hide_reports'));
+        $reporters = Report::where('target_type', ReportTargetType::Product)->where('target_id', $product->id)
+            ->whereIn('status', [ReportStatus::Pending, ReportStatus::InReview])->distinct()->count('reporter_user_id');
+        if ($reporters < $threshold || $product->status !== ProductStatus::ACTIVE || app(FixedPriceEligibility::class)->claims()->where('product_id', $product->id)->exists()) {
+            return;
+        }
+        $reason = "Tạm ẩn vì {$reporters} người dùng báo cáo; đang chờ quản trị viên xem xét.";
+        $product->forceFill(['status' => ProductStatus::PENDING, 'moderation_reason' => $reason])->save();
+        $this->audit->record($actor, 'products', $product->id, 'product.auto_hidden', ProductStatus::ACTIVE->value, ProductStatus::PENDING->value, $reason);
+        $owner = User::find(Shop::withTrashed()->whereKey($product->shop_id)->value('owner_id'));
+        if (! $owner) {
+            return;
+        }
+        $row = $owner->notifications()->firstOrCreate(['dedup_key' => hash('sha256', 'product-auto-hidden|'.$product->id.'|'.$product->updated_at?->toISOString())], ['id' => (string) Str::uuid(), 'type' => 'PRODUCT_HIDDEN', 'data' => ['type' => 'PRODUCT_HIDDEN', 'message' => "Tin \"{$product->name}\" đã tạm ẩn vì nhiều người báo cáo. Quản trị viên sẽ xem xét.", 'target_route' => '/my-ads?tab=pending', 'product_id' => (string) $product->id]]);
+        if ($row->wasRecentlyCreated) {
+            $payload = (new NotificationResource($row))->resolve();
+            DB::afterCommit(fn () => event(new NotificationCreated($owner->id, $payload)));
+        }
     }
 
     private function notify(Report $report): void

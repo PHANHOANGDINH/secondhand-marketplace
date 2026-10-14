@@ -70,9 +70,9 @@ it('shows the breadcrumb, shortcuts, profile line and the seven counted tabs', a
   expect(wrapper.findAll('[data-tab]').map((tab) => tab.text().replace(/\s+/g, ' '))).toEqual([
     'Đang hiển thị (4)',
     'Hết hàng (0)',
-    'Bị từ chối (2)',
+    'Bị gỡ (2)',
     'Tin nháp (3)',
-    'Chờ duyệt (1)',
+    'Chờ xem xét (1)',
     'Đã ẩn (1)',
     'Đang đấu giá (1)',
   ])

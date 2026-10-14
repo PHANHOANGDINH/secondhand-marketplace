@@ -84,10 +84,7 @@ onBeforeUnmount(resetFiles)
       <span class="workspace-step">01</span>
       <component :is="`h${headingLevel}`">Ảnh sản phẩm ({{ product.images.length }}/8)</component>
     </div>
-    <p class="text-secondary">
-      JPEG/PNG/WebP · tối đa 5 MiB và 20 triệu điểm ảnh/ảnh. Thay ảnh của hàng đang hoạt động hoặc đã ẩn sẽ gửi duyệt
-      lại.
-    </p>
+    <p class="text-secondary">JPEG/PNG/WebP · tối đa 5 MiB và 20 triệu điểm ảnh/ảnh.</p>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <div v-for="(messages, key) in errors" :key="key" class="text-danger">
       {{ messages.join(' ') }}
@@ -121,7 +118,9 @@ onBeforeUnmount(resetFiles)
         :aria-controls="inputId"
         :aria-describedby="`${inputId}-help`"
         @click="input?.click()"
-      >Chọn ảnh</button>
+      >
+        Chọn ảnh
+      </button>
       <p class="small text-muted mb-0 mt-2" aria-live="polite">
         {{ files.length ? `Đã chọn ${files.length} ảnh` : 'Chưa chọn ảnh' }}
       </p>

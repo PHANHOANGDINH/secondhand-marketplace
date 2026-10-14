@@ -61,8 +61,8 @@ class ShopProvinceTest extends TestCase
         $this->patchJson('/api/v1/seller/shop', ['province_code' => '15'])->assertOk()->assertJsonPath('data.province_code', '15')->assertJsonPath('data.province_name', 'Lào Cai');
         $this->assertSame('fields: province_code', DB::table('audit_logs')->where('action', 'shop.updated')->latest('id')->value('reason'));
         $this->patchJson('/api/v1/seller/shop', ['province_code' => null])->assertOk()->assertJsonPath('data.province_code', null)->assertJsonPath('data.province_name', null);
-        // Changing the area alone does not send the shop back to moderation.
-        $this->assertSame('PENDING', Shop::sole()->status->value);
+        // Shops open at once, and changing the area does not change that.
+        $this->assertSame('ACTIVE', Shop::sole()->status->value);
 
         $shop = Shop::sole();
         $shop->update(['province_code' => '48', 'status' => 'ACTIVE']);

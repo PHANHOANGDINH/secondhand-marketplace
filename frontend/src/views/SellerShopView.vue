@@ -63,7 +63,7 @@ useSellerIdentity(() => shop.value)
         name="shop-created"
         title="Gian hàng đã được tạo"
         :steps="[
-          { title: 'Xét duyệt:', text: 'gian hàng cần được duyệt trước khi đăng sản phẩm công khai.' },
+          { title: 'Hoạt động ngay:', text: 'gian hàng mở bán ngay, không phải chờ duyệt.' },
           { title: 'Sản phẩm:', text: 'soạn tin ở mục Sản phẩm của tôi hoặc bằng Đăng bán nhanh.' },
           { title: 'Đơn bán:', text: 'đơn mới xuất hiện ở mục Đơn bán và trên trang Thống kê.' },
         ]"
@@ -76,21 +76,22 @@ useSellerIdentity(() => shop.value)
             {
               PENDING: 'Gian hàng đang chờ xét duyệt trước khi hiển thị công khai.',
               ACTIVE: 'Gian hàng đang hoạt động và hiển thị trên sàn mua bán.',
-              SUSPENDED: 'Gian hàng đang tạm ngừng, thông tin hiện ở chế độ chỉ xem.',
+              SUSPENDED:
+                'Gian hàng bị quản trị viên khoá (thường do nhiều báo cáo vi phạm); thông tin ở chế độ chỉ xem.',
               REJECTED:
                 'Gian hàng chưa được duyệt. Xem lý do, sửa thông tin và gửi lại để xét duyệt.',
             }[shop.status]
           }}
         </p>
         <p>Khu vực: {{ shop.province_name || 'Chưa chọn' }}</p>
-        <p v-if="shop.moderation_reason">Thông tin kiểm duyệt: {{ shop.moderation_reason }}</p>
+        <p v-if="shop.moderation_reason">Quản trị viên: {{ shop.moderation_reason }}</p>
         <RouterLink v-if="shop.status === 'ACTIVE'" :to="`/shops/${shop.slug}`"
           >Xem gian hàng công khai</RouterLink
         >
       </div>
       <p v-else>
-        Tạo gian hàng để bắt đầu bán đồ đã qua sử dụng. Gian hàng sẽ được xét duyệt trước khi hiển
-        thị công khai.
+        Tạo gian hàng để bắt đầu bán đồ đã qua sử dụng. Gian hàng hoạt động ngay, tin đăng hiện công
+        khai khi bạn bấm Đăng bán.
       </p>
       <p v-if="suspended" class="alert alert-warning">
         Gian hàng đang tạm ngừng. Bạn có thể xem thông tin và liên hệ quản trị viên.

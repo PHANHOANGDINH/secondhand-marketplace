@@ -49,11 +49,11 @@ class ProductDiscountTest extends TestCase
         $this->patchJson("/api/v1/seller/products/{$id}", ['compare_at_price' => null])->assertOk()->assertJsonPath('data.compare_at_price', null)->assertJsonPath('data.discount_percent', null);
     }
 
-    public function test_changing_the_price_before_the_discount_sends_a_live_listing_back_to_review(): void
+    public function test_setting_a_price_before_the_discount_keeps_a_live_listing_live(): void
     {
         $product = Product::factory()->active()->create(['price' => '500000.00']);
         $this->loginAs($product->shop->owner);
-        $this->patchJson("/api/v1/seller/products/{$product->id}", ['compare_at_price' => '800000'])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->patchJson("/api/v1/seller/products/{$product->id}", ['compare_at_price' => '800000'])->assertOk()->assertJsonPath('data.status', 'ACTIVE')->assertJsonPath('data.discount_percent', 37);
     }
 
     public function test_cards_show_the_discount_the_auction_times_and_the_shop_voucher_without_its_code_in_a_fixed_number_of_queries(): void

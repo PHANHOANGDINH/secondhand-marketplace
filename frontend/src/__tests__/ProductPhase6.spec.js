@@ -251,7 +251,7 @@ it('seller editing includes version for stock and refreshes returned status', as
       price: '999999.99',
     }),
   )
-  expect(wrapper.text()).toContain('Chờ duyệt')
+  expect(wrapper.text()).toContain('Chờ xem xét')
 })
 it('seller form displays backend validation errors and retains inputs', async () => {
   vi.spyOn(productApi, 'getSellerProduct').mockResolvedValue(product)
@@ -339,7 +339,7 @@ it('admin lists and filters products then approves with expected status and reas
   expect(productApi.listAdminProducts).toHaveBeenLastCalledWith({ page: 1, status: 'PENDING' })
   await button(wrapper, 'Xem').trigger('click')
   await flushPromises()
-  expect(wrapper.find('[data-target=HIDDEN]').exists()).toBe(false)
+  expect(wrapper.find('[data-target=REJECTED]').exists()).toBe(true)
   await wrapper.get('textarea[name=reason]').setValue('Verified condition')
   await wrapper.get('[data-target=ACTIVE]').trigger('click')
   await flushPromises()
@@ -348,7 +348,9 @@ it('admin lists and filters products then approves with expected status and reas
     status: 'ACTIVE',
     reason: 'Verified condition',
   })
-  expect(wrapper.find('[data-target=HIDDEN]').exists()).toBe(true)
+  // A live listing can only be taken down.
+  expect(wrapper.find('[data-target=REJECTED]').exists()).toBe(true)
+  expect(wrapper.find('[data-target=ACTIVE]').exists()).toBe(false)
 })
 it('admin rejection displays stale conflict without changing the displayed state', async () => {
   const pending = { ...product, status: 'PENDING', can_moderate: true }

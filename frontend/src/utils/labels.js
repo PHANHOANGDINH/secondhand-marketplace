@@ -29,10 +29,15 @@ export const settlementStatusLabels = {
 export const videoStatusLabels = {
   PROCESSING: 'Đang xử lý', READY: 'Sẵn sàng', HIDDEN: 'Đã ẩn', FAILED: 'Xử lý thất bại',
 }
+// Listings go live without review: PENDING waits for an admin (reopen request or hidden after reports)
+// and REJECTED is a listing an admin took down.
+export const productStatusLabels = {
+  ...statusLabels, PENDING: 'Chờ xem xét', REJECTED: 'Bị gỡ',
+}
 export const roleLabels = { USER: 'Người dùng', ADMIN: 'Quản trị viên' }
 const groups = {
   order: orderStatusLabels, payment: paymentStatusLabels, auction: auctionStatusLabels,
-  settlement: settlementStatusLabels, video: videoStatusLabels,
+  settlement: settlementStatusLabels, video: videoStatusLabels, product: productStatusLabels,
 }
 export const getStatusLabel = (value, domain) => {
   const labels = Object.hasOwn(groups, domain) ? groups[domain] : statusLabels

@@ -392,7 +392,7 @@ const managed = (extra = {}) => ({
   ...extra,
 })
 
-it('hiding a product with a running auction explains the conflict and links to the auction', async () => {
+it('taking down a product with a running auction explains the conflict and links to the auction', async () => {
   vi.spyOn(productApi, 'listAdminProducts').mockResolvedValue(page([managed()]))
   vi.spyOn(productApi, 'getAdminProduct').mockResolvedValue(managed())
   vi.spyOn(productApi, 'moderateProduct').mockRejectedValue({
@@ -403,10 +403,10 @@ it('hiding a product with a running auction explains the conflict and links to t
     expect.objectContaining({ status: 'ACTIVE' }),
   )
   await wrapper.get('[name="reason"]').setValue('Vi phạm')
-  await wrapper.get('[data-target="HIDDEN"]').trigger('click')
+  await wrapper.get('[data-target="REJECTED"]').trigger('click')
   await flushPromises()
   const notice = wrapper.get('[data-auction-conflict]')
-  expect(notice.text()).toContain('Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.')
+  expect(notice.text()).toContain('Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi gỡ tin.')
   expect(notice.get('a').attributes('href')).toBe('/admin/auctions?auction=42')
 })
 
@@ -416,7 +416,7 @@ it('an ordinary moderation conflict shows no auction link', async () => {
   vi.spyOn(productApi, 'moderateProduct').mockRejectedValue({ response: { status: 409, data: {} } })
   const { wrapper } = await show(Products, '/admin/products?inspect=10')
   await wrapper.get('[name="reason"]').setValue('Vi phạm')
-  await wrapper.get('[data-target="HIDDEN"]').trigger('click')
+  await wrapper.get('[data-target="REJECTED"]').trigger('click')
   await flushPromises()
   expect(wrapper.find('[data-auction-conflict]').exists()).toBe(false)
 })

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ProductStatus;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -87,10 +86,8 @@ class ProductImageService
 
     private function changed(User $user, Product $product, string $action): void
     {
+        // Listings are not reviewed before sale, so new photos keep a listing in its current status.
         $from = $product->status;
-        if (in_array($from, [ProductStatus::ACTIVE, ProductStatus::HIDDEN], true)) {
-            $product->status = ProductStatus::PENDING;
-        }
         $product->touch();
         $this->audit->record($user, 'products', $product->id, $action, $from->value, $product->status->value, null);
     }

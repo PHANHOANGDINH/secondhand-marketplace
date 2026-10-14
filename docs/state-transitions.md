@@ -4,44 +4,40 @@
 
 ## 1. Shop
 
+Từ 2026-10-14: gian hàng hoạt động ngay khi tạo, không còn bước duyệt. Admin chỉ khoá gian hàng (thường khi bị báo cáo nhiều) và mở lại sau khi xử lý. PENDING/REJECTED chỉ còn ở dữ liệu tạo trước thay đổi này; các bước duyệt cũ vẫn chạy được cho chúng.
+
 | From → To | Actor | Guard / side effect |
 |---|---|---|
-| Không có → PENDING | User ACTIVE | Chưa có Shop kể cả soft-deleted |
-| PENDING → ACTIVE | Admin | Hồ sơ hợp lệ, owner ACTIVE, lý do/ghi nhận duyệt |
-| PENDING → REJECTED | Admin | Bắt buộc reason |
-| REJECTED → PENDING | Owner | Sửa hồ sơ và submit lại; không tạo Shop khác |
+| Không có → ACTIVE | User ACTIVE | Chưa có Shop kể cả soft-deleted |
 | ACTIVE → SUSPENDED | Admin | Reason, ngừng nhận đơn/public listing ngay; không tự hủy đơn mở |
 | SUSPENDED → ACTIVE | Admin | Đã xử lý vi phạm, owner ACTIVE, reason |
+| PENDING → ACTIVE / REJECTED | Admin | Chỉ cho gian hàng cũ còn PENDING |
+| REJECTED → PENDING | Owner | Chỉ cho gian hàng cũ bị từ chối |
 
-Soft-delete tách khỏi status: admin chỉ archive khi không còn ShopOrder nonterminal; không delete history. Restore giữ PENDING để xét lại, không bypass review. Không duyệt Shop của chính admin đang thao tác; cần admin khác cho moderation xung đột lợi ích.
+Soft-delete tách khỏi status: admin chỉ archive khi không còn ShopOrder nonterminal; không delete history. Không khoá/mở Shop của chính admin đang thao tác.
 
 ## 2. Product
 
-Condition LIKE_NEW/GOOD/FAIR/POOR không nằm trong state machine. Condition thay đổi là sửa mô tả thương mại.
+Từ 2026-10-14: tin lên ngay khi người bán đăng (không duyệt trước). Cộng đồng báo cáo, admin xử lý sau. PENDING nghĩa là "chờ quản trị viên xem xét" (tin bị gỡ xin mở lại, hoặc tin tự tạm ẩn vì nhiều báo cáo); REJECTED nghĩa là "bị gỡ".
+
+Condition LIKE_NEW/GOOD/FAIR/POOR không nằm trong state machine.
 
 | From → To | Actor | Guard / side effect |
 |---|---|---|
 | Không có → DRAFT | Owner | Shop PENDING/ACTIVE, tạo từ allowlisted input |
-| DRAFT → PENDING | Owner submit | Shop/owner/category ACTIVE, stock>0, price>0, ảnh primary hợp lệ |
-| PENDING → ACTIVE | Admin | Điều kiện bán vẫn hợp lệ, review nội dung; không tự duyệt hàng Shop mình |
-| PENDING → REJECTED | Admin | Reason |
-| PENDING → DRAFT | Owner withdraw | Rút khỏi hàng chờ, không public |
-| REJECTED → DRAFT | Owner | Sửa lại, submit sau |
-| ACTIVE → HIDDEN | Owner hoặc Admin | Tạm ẩn; admin reason |
-| HIDDEN → PENDING | Owner submit | Kiểm tra đủ điều kiện, cần duyệt lại; tránh unhide bypass moderation |
-| ACTIVE/HIDDEN → PENDING | Owner sửa nội dung/giá/ảnh/category/condition | Transaction, snapshot đơn cũ giữ nguyên |
-| ACTIVE → SOLD | System checkout | Stock trở thành 0 trong transaction |
-| SOLD → PENDING | Owner bổ sung stock | Stock khả dụng >0, xét duyệt lại |
-| SOLD → HIDDEN | Owner hoặc Admin | Ngăn tự public khi hủy trả stock; admin reason |
-| SOLD → ACTIVE | System cancel | Restore stock>0, không deleted, shop/owner/category hợp lệ, chưa bị chuyển trạng thái bởi moderation |
-| SOLD → HIDDEN | System cancel | Restore stock>0 nhưng không đủ điều kiện public |
-| DRAFT/PENDING/REJECTED/HIDDEN → cùng state | Owner edit | Shop cho phép; PENDING edit vẫn pending, reviewer đọc version mới dưới lock |
-| ACTIVE → PENDING | Owner thay stock khả dụng | Nếu stock mới >0, cần duyệt lại |
-| ACTIVE → SOLD | System áp dụng owner stock=0 | Stock change có audit; không coi là sale/revenue |
+| DRAFT/HIDDEN → ACTIVE | Owner submit ("Đăng bán") | Shop/owner/category ACTIVE, stock>0, price>0, ảnh primary hợp lệ; published_at giữ lần đăng đầu |
+| ACTIVE → HIDDEN | Owner | Tạm ẩn; đăng lại bằng submit |
+| ACTIVE/SOLD → REJECTED | Admin ("Gỡ tin") | Reason bắt buộc, người bán thấy; phiên đấu giá đang chạy phải hủy trước (409 kèm auction_id); người thắng chờ thanh toán được báo |
+| REJECTED → PENDING | Owner reopen ("Yêu cầu mở lại") | Kiểm tra đủ điều kiện đăng; không có đường REJECTED → DRAFT → ACTIVE vượt qua admin |
+| ACTIVE → PENDING | System (báo cáo) | Đủ `moderation.auto_hide_reports` (mặc định 3) người dùng khác nhau có báo cáo đang mở; bỏ qua tin đang bị phiên đấu giá giữ; audit `product.auto_hidden`, thông báo PRODUCT_HIDDEN cho chủ gian hàng sau commit |
+| PENDING → ACTIVE / REJECTED | Admin | Reason; không xử lý tin của gian hàng mình |
+| ACTIVE → SOLD | System checkout hoặc owner stock=0 | Stock trở thành 0 trong transaction, có audit |
+| SOLD → ACTIVE | Owner bổ sung stock | Shop/owner/category còn bán được; nếu không thì SOLD → HIDDEN |
+| SOLD → HIDDEN | Owner hide, hoặc hệ thống khi restock/hủy đơn mà không đủ điều kiện bán | — |
+| SOLD → ACTIVE / HIDDEN | System cancel | Restore stock>0 theo BR-ORDER-010 |
+| mọi state → cùng state | Owner edit nội dung/ảnh/giá | Không đổi trạng thái; snapshot đơn cũ giữ nguyên |
 
-Bổ sung stock là tồn khả dụng sau thay đổi, không cộng lại hàng đã bị trừ cho đơn mở. Owner không điều chỉnh về giá trị đã đọc trước checkout mà bỏ qua conflict: request stock edit phải có expected_updated_at, mismatch dưới lock →409. Hàng DRAFT/HIDDEN/PENDING có stock=0 vẫn giữ state, không publish được. REJECTED chỉnh sửa qua DRAFT là đường chuẩn; cùng-state chỉ lưu mô tả trước khi submit.
-
-PHASE 6: admin dùng expected_status và reason bắt buộc, stale →409; approve kiểm tra lại availability/stock/images dưới lock. `withdraw`/`revise` là action riêng, không nhận status từ CRUD. Admin restore Product chưa triển khai.
+Mọi chỉnh tồn kho cần expected_updated_at, mismatch dưới lock → 409. Admin dùng expected_status và reason bắt buộc, stale → 409; mở lại kiểm tra availability/stock/images dưới lock. `withdraw`/`revise` đã bỏ (404); `reopen` là action riêng, không nhận status từ CRUD.
 
 Admin không sửa nội dung/giá thay owner; admin moderate ACTIVE→HIDDEN, PENDING→ACTIVE/REJECTED. Xóa mềm là orthogonal: không thay snapshot/reference, không auto restore khi đơn cancel. Product bị soft-delete không được chuyển trạng thái qua seller API cho đến admin restore về DRAFT, có audit.
 

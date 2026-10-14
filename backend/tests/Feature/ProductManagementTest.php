@@ -91,7 +91,7 @@ class ProductManagementTest extends TestCase
         $this->getJson($base)->assertForbidden();
         $this->patchJson($base, ['name' => 'Hijack'])->assertForbidden();
         $this->deleteJson($base)->assertForbidden();
-        foreach (['submit', 'hide', 'withdraw', 'revise'] as $action) {
+        foreach (['submit', 'hide', 'reopen'] as $action) {
             $this->postJson($base.'/'.$action)->assertForbidden();
         }
         foreach (['view', 'update', 'delete', 'submit', 'hide'] as $ability) {
@@ -118,11 +118,11 @@ class ProductManagementTest extends TestCase
         $product->category->update(['status' => CategoryStatus::INACTIVE]);
         $this->postJson($url)->assertUnprocessable()->assertJsonValidationErrors('category_id');
         $product->category->update(['status' => CategoryStatus::ACTIVE]);
-        $this->postJson($url)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->postJson($url)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
         $this->postJson($url)->assertConflict();
     }
 
-    public function test_full_review_rejection_revision_hiding_and_withdraw_lifecycle(): void
+    public function test_publish_without_review_takedown_reopen_and_hide_lifecycle(): void
     {
         $product = Product::factory()->create();
         $owner = $product->shop->owner;
@@ -130,21 +130,32 @@ class ProductManagementTest extends TestCase
         $url = '/api/v1/seller/products/'.$product->id;
         $moderate = '/api/v1/admin/products/'.$product->id.'/status';
         $this->loginAs($owner);
-        $this->postJson($url.'/submit')->assertOk();
+        // Publishing needs no review.
+        $this->postJson($url.'/submit')->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $published = $product->refresh()->published_at;
+        $this->assertNotNull($published);
+        $this->loginAs($admin);
+        $this->getJson('/api/v1/admin/products?status=PENDING')->assertOk()->assertJsonCount(0, 'data');
+        // An admin takes the listing down with a reason the seller sees.
+        $this->patchJson($moderate, ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Ảnh không đúng sản phẩm'])->assertOk()->assertJsonPath('data.status', 'REJECTED');
+        $this->loginAs($owner);
+        // No way around the admin: the old review shortcuts are gone and publishing again is refused.
+        $this->postJson($url.'/revise')->assertNotFound();
+        $this->postJson($url.'/withdraw')->assertNotFound();
+        $this->postJson($url.'/submit')->assertConflict();
+        $this->patchJson($url, ['description' => 'Improved complete description'])->assertOk()->assertJsonPath('data.status', 'REJECTED');
+        $this->postJson($url.'/reopen')->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->postJson($url.'/reopen')->assertConflict();
         $this->loginAs($admin);
         $this->getJson('/api/v1/admin/products?status=PENDING')->assertOk()->assertJsonCount(1, 'data');
-        $this->patchJson($moderate, ['expected_status' => 'PENDING', 'status' => 'REJECTED', 'reason' => 'Improve description'])->assertOk()->assertJsonPath('data.status', 'REJECTED');
-        $this->loginAs($owner);
-        $this->postJson($url.'/revise')->assertOk()->assertJsonPath('data.status', 'DRAFT');
-        $this->patchJson($url, ['description' => 'Improved complete description'])->assertOk();
-        $this->postJson($url.'/submit')->assertOk();
-        $this->loginAs($admin);
-        $this->patchJson($moderate, ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Verified'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
-        $this->assertNotNull($product->refresh()->published_at);
+        $this->patchJson($moderate, ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Đã sửa ảnh'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        // Reopening keeps the original publication date.
+        $this->assertTrue($published->equalTo($product->refresh()->published_at));
         $this->loginAs($owner);
         $this->postJson($url.'/hide')->assertOk()->assertJsonPath('data.status', 'HIDDEN');
-        $this->postJson($url.'/submit')->assertOk();
-        $this->postJson($url.'/withdraw')->assertOk()->assertJsonPath('data.status', 'DRAFT');
+        $this->postJson($url.'/submit')->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $this->assertDatabaseHas('audit_logs', ['entity_type' => 'products', 'entity_id' => $product->id, 'actor_id' => $admin->id, 'from_status' => 'ACTIVE', 'to_status' => 'REJECTED']);
+        $this->assertDatabaseHas('audit_logs', ['entity_type' => 'products', 'entity_id' => $product->id, 'actor_id' => $owner->id, 'action' => 'product.reopen', 'from_status' => 'REJECTED', 'to_status' => 'PENDING']);
         $this->assertDatabaseHas('audit_logs', ['entity_type' => 'products', 'entity_id' => $product->id, 'actor_id' => $admin->id, 'from_status' => 'PENDING', 'to_status' => 'ACTIVE']);
     }
 
@@ -166,22 +177,22 @@ class ProductManagementTest extends TestCase
         $this->assertDatabaseCount('audit_logs', 0);
     }
 
-    public function test_material_and_stock_edits_follow_review_and_optimistic_rules(): void
+    public function test_content_and_stock_edits_keep_a_live_listing_live_and_keep_optimistic_rules(): void
     {
         $product = Product::factory()->active()->create();
         $this->loginAs($product->shop->owner);
         $url = '/api/v1/seller/products/'.$product->id;
-        $this->patchJson($url, ['name' => 'Updated content'])->assertOk()->assertJsonPath('data.status', 'PENDING');
-        $product->refresh()->update(['status' => ProductStatus::ACTIVE]);
+        $this->patchJson($url, ['name' => 'Updated content'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $product->refresh();
         $this->patchJson($url, ['stock_quantity' => 9])->assertUnprocessable();
         $this->patchJson($url, ['stock_quantity' => 9, 'expected_updated_at' => '2000-01-01T00:00:00Z'])->assertConflict();
-        // Stock alone no longer sends an approved ACTIVE listing back to review.
+        // Stock changes keep the listing on sale too.
         $this->patchJson($url, ['stock_quantity' => 9, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
         $product->refresh();
         $this->patchJson($url, ['stock_quantity' => 0, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'SOLD');
         $product->refresh();
-        // The earlier name change was never approved by an Admin, so reopening still needs review.
-        $this->patchJson($url, ['stock_quantity' => 2, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        // Restocking reopens a sold-out listing at once.
+        $this->patchJson($url, ['stock_quantity' => 2, 'expected_updated_at' => $product->updated_at->toISOString()])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
     }
 
     public function test_decimal_representation_never_rounds_float_input(): void

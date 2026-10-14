@@ -106,49 +106,43 @@ class StockOnlyUpdateTest extends TestCase
         $this->assertDatabaseCount('audit_logs', 0);
     }
 
-    public function test_sold_listing_returns_to_review_when_it_cannot_safely_reopen(): void
+    public function test_sold_listing_that_cannot_be_sold_is_hidden_instead_of_reopened(): void
     {
+        // Never published (older data): restocking publishes it, as publishing needs no review.
         $never = $this->product('SOLD', 0, ['published_at' => null]);
-        $this->restock($never, 2)->assertOk()->assertJsonPath('data.status', 'PENDING');
-        $this->assertStockAudit($never, 'SOLD', 'PENDING', 'stock: 0 → 2');
+        $this->restock($never, 2)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $this->assertNotNull($never->refresh()->published_at);
 
         $pendingShop = $this->product('SOLD', 0);
         $pendingShop->shop->update(['status' => 'PENDING']);
-        $this->restock($pendingShop, 2)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->restock($pendingShop, 2)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
+        $this->assertStockAudit($pendingShop, 'SOLD', 'HIDDEN', 'stock: 0 → 2');
 
         $inactiveCategory = $this->product('SOLD', 0);
         $inactiveCategory->category->update(['status' => 'INACTIVE']);
-        $this->restock($inactiveCategory, 2)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->restock($inactiveCategory, 2)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
 
         $parent = Category::factory()->create(['status' => 'INACTIVE']);
         $inactiveAncestor = $this->product('SOLD', 0, ['category_id' => Category::factory()->create(['parent_id' => $parent->id])->id]);
-        $this->restock($inactiveAncestor, 2)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->restock($inactiveAncestor, 2)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
 
-        foreach ([$never, $pendingShop, $inactiveCategory, $inactiveAncestor] as $product) {
+        foreach ([$pendingShop, $inactiveCategory, $inactiveAncestor] as $product) {
             $this->getJson('/api/v1/products/'.$product->slug)->assertNotFound();
         }
     }
 
-    public function test_sold_listing_edited_without_review_cannot_reopen_through_a_restock(): void
+    public function test_sold_listing_edited_while_sold_reopens_directly_on_restock(): void
     {
-        // SOLD listings accept content and image edits without review; restocking must not publish them.
+        // Listings are not reviewed before sale, so edits made while sold out do not hold the restock back.
         $content = $this->product('SOLD', 0);
-        $this->patchJson('/api/v1/seller/products/'.$content->id, ['name' => 'Tên chưa được duyệt'])->assertOk()->assertJsonPath('data.status', 'SOLD');
-        $this->restock($content, 3)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->patchJson('/api/v1/seller/products/'.$content->id, ['name' => 'Tên mới khi hết hàng'])->assertOk()->assertJsonPath('data.status', 'SOLD');
+        $this->restock($content, 3)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
 
         $images = $this->product('SOLD', 0);
         $this->post('/api/v1/seller/products/'.$images->id.'/images', ['images' => [UploadedFile::fake()->image('new.png', 20, 20)]])->assertCreated();
         $this->assertSame('SOLD', $images->refresh()->status->value);
-        $this->restock($images, 3)->assertOk()->assertJsonPath('data.status', 'PENDING');
-
-        // Once an Admin approves the edited listing again, a later sell-out can reopen directly.
-        $admin = User::factory()->create(['role' => 'ADMIN']);
-        $owner = $content->shop->owner;
-        $this->login($admin);
-        $this->patchJson('/api/v1/admin/products/'.$content->id.'/status', ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Đã duyệt lại'])->assertOk();
-        $this->login($owner);
-        $this->restock($content, 0)->assertOk()->assertJsonPath('data.status', 'SOLD');
-        $this->restock($content, 5)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $this->restock($images, 3)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
+        $this->restock($images, 0)->assertOk()->assertJsonPath('data.status', 'SOLD');
     }
 
     public function test_other_statuses_keep_their_status_for_any_stock(): void
@@ -162,15 +156,15 @@ class StockOnlyUpdateTest extends TestCase
         }
     }
 
-    public function test_stock_combined_with_content_keeps_the_review_rules(): void
+    public function test_stock_combined_with_content_keeps_a_live_listing_live(): void
     {
         $active = $this->product('ACTIVE', 3);
-        $this->restock($active, 9, ['name' => 'Đổi tên và nhập hàng'])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->restock($active, 9, ['name' => 'Đổi tên và nhập hàng'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
         $row = AuditLog::where('entity_id', $active->id)->latest('id')->firstOrFail();
-        $this->assertSame(['product.updated', 'ACTIVE', 'PENDING', null], [$row->action, $row->from_status, $row->to_status, $row->reason]);
+        $this->assertSame(['product.updated', 'ACTIVE', 'ACTIVE', null], [$row->action, $row->from_status, $row->to_status, $row->reason]);
 
         $sold = $this->product('SOLD', 0);
-        $this->restock($sold, 9, ['price' => '123000.00'])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->restock($sold, 9, ['price' => '123000.00'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
 
         $emptied = $this->product('ACTIVE', 3);
         $this->restock($emptied, 0, ['description' => 'Mô tả mới'])->assertOk()->assertJsonPath('data.status', 'SOLD');
@@ -181,7 +175,7 @@ class StockOnlyUpdateTest extends TestCase
         $this->assertStockAudit($same, 'ACTIVE', 'ACTIVE', 'stock: 3 → 6');
 
         $content = $this->product('ACTIVE', 3);
-        $this->patchJson('/api/v1/seller/products/'.$content->id, ['name' => 'Chỉ đổi nội dung'])->assertOk()->assertJsonPath('data.status', 'PENDING');
+        $this->patchJson('/api/v1/seller/products/'.$content->id, ['name' => 'Chỉ đổi nội dung'])->assertOk()->assertJsonPath('data.status', 'ACTIVE');
     }
 
     public function test_stale_version_missing_version_and_foreign_products_are_rejected(): void

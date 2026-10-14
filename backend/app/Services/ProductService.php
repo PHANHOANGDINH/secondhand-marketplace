@@ -7,7 +7,6 @@ use App\Enums\ProductStatus;
 use App\Enums\ShopStatus;
 use App\Enums\UserStatus;
 use App\Models\Auction;
-use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -67,25 +66,25 @@ class ProductService
             if (! $locked->isDirty()) {
                 return $locked;
             }
-            // A new "price before the discount" is reviewed like a new price, so a seller cannot invent a discount unseen.
             $content = $locked->isDirty(['name', 'description', 'category_id', 'price', 'compare_at_price', 'condition']);
             $stock = $locked->isDirty('stock_quantity');
             if ($stock && ! $content) {
-                // Restocking alone keeps a listing on sale; only an unsafe reopening returns to review.
+                // Listings are not reviewed before sale: selling out closes one and restocking reopens it.
                 if ($from === ProductStatus::ACTIVE && $locked->stock_quantity === 0) {
                     $locked->status = ProductStatus::SOLD;
                 } elseif ($from === ProductStatus::SOLD && $locked->stock_quantity > 0) {
-                    $locked->status = $this->restockable($locked) ? ProductStatus::ACTIVE : ProductStatus::PENDING;
+                    $locked->status = $this->reopenStatus($locked);
                 }
                 $locked->save();
                 $this->audit->record($user, 'products', $locked->id, 'product.stock_adjusted', $from->value, $locked->status->value, 'stock: '.$previousStock.' → '.$locked->stock_quantity);
 
                 return $locked;
             }
+            // Edits keep a live listing live; a listing under admin review or taken down keeps that status.
             if ($from === ProductStatus::ACTIVE && $stock && $locked->stock_quantity === 0) {
                 $locked->status = ProductStatus::SOLD;
-            } elseif (($content && in_array($from, [ProductStatus::ACTIVE, ProductStatus::HIDDEN], true)) || ($stock && $locked->stock_quantity > 0 && in_array($from, [ProductStatus::ACTIVE, ProductStatus::SOLD], true))) {
-                $locked->status = ProductStatus::PENDING;
+            } elseif ($from === ProductStatus::SOLD && $stock && $locked->stock_quantity > 0) {
+                $locked->status = $this->reopenStatus($locked);
             }
             $locked->save();
             $this->audit->record($user, 'products', $locked->id, 'product.updated', $from->value, $locked->status->value, null);
@@ -94,18 +93,19 @@ class ProductService
         }, 3);
     }
 
-    /** A sold-out listing reopens without review only when it was approved and nothing reviewable changed since. */
-    private function restockable(Product $product): bool
+    /**
+     * A restocked sold-out listing goes back on sale at once when its shop, owner and category could sell it;
+     * otherwise it is HIDDEN, and the seller publishes it again once that is fixed (publishing re-checks all).
+     */
+    private function reopenStatus(Product $product): ProductStatus
     {
         $shop = $product->shop;
-        if ($product->published_at === null || ! $shop->owner || ! app(OrderLocks::class)->eligible($shop, $shop->owner, Category::orderBy('id')->get()->keyBy('id'), $product->category_id)) {
-            return false;
+        if (! $shop->owner || ! app(OrderLocks::class)->eligible($shop, $shop->owner, Category::orderBy('id')->get()->keyBy('id'), $product->category_id)) {
+            return ProductStatus::HIDDEN;
         }
-        $history = fn () => AuditLog::where('entity_type', 'products')->where('entity_id', $product->id);
-        $approved = (int) $history()->where('action', 'product.moderated')->where('to_status', ProductStatus::ACTIVE->value)->max('id');
+        $product->published_at ??= now();
 
-        // SOLD listings accept content and image edits without review, so those must be re-approved first.
-        return ! $history()->where('id', '>', $approved)->whereIn('action', ['product.updated', 'product.images_uploaded', 'product.image_updated', 'product.images_reordered', 'product.image_deleted'])->exists();
+        return ProductStatus::ACTIVE;
     }
 
     public function requirePublishable(Product $product): void
@@ -130,17 +130,22 @@ class ProductService
     public function action(User $user, Product $product, string $action): Product
     {
         return DB::transaction(function () use ($user, $product, $action): Product {
-            $locked = $this->locks->lock($user, $product, $action === 'submit' ? 'submit' : ($action === 'hide' ? 'hide' : 'update'));
+            $locked = $this->locks->lock($user, $product, in_array($action, ['submit', 'reopen'], true) ? 'submit' : ($action === 'hide' ? 'hide' : 'update'));
             $this->claims->assertAvailable($locked->id);
             $from = $locked->status;
-            $allowed = ['submit' => ['DRAFT', 'HIDDEN'], 'withdraw' => ['PENDING'], 'revise' => ['REJECTED'], 'hide' => ['ACTIVE', 'SOLD']];
-            abort_unless(in_array($from->value, $allowed[$action], true), 409, 'This action is not allowed in the current product status.');
-            if ($action === 'submit') {
+            // "submit" publishes at once (no review before sale). A listing an admin took down only comes back
+            // through "reopen", which asks an admin; there is no way back to DRAFT that would skip that review.
+            $allowed = ['submit' => ['DRAFT', 'HIDDEN'], 'reopen' => ['REJECTED'], 'hide' => ['ACTIVE', 'SOLD']];
+            abort_unless(in_array($from->value, $allowed[$action] ?? [], true), 409, 'This action is not allowed in the current product status.');
+            if ($action !== 'hide') {
                 $this->requirePublishable($locked);
             }
             $locked->status = match ($action) {
-                'submit' => ProductStatus::PENDING,'hide' => ProductStatus::HIDDEN,default => ProductStatus::DRAFT
+                'submit' => ProductStatus::ACTIVE, 'reopen' => ProductStatus::PENDING, default => ProductStatus::HIDDEN
             };
+            if ($locked->status === ProductStatus::ACTIVE) {
+                $locked->published_at ??= now();
+            }
             $locked->save();
             $this->audit->record($user, 'products', $locked->id, 'product.'.$action, $from->value, $locked->status->value, null);
 
@@ -153,20 +158,22 @@ class ProductService
         return DB::transaction(function () use ($user, $product, $data): Product {
             $locked = $this->locks->lock($user, $product, 'moderate');
             $from = $locked->status->value;
-            $allowed = ['PENDING' => ['ACTIVE', 'REJECTED'], 'ACTIVE' => ['HIDDEN'], 'SOLD' => ['HIDDEN']];
+            // PENDING is a listing waiting for an admin (a reopen request, or hidden after reports).
+            // Taking a listing down is REJECTED with a reason; the seller can then ask to reopen it.
+            $allowed = ['PENDING' => ['ACTIVE', 'REJECTED'], 'ACTIVE' => ['REJECTED'], 'SOLD' => ['REJECTED']];
             abort_unless($data['expected_status'] === $from && in_array($data['status'], $allowed[$from] ?? [], true), 409, 'Product status changed or transition is invalid.');
             $winnerClaim = null;
-            if ($data['status'] === ProductStatus::HIDDEN->value) {
+            if ($data['status'] === ProductStatus::REJECTED->value && $from !== ProductStatus::PENDING->value) {
                 // A running auction must be cancelled first so bidders are told; an ended one only loses its checkout.
                 $running = Auction::where('product_id', $locked->id)->whereIn('status', [AuctionStatus::SCHEDULED, AuctionStatus::LIVE])->lockForUpdate()->first();
                 if ($running) {
-                    abort(response()->json(['message' => 'Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.', 'auction_id' => (string) $running->id], 409));
+                    abort(response()->json(['message' => 'Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi gỡ tin.', 'auction_id' => (string) $running->id], 409));
                 }
                 $winnerClaim = $this->claims->claims()->where('product_id', $locked->id)->lockForUpdate()->first();
             }
             if ($data['status'] === 'ACTIVE') {
                 $this->requirePublishable($locked);
-                $locked->published_at = now();
+                $locked->published_at ??= now();
             }
             $locked->status = $data['status'];
             $locked->moderation_reason = $data['reason'];

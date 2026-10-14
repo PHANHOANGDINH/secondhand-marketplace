@@ -25,20 +25,19 @@ export function sellerActions(product) {
   if (!product.can_edit || product.archived || product.auction_locked) return []
   const actions = {
     DRAFT: ['submit', 'delete'],
-    PENDING: ['withdraw'],
+    PENDING: [],
     ACTIVE: ['hide'],
-    REJECTED: ['revise', 'delete'],
+    REJECTED: ['reopen', 'delete'],
     HIDDEN: ['submit', 'delete'],
     SOLD: ['hide'],
   }
   return (actions[product.status] || []).filter(
-    (action) => action !== 'submit' || product.shop_status === 'ACTIVE',
+    (action) => !['submit', 'reopen'].includes(action) || product.shop_status === 'ACTIVE',
   )
 }
 export const actionLabels = {
-  submit: 'Gửi duyệt',
-  withdraw: 'Rút khỏi hàng chờ',
-  revise: 'Sửa lại bản nháp',
+  submit: 'Đăng bán',
+  reopen: 'Yêu cầu mở lại',
   hide: 'Ẩn sản phẩm',
   delete: 'Xóa sản phẩm',
 }
@@ -93,7 +92,8 @@ export function auctionNote(auction, now = Date.now()) {
 /** The card line for the shop's best running voucher; the code itself is never shown on cards. */
 export function voucherNote(voucher) {
   if (!voucher) return ''
-  const amount = voucher.type === 'PERCENT' ? `${Number(voucher.value)}%` : compactMoney(voucher.value)
+  const amount =
+    voucher.type === 'PERCENT' ? `${Number(voucher.value)}%` : compactMoney(voucher.value)
   return Number(voucher.min_order) > 0
     ? `Shop giảm ${amount} · đơn từ ${compactMoney(voucher.min_order)}`
     : `Shop giảm ${amount}`

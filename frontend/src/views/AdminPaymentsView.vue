@@ -18,6 +18,8 @@ import LoadingState from '../components/ui/LoadingState.vue'
 import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const auth = useAuthStore(),
   route = useRoute(),
   router = useRouter()
@@ -123,7 +125,8 @@ async function submit() {
     })
     if (disposed) return
     dialog.value = null
-    selected.value = updated
+    // Refresh the open details; do not pop another panel up after the dialog closes.
+    if (selected.value?.id === updated.id) selected.value = updated
     success.value = `Đã ghi nhận đối soát: ${getReconciliationOutcomeLabel(outcome.value)}.`
     await load()
   } catch (failure) {
@@ -145,6 +148,9 @@ onUnmounted(() => {
   disposed = true
   sequence++
 })
+const activeFilters = computed(() => [
+  { label: 'Tình trạng', value: filters.find(([value]) => value === filter.value)?.[1] },
+])
 </script>
 <template>
   <section v-if="auth.isAdmin" class="admin-payments">
@@ -153,21 +159,25 @@ onUnmounted(() => {
       eyebrow="Quản trị · Thanh toán trực tuyến"
       description="Các khoản tiền đã được xác minh về nhưng đơn hàng không còn nhận được hoặc bị thừa. Hệ thống chỉ ghi nhận quyết định, không tự chuyển tiền."
     />
-    <form class="d-flex flex-wrap gap-2 align-items-end my-3 admin-toolbar" @submit.prevent="apply()">
-      <label
-        >Tình trạng đối soát<select
-          v-model="filter"
-          name="reconciliation"
-          class="form-select"
-          @change="apply()"
+    <FilterSheet :active="activeFilters">
+      <form class="d-flex flex-wrap gap-2 align-items-end admin-toolbar" @submit.prevent="apply()">
+        <label
+          >Tình trạng đối soát<select
+            v-model="filter"
+            name="reconciliation"
+            class="form-select"
+            @change="apply()"
+          >
+            <option v-for="[value, label] in filters" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
         >
-          <option v-for="[value, label] in filters" :key="value" :value="value">{{ label }}</option>
-        </select></label
-      >
-      <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
-        Tải lại
-      </button>
-    </form>
+        <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
+          Tải lại
+        </button>
+      </form>
+    </FilterSheet>
     <DomainFeedback :error="error" :success="success" />
     <LoadingState v-if="busy && !rows.length" layout="table" label="Đang tải danh sách đối soát…" />
     <EmptyState
@@ -175,8 +185,8 @@ onUnmounted(() => {
       title="Không có giao dịch phù hợp"
       description="Không có khoản thanh toán nào ở tình trạng đã chọn."
     />
-    <div class="row g-4">
-      <div v-if="rows.length" :class="selected ? 'col-xl-7' : 'col-12'">
+    <div>
+      <div v-if="rows.length">
         <div class="table-responsive admin-table-wrap">
           <table class="table align-middle admin-table payments-table">
             <caption class="visually-hidden">
@@ -200,10 +210,14 @@ onUnmounted(() => {
               >
                 <td data-label="Đơn hàng">
                   <strong>{{ row.order.order_code }}</strong
-                  ><small class="d-block">{{ row.order.buyer.name }} · lần {{ row.attempt_number }}</small>
+                  ><small class="d-block"
+                    >{{ row.order.buyer.name }} · lần {{ row.attempt_number }}</small
+                  >
                 </td>
                 <td data-label="Số tiền">{{ formatPrice(row.amount) }}</td>
-                <td data-label="Thanh toán"><StatusBadge :status="row.status" domain="payment" /></td>
+                <td data-label="Thanh toán">
+                  <StatusBadge :status="row.status" domain="payment" />
+                </td>
                 <td data-label="Đối soát">{{ queueLabel(row) }}</td>
                 <td data-label="Thao tác">
                   <div class="d-flex flex-wrap gap-2">
@@ -231,8 +245,14 @@ onUnmounted(() => {
         </div>
         <CollectionPager :meta="meta" :busy="busy" @page="apply" />
       </div>
-      <aside v-if="selected" class="col-xl-5">
-        <div class="admin-detail" data-payment-detail>
+      <DetailSheet
+        id="admin-payment-detail"
+        :open="!!selected"
+        :title="selected ? `Thanh toán đơn ${selected.order.order_code}` : 'Chi tiết thanh toán'"
+        :busy="busy"
+        @close="selected = null"
+      >
+        <div v-if="selected" class="admin-detail" data-payment-detail>
           <h2 class="h5">Thanh toán của đơn {{ selected.order.order_code }}</h2>
           <dl class="payment-facts">
             <dt>Phương thức</dt>
@@ -256,7 +276,9 @@ onUnmounted(() => {
             Đơn này đã có một khoản thanh toán thành công khác: khoản này là tiền thừa.
           </p>
           <template v-if="!selected.reconciliation_open">
-            <p class="mb-1"><strong>Đã đối soát</strong> lúc {{ time(selected.reconciliation_resolved_at) }}</p>
+            <p class="mb-1">
+              <strong>Đã đối soát</strong> lúc {{ time(selected.reconciliation_resolved_at) }}
+            </p>
             <p v-if="selected.reconciliation_resolved_by" class="mb-1">
               Người xử lý: {{ selected.reconciliation_resolved_by.name }}
             </p>
@@ -274,7 +296,7 @@ onUnmounted(() => {
             Bạn không thể tự đối soát khoản thanh toán thuộc đơn hàng của chính mình.
           </p>
         </div>
-      </aside>
+      </DetailSheet>
     </div>
     <AccessibleDialog
       v-if="dialog"

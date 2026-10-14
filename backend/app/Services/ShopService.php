@@ -28,8 +28,9 @@ class ShopService
                     $owner = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
                     Gate::forUser($owner)->authorize('create', Shop::class);
                     abort_if(Shop::withTrashed()->where('owner_id', $owner->id)->exists(), 409, 'You already have a shop.');
-                    $shop = $owner->shop()->create([...$data, 'slug' => $this->slugs->generate(Shop::withTrashed(), $data['name'], 180), 'status' => ShopStatus::PENDING]);
-                    $this->audit->record($owner, 'shops', $shop->id, 'shop.created', null, ShopStatus::PENDING->value, null);
+                    $shop = $owner->shop()->create([...$data, 'slug' => $this->slugs->generate(Shop::withTrashed(), $data['name'], 180), 'status' => ShopStatus::ACTIVE]);
+                    // Shops open at once; admins suspend a shop when reports show it misbehaves.
+                    $this->audit->record($owner, 'shops', $shop->id, 'shop.created', null, ShopStatus::ACTIVE->value, null);
 
                     return $shop;
                 }, 3);

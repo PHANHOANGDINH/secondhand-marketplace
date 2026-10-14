@@ -40,7 +40,7 @@ beforeEach(() => {
   vi.spyOn(products, 'createProduct').mockResolvedValue(structuredClone(product))
   vi.spyOn(products, 'getSellerProduct').mockResolvedValue(structuredClone(product))
   vi.spyOn(products, 'updateProduct').mockResolvedValue(structuredClone(product))
-  vi.spyOn(products, 'productAction').mockResolvedValue({ ...product, status: 'PENDING' })
+  vi.spyOn(products, 'productAction').mockResolvedValue({ ...product, status: 'ACTIVE' })
   vi.spyOn(products, 'uploadProductImages').mockResolvedValue([])
   vi.spyOn(messaging, 'listConversations').mockResolvedValue({
     data: [],
@@ -134,12 +134,13 @@ it('embedded creation uses the existing product API, stays in the dialog and pre
     condition: 'GOOD',
   })
   expect(router.currentRoute.value.fullPath).toBe('/products?quick-listing=1')
-  expect(wrapper.get('[data-action=submit]').text()).toBe('Gửi duyệt')
+  expect(wrapper.get('[data-action=submit]').text()).toBe('Đăng bán')
   expect(wrapper.find('[name=status]').exists()).toBe(false)
   await wrapper.get('[data-action=submit]').trigger('click')
   await flushPromises()
   expect(products.productAction).toHaveBeenCalledWith('10', 'submit')
-  expect(wrapper.text()).toContain('Chờ duyệt')
+  // Publishing needs no review: the listing is live straight away.
+  expect(wrapper.text()).toContain('Đang hoạt động')
 })
 it('images chosen before a draft retain previews and upload through the existing image API after saving', async () => {
   const { wrapper } = await setup(SellerProductEditor, { props: { embedded: true } })

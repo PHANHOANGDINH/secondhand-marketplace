@@ -1,6 +1,7 @@
 <script setup>
-import { useRoute } from 'vue-router'
-const route = useRoute()
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute(),
+  router = useRouter()
 import { getStatusLabel } from '../utils/labels'
 import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
@@ -15,6 +16,8 @@ import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import ProductGallery from '../components/ProductGallery.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 // The Action Center links here with the list already filtered.
 const filters = reactive({
   search: '',
@@ -29,11 +32,28 @@ const rows = ref([]),
   reason = ref(''),
   auctionConflict = ref(null)
 const { busy, error, errors, success, run } = useFeedback()
-const transitions = { PENDING: ['ACTIVE', 'REJECTED'], ACTIVE: ['HIDDEN'], SOLD: ['HIDDEN'] }
+// Listings go live without review; admins reopen or keep down a listing in PENDING and take one down when reported.
+const transitions = { PENDING: ['ACTIVE', 'REJECTED'], ACTIVE: ['REJECTED'], SOLD: ['REJECTED'] }
 const actions = computed(() =>
   selected.value?.can_moderate ? transitions[selected.value.status] || [] : [],
 )
-const labels = { ACTIVE: 'Duyệt', REJECTED: 'Từ chối', HIDDEN: 'Ẩn sản phẩm' }
+const labels = { ACTIVE: 'Mở lại tin', REJECTED: 'Gỡ tin' }
+const activeFilters = computed(() => [
+  { label: 'Tìm', value: String(filters.search ?? '').trim() },
+  { label: 'Trạng thái', value: filters.status && getStatusLabel(filters.status, 'product') },
+  { label: 'Gian hàng', value: filters.shop },
+  { label: 'Danh mục', value: filters.category },
+])
+// Closing the details also drops ?inspect= so a reload does not open them again.
+function closeDetail() {
+  selected.value = null
+  auctionConflict.value = null
+  if (route.query.inspect) {
+    const query = { ...route.query }
+    delete query.inspect
+    router.replace({ query })
+  }
+}
 async function refresh() {
   const params = {
     ...Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '')),
@@ -76,7 +96,7 @@ const moderate = (status) =>
     }
     reason.value = ''
     await refresh()
-  }, 'Đã ghi nhận kiểm duyệt và nhật ký quản lý.')
+  }, 'Đã cập nhật tin đăng và ghi nhật ký quản lý.')
 async function inspectTarget(id) {
   if (/^[1-9]\d*$/.test(String(id || ''))) await show(id)
 }
@@ -89,51 +109,53 @@ onMounted(async () => {
 <template>
   <section>
     <PageHeader
-      title="Kiểm duyệt sản phẩm"
+      title="Tin đăng"
       eyebrow="Quản trị · Sàn mua bán"
-      description="Đối chiếu hình ảnh, thông tin sản phẩm và trạng thái kiểm duyệt."
+      description="Tin lên ngay khi người bán đăng. Xem xét các tin bị báo cáo hoặc xin mở lại, gỡ tin vi phạm."
     />
-    <form class="row g-2 my-3 admin-toolbar" @submit.prevent="load()">
-      <div class="col-md-4">
-        <DomainField
-          v-model="filters.search"
-          name="search"
-          label="Tìm kiếm"
-          :maxlength="100"
-          :errors="errors.search"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="filters.status"
-          name="status_filter"
-          label="Trạng thái"
-          type="select"
-          :options="[
-            { value: '', label: 'Tất cả' },
-            ...statuses.map((value) => ({ value, label: getStatusLabel(value) })),
-          ]"
-          :errors="errors.status"
-        />
-      </div>
-      <div class="col-md-2">
-        <DomainField
-          v-model="filters.shop"
-          name="shop_filter"
-          label="Mã gian hàng"
-          :errors="errors.shop"
-        />
-      </div>
-      <div class="col-md-3">
-        <DomainField
-          v-model="filters.category"
-          name="category_filter"
-          label="Mã danh mục"
-          :errors="errors.category"
-        />
-      </div>
-      <div><button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button></div>
-    </form>
+    <FilterSheet :active="activeFilters">
+      <form class="row g-2 admin-toolbar" @submit.prevent="load()">
+        <div class="col-md-4">
+          <DomainField
+            v-model="filters.search"
+            name="search"
+            label="Tìm kiếm"
+            :maxlength="100"
+            :errors="errors.search"
+          />
+        </div>
+        <div class="col-md-3">
+          <DomainField
+            v-model="filters.status"
+            name="status_filter"
+            label="Trạng thái"
+            type="select"
+            :options="[
+              { value: '', label: 'Tất cả' },
+              ...statuses.map((value) => ({ value, label: getStatusLabel(value, 'product') })),
+            ]"
+            :errors="errors.status"
+          />
+        </div>
+        <div class="col-md-2">
+          <DomainField
+            v-model="filters.shop"
+            name="shop_filter"
+            label="Mã gian hàng"
+            :errors="errors.shop"
+          />
+        </div>
+        <div class="col-md-3">
+          <DomainField
+            v-model="filters.category"
+            name="category_filter"
+            label="Mã danh mục"
+            :errors="errors.category"
+          />
+        </div>
+        <div><button class="btn btn-outline-secondary" :disabled="busy">Lọc / Tải lại</button></div>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
     <div
       v-for="key in ['images', 'product', 'stock_quantity', 'category_id', 'expected_status']"
@@ -142,8 +164,8 @@ onMounted(async () => {
     >
       <div v-for="message in errors[key] || []" :key="message">{{ message }}</div>
     </div>
-    <div class="row g-4 admin-split">
-      <div class="col-lg-6">
+    <div>
+      <div>
         <div class="table-responsive admin-table-wrap">
           <table class="table align-middle admin-table">
             <thead>
@@ -179,7 +201,9 @@ onMounted(async () => {
                     </div>
                   </div>
                 </td>
-                <td data-label="Trạng thái"><StatusBadge :status="product.status" /></td>
+                <td data-label="Trạng thái">
+                  <StatusBadge :status="product.status" domain="product" />
+                </td>
                 <td>
                   <button
                     class="btn btn-sm btn-outline-primary"
@@ -201,8 +225,14 @@ onMounted(async () => {
         />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
-      <aside v-if="selected" class="col-lg-6">
-        <div class="admin-detail">
+      <DetailSheet
+        id="admin-product-detail"
+        :open="!!selected"
+        :title="selected ? `Tin đăng: ${selected.name}` : 'Chi tiết tin đăng'"
+        :busy="busy"
+        @close="closeDetail"
+      >
+        <div v-if="selected" class="admin-detail">
           <AdminRecordHeader :title="selected.name" :status="selected.status" />
           <p>
             {{ formatPrice(selected.price) }} · {{ conditionLabel(selected.condition) }} · Tồn
@@ -220,18 +250,18 @@ onMounted(async () => {
             Tải lại chi tiết
           </button>
           <p v-if="auctionConflict" class="alert alert-warning" role="alert" data-auction-conflict>
-            Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi ẩn.
+            Sản phẩm đang có phiên đấu giá. Hãy hủy phiên trước khi gỡ tin.
             <RouterLink :to="{ path: '/admin/auctions', query: { auction: auctionConflict } }"
               >Mở phiên đấu giá số {{ auctionConflict }}</RouterLink
             >
           </p>
           <div v-if="actions.length" class="admin-moderation">
-            <p class="admin-moderation-title">Xác nhận kiểm duyệt</p>
+            <p class="admin-moderation-title">Xác nhận thao tác</p>
             <p class="text-secondary">Ghi rõ lý do trước khi thay đổi trạng thái sản phẩm.</p>
             <DomainField
               v-model="reason"
               name="reason"
-              label="Lý do kiểm duyệt"
+              label="Lý do (người bán sẽ thấy)"
               type="textarea"
               required
               :maxlength="1000"
@@ -250,10 +280,9 @@ onMounted(async () => {
               </button>
             </div>
           </div>
-          <p v-else>Không có thao tác kiểm duyệt hợp lệ.</p>
+          <p v-else>Không có thao tác hợp lệ cho tin này.</p>
         </div>
-      </aside>
-      <aside v-else class="col-lg-6"><EmptyState title="Chọn sản phẩm để xem chi tiết" /></aside>
+      </DetailSheet>
     </div>
   </section>
 </template>

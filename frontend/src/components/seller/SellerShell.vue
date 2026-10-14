@@ -79,7 +79,7 @@ function close() {
         <div class="seller-sidebar-note">
           <strong>{{ shopIdentity?.name || 'Gian hàng của tôi' }}</strong>
           <StatusBadge v-if="shopIdentity?.status" :status="shopIdentity.status" />
-          <p>Quản lý thông tin và xem trạng thái xét duyệt.</p>
+          <p>Quản lý thông tin và trạng thái gian hàng.</p>
           <RouterLink to="/seller/shop">Thông tin gian hàng →</RouterLink>
         </div>
         <RouterLink class="seller-account-link" to="/account">Hồ sơ &amp; địa chỉ →</RouterLink>

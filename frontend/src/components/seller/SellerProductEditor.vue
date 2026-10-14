@@ -178,19 +178,19 @@ defineExpose({ hasUnsavedChanges })
     </button>
     <template v-if="loaded">
       <p v-if="product" class="seller-status-line">
-        Trạng thái: <StatusBadge :status="product.status" />
+        Trạng thái: <StatusBadge :status="product.status" domain="product" />
         <RouterLink v-if="embedded" :to="`/seller/products/${product.id}/edit`" class="ms-2"
           >Mở trang sản phẩm</RouterLink
         >
       </p>
       <p v-if="product?.moderation_reason" class="alert alert-info">
-        Kiểm duyệt: {{ product.moderation_reason }}
+        Quản trị viên: {{ product.moderation_reason }}
       </p>
       <p v-if="!editable" class="alert alert-warning">Gian hàng hiện chỉ được xem sản phẩm.</p>
       <AuctionLockNotice v-if="product" :product="product" />
       <p v-if="product?.status === 'ACTIVE' && !auctionLocked" class="alert alert-info">
-        Sửa nội dung hoặc hình ảnh sẽ gửi duyệt lại. Chỉ thay đổi tồn kho thì sản phẩm vẫn tiếp tục
-        được bán; đặt tồn kho bằng 0 chuyển sản phẩm sang trạng thái đã bán.
+        Tin đang hiển thị; sửa nội dung, hình ảnh hay tồn kho đều có hiệu lực ngay. Đặt tồn kho bằng
+        0 chuyển tin sang trạng thái đã bán.
       </p>
       <div class="listing-layout">
         <div class="listing-main">
@@ -271,9 +271,7 @@ defineExpose({ hasUnsavedChanges })
                       label="Giá trước khi giảm (không bắt buộc)"
                       :errors="errors.compare_at_price"
                     />
-                    <p class="form-text">
-                      Để trống nếu không giảm giá. Phải cao hơn giá bán; đổi giá này thì tin được duyệt lại.
-                    </p>
+                    <p class="form-text">Để trống nếu không giảm giá. Phải cao hơn giá bán.</p>
                   </div>
                   <div class="col-md-6">
                     <DomainField
@@ -304,7 +302,7 @@ defineExpose({ hasUnsavedChanges })
                 <button v-if="editable && !auctionLocked" type="submit" class="btn btn-primary">
                   {{ creating ? 'Tạo bản nháp' : 'Lưu thay đổi' }}</button
                 ><span class="text-secondary"
-                  >Lưu bản nháp trước khi tải ảnh lên. Gửi duyệt là bước riêng.</span
+                  >Lưu bản nháp trước khi tải ảnh lên. Đăng bán là bước riêng.</span
                 >
               </div>
             </fieldset>
@@ -345,14 +343,14 @@ defineExpose({ hasUnsavedChanges })
           <section class="workspace-panel">
             <div class="workspace-panel-heading">
               <span class="workspace-step">05</span
-              ><component :is="embedded ? 'h3' : 'h2'">Lưu &amp; gửi duyệt</component>
+              ><component :is="embedded ? 'h3' : 'h2'">Lưu &amp; đăng bán</component>
             </div>
             <p v-if="!product" class="text-secondary mb-0">
-              Lưu thông tin để tạo bản nháp. Sau đó tải ảnh và gửi duyệt khi gian hàng được phép.
+              Lưu thông tin để tạo bản nháp, tải ảnh rồi bấm Đăng bán: tin hiện ngay.
             </p>
             <template v-else
               ><p class="text-secondary">
-                Trạng thái hiện tại: <StatusBadge :status="product.status" />
+                Trạng thái hiện tại: <StatusBadge :status="product.status" domain="product" />
               </p>
               <p v-if="!sellerActions(product).length" class="text-secondary mb-0">
                 Hiện không có thao tác chuyển trạng thái khả dụng.

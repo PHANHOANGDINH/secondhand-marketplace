@@ -101,7 +101,7 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
     Route::prefix('seller')->group(function (): void {
         Route::get('/products/counts', [SellerProductController::class, 'counts']);
         Route::apiResource('products', SellerProductController::class);
-        foreach (['submit', 'hide', 'withdraw', 'revise'] as $action) {
+        foreach (['submit', 'hide', 'reopen'] as $action) {
             Route::post('/products/{product}/'.$action, [SellerProductController::class, $action]);
         }
         Route::post('/products/{product}/images', [ProductImageController::class, 'store'])->middleware('throttle:upload');

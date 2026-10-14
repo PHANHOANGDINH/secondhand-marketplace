@@ -112,8 +112,7 @@ class AuctionClaimGuardTest extends TestCase
         $actions = [
             'hide' => fn (Product $p) => $this->postJson($this->url($p).'/hide'),
             'submit' => fn (Product $p) => $this->postJson($this->url($p).'/submit'),
-            'withdraw' => fn (Product $p) => $this->postJson($this->url($p).'/withdraw'),
-            'revise' => fn (Product $p) => $this->postJson($this->url($p).'/revise'),
+            'reopen' => fn (Product $p) => $this->postJson($this->url($p).'/reopen'),
             'destroy' => fn (Product $p) => $this->deleteJson($this->url($p)),
             'update stock_quantity' => fn (Product $p) => $this->patchJson($this->url($p), ['stock_quantity' => 9, 'expected_updated_at' => $version($p)]),
             'image upload' => fn (Product $p) => $this->post($this->url($p).'/images', ['images' => [UploadedFile::fake()->image('c.png', 20, 20)]]),
@@ -146,8 +145,8 @@ class AuctionClaimGuardTest extends TestCase
     public function test_claimed_products_stay_locked_in_any_status_reachable_through_admin_moderation(): void
     {
         $shop = $this->shop();
-        // An Admin may hide a claimed listing; the Seller still cannot resubmit, edit or delete it.
-        foreach (['HIDDEN' => ['submit', 'destroy', 'update name', 'image delete'], 'SOLD' => ['hide', 'update stock_quantity'], 'PENDING' => ['withdraw'], 'REJECTED' => ['revise'], 'DRAFT' => ['submit', 'destroy']] as $status => $names) {
+        // An Admin may take down a claimed listing; the Seller still cannot republish, reopen, edit or delete it.
+        foreach (['HIDDEN' => ['submit', 'destroy', 'update name', 'image delete'], 'SOLD' => ['hide', 'update stock_quantity'], 'PENDING' => ['update name'], 'REJECTED' => ['reopen'], 'DRAFT' => ['submit', 'destroy']] as $status => $names) {
             foreach ($names as $name) {
                 $product = $this->product($shop, 'LIVE', $status);
                 $before = $this->state($product);
@@ -167,7 +166,7 @@ class AuctionClaimGuardTest extends TestCase
                 $response = $this->sellerActions()[$name]($product);
                 $this->assertContains($response->status(), [200, 201, 204], "$name was blocked by a $state auction: ".$response->getContent());
             }
-            foreach (['DRAFT' => 'submit', 'HIDDEN' => 'submit', 'PENDING' => 'withdraw', 'REJECTED' => 'revise'] as $status => $name) {
+            foreach (['DRAFT' => 'submit', 'HIDDEN' => 'submit', 'REJECTED' => 'reopen'] as $status => $name) {
                 $product = $this->product($shop, $state, $status);
                 $this->sellerActions()[$name]($product)->assertOk();
             }
@@ -179,7 +178,8 @@ class AuctionClaimGuardTest extends TestCase
     {
         $shop = $this->shop();
         $product = $this->product($shop, null);
-        $this->sellerActions()['update name']($product)->assertOk()->assertJsonPath('data.status', 'PENDING');
+        // Listings are not reviewed before sale: an edit keeps a live listing live.
+        $this->sellerActions()['update name']($product)->assertOk()->assertJsonPath('data.status', 'ACTIVE');
         $product = $this->product($shop, null);
         $this->sellerActions()['hide']($product)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
         $product = $this->product($shop, null);
@@ -218,15 +218,15 @@ class AuctionClaimGuardTest extends TestCase
 
     public function test_admin_moderation_follows_the_d5_rule_for_claimed_products(): void
     {
-        // D5: a running auction must be cancelled before the product is hidden; a winner claim does not block hiding.
+        // D5: a running auction must be cancelled before the product is taken down; a winner claim does not block it.
         $shop = $this->shop();
         $running = $this->product($shop, 'LIVE');
         $awaiting = $this->product($shop, 'AWAITING_CHECKOUT');
         $this->login(User::factory()->create(['role' => 'ADMIN']));
-        $hide = fn (Product $product) => $this->patchJson('/api/v1/admin/products/'.$product->id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'HIDDEN', 'reason' => 'Kiểm duyệt']);
+        $hide = fn (Product $product) => $this->patchJson('/api/v1/admin/products/'.$product->id.'/status', ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Kiểm duyệt']);
         $hide($running)->assertConflict();
         $this->assertSame('ACTIVE', $running->refresh()->status->value);
-        $hide($awaiting)->assertOk()->assertJsonPath('data.status', 'HIDDEN');
+        $hide($awaiting)->assertOk()->assertJsonPath('data.status', 'REJECTED');
     }
 
     public function test_seller_resources_expose_the_lock_without_per_product_queries(): void

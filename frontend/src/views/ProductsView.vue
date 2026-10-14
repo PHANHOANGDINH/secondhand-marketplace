@@ -19,6 +19,7 @@ import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { normalizeDiscoveryQuery } from '../utils/discoveryQuery'
 import { useArea } from '../composables/useArea'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const route = useRoute(),
   router = useRouter()
 const form = reactive({
@@ -119,6 +120,22 @@ onMounted(async () => {
     optionError.value = 'Chưa tải được lựa chọn bộ lọc. Vui lòng tải lại trang.'
   }
 })
+// Which detailed filters are on (search and sort stay visible above the card).
+const filterNames = {
+  category: 'Danh mục',
+  condition: 'Tình trạng',
+  shop: 'Gian hàng',
+  min_price: 'Giá từ',
+  max_price: 'Giá đến',
+  has_video: 'Video',
+  sale_type: 'Hình thức bán',
+  province: 'Khu vực',
+}
+const activeFilters = computed(() =>
+  Object.keys(filterNames)
+    .filter((key) => route.query[key] !== undefined && route.query[key] !== '')
+    .map((key) => ({ label: filterNames[key], value: true })),
+)
 </script>
 <template>
   <section class="buyer-flow">
@@ -153,13 +170,15 @@ onMounted(async () => {
         {{ (errors.q || errors.search)[0] }}
       </p>
       <div v-if="!drawer" class="desktop-filters">
-        <ProductFilters
-          :model-value="form"
-          @update:model-value="(value) => Object.assign(form, value)"
-          :categories="categories"
-          :shops="shops"
-          :errors="errors"
-        />
+        <FilterSheet :active="activeFilters">
+          <ProductFilters
+            :model-value="form"
+            @update:model-value="(value) => Object.assign(form, value)"
+            :categories="categories"
+            :shops="shops"
+            :errors="errors"
+          />
+        </FilterSheet>
       </div>
       <div class="discovery-summary d-flex flex-wrap align-items-center gap-2 mt-3">
         <p class="discovery-count mb-0 me-auto" role="status">

@@ -81,13 +81,9 @@ class SellerProductController extends Controller
         return $this->resource($this->service->action($request->user(), $product, 'hide'));
     }
 
-    public function withdraw(Domain\DomainRequest $request, Product $product): ManagedProductResource
+    /** A listing an admin took down asks to come back; an admin decides. */
+    public function reopen(Domain\DomainRequest $request, Product $product): ManagedProductResource
     {
-        return $this->resource($this->service->action($request->user(), $product, 'withdraw'));
-    }
-
-    public function revise(Domain\DomainRequest $request, Product $product): ManagedProductResource
-    {
-        return $this->resource($this->service->action($request->user(), $product, 'revise'));
+        return $this->resource($this->service->action($request->user(), $product, 'reopen'));
     }
 }

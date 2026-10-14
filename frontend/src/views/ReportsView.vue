@@ -17,6 +17,8 @@ import StatusBadge from '../components/ui/StatusBadge.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const props = defineProps({ admin: Boolean })
 const auth = useAuthStore(),
   route = useRoute(),
@@ -47,9 +49,7 @@ const actions = computed(() => reportActions[selected.value?.status] || [])
 // Admins never rule on reports against their own shop, product or comment.
 const canModerate = computed(() => props.admin && selected.value?.can_moderate !== false)
 // Keeping the current status is a note-only edit; it is always offered first for closed reports.
-const choices = computed(() =>
-  selected.value ? [...actions.value, selected.value.status] : [],
-)
+const choices = computed(() => (selected.value ? [...actions.value, selected.value.status] : []))
 const noteOnly = computed(() => status.value === selected.value?.status)
 const canHide = computed(
   () =>
@@ -113,7 +113,12 @@ async function show(id) {
   }
 }
 async function processReport() {
-  if (!auth.isAdmin || !canModerate.value || actionBusy.value || !choices.value.includes(status.value))
+  if (
+    !auth.isAdmin ||
+    !canModerate.value ||
+    actionBusy.value ||
+    !choices.value.includes(status.value)
+  )
     return
   const owner = auth.user.id,
     id = selected.value.id,
@@ -195,6 +200,21 @@ function openReport(id) {
   router.replace({ query: { ...route.query, report: id } })
   if (String(route.query.report) === String(id)) show(id)
 }
+const activeFilters = computed(() => [
+  { label: 'Trạng thái', value: reportStatuses[filters.status] },
+  { label: 'Nội dung', value: reportTypes[filters.target_type] },
+  { label: 'Lý do', value: reportReasons[filters.reason] },
+  { label: 'Thứ tự', value: filters.sort === 'oldest' ? 'Cũ nhất' : '' },
+  { label: 'Từ ngày', value: filters.from },
+  { label: 'Đến ngày', value: filters.to },
+])
+// Closing the details also drops ?report= so a reload does not open them again.
+function closeDetail() {
+  selected.value = null
+  const query = { ...route.query }
+  delete query.report
+  router.replace({ query })
+}
 </script>
 <template>
   <section v-if="allowed()" class="reports-view">
@@ -203,60 +223,66 @@ function openReport(id) {
       :eyebrow="admin ? 'Quản trị · An toàn sàn mua bán' : 'Tài khoản · An toàn sàn mua bán'"
       description="Báo cáo được xem xét riêng; nội dung chỉ thay đổi khi quản trị viên thực hiện kiểm duyệt."
     />
-    <form class="row g-3 my-3" @submit.prevent="load()">
-      <label class="col-sm-6 col-lg-3"
-        >Trạng thái<select v-model="filters.status" name="status" class="form-select">
-          <option value="">Tất cả trạng thái</option>
-          <option v-for="(label, value) in reportStatuses" :key="value" :value="value">
-            {{ label }}
-          </option>
-        </select></label
-      >
-      <label class="col-sm-6 col-lg-3"
-        >Loại nội dung<select v-model="filters.target_type" name="target_type" class="form-select">
-          <option value="">Tất cả nội dung</option>
-          <option v-for="(label, value) in reportTypes" :key="value" :value="value">
-            {{ label }}
-          </option>
-        </select></label
-      >
-      <label class="col-sm-6 col-lg-3"
-        >Lý do<select v-model="filters.reason" name="reason" class="form-select">
-          <option value="">Tất cả lý do</option>
-          <option v-for="(label, value) in reportReasons" :key="value" :value="value">
-            {{ label }}
-          </option>
-        </select></label
-      >
-      <label class="col-sm-6 col-lg-3"
-        >Thứ tự<select v-model="filters.sort" name="sort" class="form-select">
-          <option value="newest">Mới nhất</option>
-          <option value="oldest">Cũ nhất</option>
-        </select></label
-      >
-      <label v-if="admin" class="col-sm-6 col-lg-3"
-        >Từ ngày<input v-model="filters.from" name="from" type="date" class="form-control"
-      /></label>
-      <label v-if="admin" class="col-sm-6 col-lg-3"
-        >Đến ngày<input
-          v-model="filters.to"
-          name="to"
-          type="date"
-          class="form-control"
-          :min="filters.from || undefined"
-      /></label>
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary" :disabled="busy">Lọc báo cáo</button
-        ><button
-          type="button"
-          class="btn btn-outline-secondary"
-          :disabled="busy"
-          @click="load(meta?.current_page || 1)"
+    <FilterSheet :active="activeFilters">
+      <form class="row g-3" @submit.prevent="load()">
+        <label class="col-sm-6 col-lg-3"
+          >Trạng thái<select v-model="filters.status" name="status" class="form-select">
+            <option value="">Tất cả trạng thái</option>
+            <option v-for="(label, value) in reportStatuses" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
         >
-          Tải lại
-        </button>
-      </div>
-    </form>
+        <label class="col-sm-6 col-lg-3"
+          >Loại nội dung<select
+            v-model="filters.target_type"
+            name="target_type"
+            class="form-select"
+          >
+            <option value="">Tất cả nội dung</option>
+            <option v-for="(label, value) in reportTypes" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
+        >
+        <label class="col-sm-6 col-lg-3"
+          >Lý do<select v-model="filters.reason" name="reason" class="form-select">
+            <option value="">Tất cả lý do</option>
+            <option v-for="(label, value) in reportReasons" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
+        >
+        <label class="col-sm-6 col-lg-3"
+          >Thứ tự<select v-model="filters.sort" name="sort" class="form-select">
+            <option value="newest">Mới nhất</option>
+            <option value="oldest">Cũ nhất</option>
+          </select></label
+        >
+        <label v-if="admin" class="col-sm-6 col-lg-3"
+          >Từ ngày<input v-model="filters.from" name="from" type="date" class="form-control"
+        /></label>
+        <label v-if="admin" class="col-sm-6 col-lg-3"
+          >Đến ngày<input
+            v-model="filters.to"
+            name="to"
+            type="date"
+            class="form-control"
+            :min="filters.from || undefined"
+        /></label>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-primary" :disabled="busy">Lọc báo cáo</button
+          ><button
+            type="button"
+            class="btn btn-outline-secondary"
+            :disabled="busy"
+            @click="load(meta?.current_page || 1)"
+          >
+            Tải lại
+          </button>
+        </div>
+      </form>
+    </FilterSheet>
     <DomainFeedback :busy="busy" :error="error" />
     <p v-if="meta && !busy && !error" class="text-muted">{{ meta.total }} báo cáo trong kết quả</p>
     <EmptyState
@@ -315,136 +341,148 @@ function openReport(id) {
     >
       Tải lại báo cáo
     </button>
-    <article v-if="selected" class="card mt-4">
-      <div class="card-body p-4">
-        <h2 ref="detailHeading" tabindex="-1" class="h4">Báo cáo số {{ selected.id }}</h2>
-        <StatusBadge :status="selected.status" :label="selected.status_label" />
-        <p class="mt-3">
-          <strong>{{ selected.target.label }}:</strong> {{ selected.target.name }}
-        </p>
-        <p><strong>Lý do:</strong> {{ selected.reason_label }}</p>
-        <p v-if="selected.description" class="report-text">
-          <strong>Mô tả:</strong> {{ selected.description }}
-        </p>
-        <p class="text-muted">
-          Gửi {{ reportDate(selected.created_at) }} · Xử lý {{ reportDate(selected.handled_at) }}
-        </p>
-        <p v-if="!selected.target.available" class="alert alert-secondary">
-          Nội dung không còn truy cập được. Báo cáo vẫn được lưu để xem xét.
-        </p>
-        <template v-if="admin">
-          <p v-if="selected.target.status">
-            Trạng thái nội dung: <StatusBadge :status="selected.target.status" />
-            <span v-if="selected.target.deleted" class="text-muted">· Đã xóa</span>
+    <DetailSheet
+      id="report-detail"
+      :open="!!selected"
+      :title="selected ? `Báo cáo số ${selected.id}` : 'Chi tiết báo cáo'"
+      :busy="actionBusy"
+      @close="closeDetail"
+    >
+      <article v-if="selected" class="card">
+        <div class="card-body p-4">
+          <h2 ref="detailHeading" tabindex="-1" class="h4">Báo cáo số {{ selected.id }}</h2>
+          <StatusBadge :status="selected.status" :label="selected.status_label" />
+          <p class="mt-3">
+            <strong>{{ selected.target.label }}:</strong> {{ selected.target.name }}
           </p>
-          <p v-if="selected.target.available" class="text-muted">
-            {{
-              selected.target.public_visible
-                ? 'Nội dung đang công khai.'
-                : 'Nội dung hiện không công khai.'
-            }}
+          <p><strong>Lý do:</strong> {{ selected.reason_label }}</p>
+          <p v-if="selected.description" class="report-text">
+            <strong>Mô tả:</strong> {{ selected.description }}
           </p>
-          <div v-if="selected.target.context" class="border rounded-3 p-3 mb-3">
-            <p v-if="selected.target.context.description" class="report-text">
-              {{ selected.target.context.description }}
+          <p class="text-muted">
+            Gửi {{ reportDate(selected.created_at) }} · Xử lý {{ reportDate(selected.handled_at) }}
+          </p>
+          <p v-if="!selected.target.available" class="alert alert-secondary">
+            Nội dung không còn truy cập được. Báo cáo vẫn được lưu để xem xét.
+          </p>
+          <template v-if="admin">
+            <p v-if="selected.target.status">
+              Trạng thái nội dung: <StatusBadge :status="selected.target.status" />
+              <span v-if="selected.target.deleted" class="text-muted">· Đã xóa</span>
             </p>
-            <p v-if="selected.target.context.shop">
-              Gian hàng: {{ selected.target.context.shop.name }}
-              <StatusBadge :status="selected.target.context.shop.status" />
+            <p v-if="selected.target.available" class="text-muted">
+              {{
+                selected.target.public_visible
+                  ? 'Nội dung đang công khai.'
+                  : 'Nội dung hiện không công khai.'
+              }}
             </p>
-            <p v-if="selected.target.context.owner">
-              Chủ gian hàng: {{ selected.target.context.owner.name }}
-            </p>
-            <p v-if="selected.target.context.author">
-              Tác giả: {{ selected.target.context.author.name }}
-            </p>
-            <p v-if="selected.target.context.body" class="report-text">
-              {{ selected.target.context.body }}
-            </p>
-            <RouterLink
-              v-if="selected.target.context.product"
-              :to="selected.target.context.product.route"
-              >{{ selected.target.context.product.name }} → Kiểm duyệt sản phẩm</RouterLink
-            >
-          </div>
-          <RouterLink
-            v-if="selected.target.route"
-            :to="selected.target.route"
-            class="btn btn-outline-secondary mb-3"
-            >Mở kiểm duyệt
-            {{ selected.target.type === 'PRODUCT' ? 'sản phẩm' : 'gian hàng' }}</RouterLink
-          >
-          <div v-if="canHide" class="mb-3">
-            <button v-if="!confirmHide" class="btn btn-outline-danger" @click="confirmHide = true">
-              Ẩn bình luận
-            </button>
-            <div v-else role="group" aria-label="Xác nhận ẩn bình luận">
-              <p>Ẩn bình luận này? Trạng thái báo cáo sẽ không tự thay đổi.</p>
-              <button class="btn btn-danger me-2" :disabled="actionBusy" @click="hideComment">
-                Xác nhận ẩn</button
-              ><button
-                class="btn btn-outline-secondary"
-                :disabled="actionBusy"
-                @click="confirmHide = false"
+            <div v-if="selected.target.context" class="border rounded-3 p-3 mb-3">
+              <p v-if="selected.target.context.description" class="report-text">
+                {{ selected.target.context.description }}
+              </p>
+              <p v-if="selected.target.context.shop">
+                Gian hàng: {{ selected.target.context.shop.name }}
+                <StatusBadge :status="selected.target.context.shop.status" />
+              </p>
+              <p v-if="selected.target.context.owner">
+                Chủ gian hàng: {{ selected.target.context.owner.name }}
+              </p>
+              <p v-if="selected.target.context.author">
+                Tác giả: {{ selected.target.context.author.name }}
+              </p>
+              <p v-if="selected.target.context.body" class="report-text">
+                {{ selected.target.context.body }}
+              </p>
+              <RouterLink
+                v-if="selected.target.context.product"
+                :to="selected.target.context.product.route"
+                >{{ selected.target.context.product.name }} → Kiểm duyệt sản phẩm</RouterLink
               >
-                Giữ lại
-              </button>
             </div>
-          </div>
-          <p class="small text-muted">
-            Xử lý báo cáo không tự ẩn nội dung. Thao tác kiểm duyệt ở trên dùng quy tắc hiện có.
-          </p>
-          <p v-if="!canModerate" class="alert alert-secondary" data-own-report>
-            Báo cáo này nhắm vào nội dung của chính bạn nên bạn không thể xử lý. Một quản trị viên
-            khác sẽ tiếp nhận.
-          </p>
-          <form v-if="canModerate" class="border-top pt-3" @submit.prevent="processReport">
-            <label for="report-next-status" class="form-label">Bước xử lý tiếp theo</label
-            ><select
-              id="report-next-status"
-              v-model="status"
-              name="next_status"
-              class="form-select mb-3"
-              :disabled="actionBusy"
-              required
+            <RouterLink
+              v-if="selected.target.route"
+              :to="selected.target.route"
+              class="btn btn-outline-secondary mb-3"
+              >Mở kiểm duyệt
+              {{ selected.target.type === 'PRODUCT' ? 'sản phẩm' : 'gian hàng' }}</RouterLink
             >
-              <option v-for="value in choices" :key="value" :value="value">
-                {{
-                  value === selected.status
-                    ? `Giữ "${reportStatuses[value]}" — chỉ lưu ghi chú`
-                    : reportStatuses[value]
-                }}
-              </option>
-            </select>
-            <label for="report-admin-note" class="form-label"
-              >Ghi chú nội bộ (không hiển thị cho người báo cáo)</label
-            ><textarea
-              id="report-admin-note"
-              v-model="note"
-              name="admin_note"
-              class="form-control mb-3"
-              rows="3"
-              maxlength="1000"
-              :disabled="actionBusy"
-            /><button class="btn btn-primary" :disabled="actionBusy">
-              {{ actionBusy ? 'Đang lưu…' : noteOnly ? 'Lưu ghi chú' : 'Xác nhận xử lý' }}
-            </button>
-          </form>
-          <p v-else-if="selected.admin_note" class="report-text">
-            <strong>Ghi chú nội bộ:</strong> {{ selected.admin_note }}
-          </p>
-          <p v-if="selected.handler" class="text-muted mt-3">
-            Người xử lý: {{ selected.handler.name }}
-          </p>
-        </template>
-        <RouterLink
-          v-else-if="selected.target.route"
-          :to="selected.target.route"
-          class="btn btn-outline-secondary"
-          >Xem nội dung</RouterLink
-        >
-      </div>
-    </article>
+            <div v-if="canHide" class="mb-3">
+              <button
+                v-if="!confirmHide"
+                class="btn btn-outline-danger"
+                @click="confirmHide = true"
+              >
+                Ẩn bình luận
+              </button>
+              <div v-else role="group" aria-label="Xác nhận ẩn bình luận">
+                <p>Ẩn bình luận này? Trạng thái báo cáo sẽ không tự thay đổi.</p>
+                <button class="btn btn-danger me-2" :disabled="actionBusy" @click="hideComment">
+                  Xác nhận ẩn</button
+                ><button
+                  class="btn btn-outline-secondary"
+                  :disabled="actionBusy"
+                  @click="confirmHide = false"
+                >
+                  Giữ lại
+                </button>
+              </div>
+            </div>
+            <p class="small text-muted">
+              Xử lý báo cáo không tự ẩn nội dung. Thao tác kiểm duyệt ở trên dùng quy tắc hiện có.
+            </p>
+            <p v-if="!canModerate" class="alert alert-secondary" data-own-report>
+              Báo cáo này nhắm vào nội dung của chính bạn nên bạn không thể xử lý. Một quản trị viên
+              khác sẽ tiếp nhận.
+            </p>
+            <form v-if="canModerate" class="border-top pt-3" @submit.prevent="processReport">
+              <label for="report-next-status" class="form-label">Bước xử lý tiếp theo</label
+              ><select
+                id="report-next-status"
+                v-model="status"
+                name="next_status"
+                class="form-select mb-3"
+                :disabled="actionBusy"
+                required
+              >
+                <option v-for="value in choices" :key="value" :value="value">
+                  {{
+                    value === selected.status
+                      ? `Giữ "${reportStatuses[value]}" — chỉ lưu ghi chú`
+                      : reportStatuses[value]
+                  }}
+                </option>
+              </select>
+              <label for="report-admin-note" class="form-label"
+                >Ghi chú nội bộ (không hiển thị cho người báo cáo)</label
+              ><textarea
+                id="report-admin-note"
+                v-model="note"
+                name="admin_note"
+                class="form-control mb-3"
+                rows="3"
+                maxlength="1000"
+                :disabled="actionBusy"
+              /><button class="btn btn-primary" :disabled="actionBusy">
+                {{ actionBusy ? 'Đang lưu…' : noteOnly ? 'Lưu ghi chú' : 'Xác nhận xử lý' }}
+              </button>
+            </form>
+            <p v-else-if="selected.admin_note" class="report-text">
+              <strong>Ghi chú nội bộ:</strong> {{ selected.admin_note }}
+            </p>
+            <p v-if="selected.handler" class="text-muted mt-3">
+              Người xử lý: {{ selected.handler.name }}
+            </p>
+          </template>
+          <RouterLink
+            v-else-if="selected.target.route"
+            :to="selected.target.route"
+            class="btn btn-outline-secondary"
+            >Xem nội dung</RouterLink
+          >
+        </div>
+      </article>
+    </DetailSheet>
   </section>
 </template>
 <style scoped>

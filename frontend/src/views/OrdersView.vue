@@ -1,7 +1,7 @@
 <script setup>
 import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import { useRoute } from 'vue-router'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import * as api from '../api/order.api'
 import { useFeedback } from '../composables/useFeedback'
 import { formatPrice } from '../composables/productPresentation'
@@ -11,6 +11,7 @@ import CollectionPager from '../components/CollectionPager.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const route = useRoute() || { query: {}, fullPath: '' }
 const actionRequired = ref(route.query.action_required === '1')
 const props = defineProps({ seller: Boolean })
@@ -56,6 +57,10 @@ watch(
 )
 onMounted(() => load())
 useSellerIdentity(() => (props.seller ? result.value?.data[0]?.shop : null))
+const activeFilters = computed(() => [
+  { label: 'Trạng thái', value: orderStatuses[status.value] },
+  { label: 'Cần xử lý', value: actionRequired.value ? 'Có' : '' },
+])
 </script>
 <template>
   <section :class="{ 'buyer-flow': !seller }">
@@ -93,7 +98,15 @@ useSellerIdentity(() => (props.seller ? result.value?.data[0]?.shop : null))
     </div>
     <div v-if="seller" class="order-tabs" role="group" aria-label="Lọc đơn bán theo trạng thái">
       <button
-        v-for="tab in ['', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPING', 'COMPLETED', 'CANCELLED']"
+        v-for="tab in [
+          '',
+          'PENDING',
+          'CONFIRMED',
+          'PROCESSING',
+          'SHIPPING',
+          'COMPLETED',
+          'CANCELLED',
+        ]"
         :key="tab"
         type="button"
         class="order-tab"
@@ -105,28 +118,31 @@ useSellerIdentity(() => (props.seller ? result.value?.data[0]?.shop : null))
         {{ tab ? orderStatuses[tab] : 'Tất cả' }}
       </button>
     </div>
-    <label v-if="seller" class="d-flex gap-2 align-items-center mt-3"
-      ><input v-model="actionRequired" type="checkbox" @change="load()" /> Chỉ đơn cần xử lý</label
-    >
-    <form v-if="seller" class="d-flex gap-2 my-3 seller-toolbar" @submit.prevent="load()">
-      <select v-model="status" aria-label="Trạng thái đơn" class="form-select">
-        <option value="">Mọi trạng thái</option>
-        <option
-          v-for="key in [
-            'PENDING',
-            'CONFIRMED',
-            'PROCESSING',
-            'SHIPPING',
-            'COMPLETED',
-            'CANCELLED',
-          ]"
-          :key="key"
-          :value="key"
-        >
-          {{ orderStatuses[key] }}
-        </option></select
-      ><button class="btn btn-outline-secondary" :disabled="busy">Lọc</button>
-    </form>
+    <FilterSheet v-if="seller" :active="activeFilters">
+      <label class="d-flex gap-2 align-items-center"
+        ><input v-model="actionRequired" type="checkbox" @change="load()" /> Chỉ đơn cần xử
+        lý</label
+      >
+      <form class="d-flex gap-2 seller-toolbar" @submit.prevent="load()">
+        <select v-model="status" aria-label="Trạng thái đơn" class="form-select">
+          <option value="">Mọi trạng thái</option>
+          <option
+            v-for="key in [
+              'PENDING',
+              'CONFIRMED',
+              'PROCESSING',
+              'SHIPPING',
+              'COMPLETED',
+              'CANCELLED',
+            ]"
+            :key="key"
+            :value="key"
+          >
+            {{ orderStatuses[key] }}
+          </option></select
+        ><button class="btn btn-outline-secondary" :disabled="busy">Lọc</button>
+      </form>
+    </FilterSheet>
     <template v-if="result && !result.data.length && !busy && !error"
       ><EmptyState
         v-if="seller"

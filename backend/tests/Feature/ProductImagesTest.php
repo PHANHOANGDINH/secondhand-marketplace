@@ -147,7 +147,7 @@ class ProductImagesTest extends TestCase
         $this->assertSame([], Storage::disk('public')->allFiles());
     }
 
-    public function test_image_changes_trigger_review_and_snapshot_reference_keeps_file(): void
+    public function test_image_changes_keep_a_live_listing_live_and_snapshot_reference_keeps_file(): void
     {
         $product = $this->emptyProduct();
         $this->upload($product)->assertCreated();
@@ -155,7 +155,7 @@ class ProductImagesTest extends TestCase
         $item = OrderItem::factory()->for($product)->create(['product_image' => $image->image_path]);
         $product->update(['status' => ProductStatus::ACTIVE]);
         $this->deleteJson('/api/v1/seller/products/'.$product->id.'/images/'.$image->id)->assertNoContent();
-        $this->assertSame(ProductStatus::PENDING, $product->refresh()->status);
+        $this->assertSame(ProductStatus::ACTIVE, $product->refresh()->status);
         Storage::disk('public')->assertExists($image->image_path);
         $this->assertSame($image->image_path, $item->refresh()->product_image);
     }

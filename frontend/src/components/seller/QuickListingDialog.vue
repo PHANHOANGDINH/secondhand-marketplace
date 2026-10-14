@@ -34,7 +34,7 @@ async function dismiss() {
     id="quick-listing-dialog"
     ref="dialog"
     title="Đăng bán nhanh"
-    description="Ảnh rõ ràng, thông tin trung thực. Lưu bản nháp rồi gửi duyệt khi sẵn sàng."
+    description="Ảnh rõ ràng, thông tin trung thực. Lưu bản nháp rồi bấm Đăng bán: tin hiện ngay."
     :busy="busy"
     @dismiss="dismiss"
   >
@@ -43,8 +43,12 @@ async function dismiss() {
       title="Lần đầu đăng bán"
       :steps="[
         { title: 'Ảnh:', text: 'ảnh vuông, đủ sáng hiển thị đẹp nhất.' },
-        { title: 'Bản nháp:', text: 'lưu trước, gửi duyệt khi đã sẵn sàng.' },
-        { title: 'Kiểm duyệt:', text: 'tin chỉ hiện công khai sau khi được duyệt.' },
+        { title: 'Bản nháp:', text: 'lưu trước, bấm Đăng bán khi đã sẵn sàng.' },
+        { title: 'Đăng ngay:', text: 'tin hiện công khai ngay, không phải chờ duyệt.' },
+        {
+          title: 'Báo cáo:',
+          text: 'tin bị nhiều người báo cáo sẽ tạm ẩn chờ quản trị viên xem xét.',
+        },
       ]"
     />
     <SellerProductEditor ref="editor" embedded @busy-change="busy = $event" />

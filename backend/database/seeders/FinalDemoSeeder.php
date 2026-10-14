@@ -98,7 +98,7 @@ class FinalDemoSeeder extends Seeder
                     }
                     if (! $shop) {
                         $shop = app(ShopService::class)->create($seller, ['name' => 'C1 Demo · '.$name, 'description' => 'Gian hàng minh họa local. Sản phẩm và địa chỉ đều là dữ liệu demo.']);
-                        $shop = app(ShopService::class)->moderate($this->users['admin'], $shop, ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Local C1 demo approved']);
+                        // Shops open at once; no approval step.
                     }
                     // Area for the demo shops only, and only when none is set yet.
                     if ($shop->province_code === null) {
@@ -143,8 +143,8 @@ class FinalDemoSeeder extends Seeder
                         foreach ($product->images()->pluck('image_path') as $path) {
                             $this->createdFiles[] = ['image', $path, $product->id];
                         }
+                        // Publishing needs no review.
                         $product = app(ProductService::class)->action($seller, $product, 'submit');
-                        $product = app(ProductService::class)->moderate($this->users['admin'], $product, ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Local C1 demo approved']);
                     }
                     $this->products[$index] = $product;
                 }
@@ -375,11 +375,14 @@ class FinalDemoSeeder extends Seeder
             foreach ($product->images()->pluck('image_path') as $path) {
                 $this->createdFiles[] = ['image', $path, $product->id];
             }
+            // Published at once; "rejected" is taken down by the admin, "pending" then asks to be reopened.
             $product = app(ProductService::class)->action($seller, $product, 'submit');
-            if ($status === 'PENDING') {
-                continue;
+            if (in_array($status, ['PENDING', 'REJECTED'], true)) {
+                $product = app(ProductService::class)->moderate($this->users['admin'], $product, ['expected_status' => 'ACTIVE', 'status' => 'REJECTED', 'reason' => 'Demo D4: bổ sung mô tả tình trạng sản phẩm.']);
             }
-            $product = app(ProductService::class)->moderate($this->users['admin'], $product, ['expected_status' => 'PENDING', 'status' => $status === 'REJECTED' ? 'REJECTED' : 'ACTIVE', 'reason' => $status === 'REJECTED' ? 'Demo D4: bổ sung mô tả tình trạng sản phẩm.' : 'Local D4 demo approved']);
+            if ($status === 'PENDING') {
+                app(ProductService::class)->action($seller, $product, 'reopen');
+            }
             if ($status === 'SOLD') {
                 app(ProductService::class)->update($seller, $product, ['stock_quantity' => 0, 'expected_updated_at' => $product->updated_at->toISOString()]);
             }

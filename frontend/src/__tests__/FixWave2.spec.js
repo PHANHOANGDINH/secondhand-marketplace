@@ -162,12 +162,12 @@ it('seller editor disables content and images but keeps videos while an auction 
   expect(wrapper.text()).not.toContain('Chỉ thay đổi tồn kho thì sản phẩm vẫn tiếp tục')
 })
 
-it('seller editor stays editable without a claim and describes the stock-only rule', async () => {
+it('seller editor stays editable without a claim and says edits apply at once', async () => {
   vi.spyOn(productApi, 'getSellerProduct').mockResolvedValue(product())
   const wrapper = await show(SellerProductEditView, '/seller/products/10/edit')
   expect(wrapper.find('[data-auction-lock]').exists()).toBe(false)
   expect(wrapper.get('#seller-product-form fieldset').attributes('disabled')).toBeUndefined()
   expect(wrapper.find('#seller-product-form button[type="submit"]').exists()).toBe(true)
   expect(wrapper.get('#product_images').attributes('disabled')).toBeUndefined()
-  expect(wrapper.text()).toContain('Chỉ thay đổi tồn kho thì sản phẩm vẫn tiếp tục')
+  expect(wrapper.text()).toContain('sửa nội dung, hình ảnh hay tồn kho đều có hiệu lực ngay')
 })

@@ -31,11 +31,11 @@ class ShopManagementTest extends TestCase
         $this->actingAs($user, 'web');
     }
 
-    public function test_create_pending_shop_unique_owner_and_stable_slug(): void
+    public function test_create_active_shop_unique_owner_and_stable_slug(): void
     {
         $user = User::factory()->create();
         $this->loginAs($user);
-        $shop = $this->postJson('/api/v1/shops', ['name' => 'Do Cu Phat'])->assertCreated()->assertJsonPath('data.status', 'PENDING')->json('data');
+        $shop = $this->postJson('/api/v1/shops', ['name' => 'Do Cu Phat'])->assertCreated()->assertJsonPath('data.status', 'ACTIVE')->json('data');
         $this->assertSame(UserRole::USER, $user->refresh()->role);
         $this->getJson('/api/v1/seller/shop')->assertOk()->assertJsonPath('data.id', $shop['id']);
         $this->patchJson('/api/v1/seller/shop', ['name' => 'Another Name'])->assertOk()->assertJsonPath('data.slug', $shop['slug']);

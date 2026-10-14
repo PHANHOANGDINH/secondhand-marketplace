@@ -14,6 +14,7 @@ import LoadingState from '../components/ui/LoadingState.vue'
 import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import CollectionPager from '../components/CollectionPager.vue'
+import FilterSheet from '../components/ui/FilterSheet.vue'
 const auth = useAuthStore(),
   route = useRoute(),
   router = useRouter()
@@ -117,6 +118,11 @@ onUnmounted(() => {
   disposed = true
   sequence++
 })
+const activeFilters = computed(() => [
+  { label: 'Trạng thái', value: auctionStatusLabels[filters.status] },
+  { label: 'Kết quả', value: settlementStatusLabels[filters.settlement] },
+  { label: 'Quá hạn', value: filters.overdue ? 'Có' : '' },
+])
 </script>
 <template>
   <section v-if="auth.isAdmin" class="admin-auctions">
@@ -125,41 +131,49 @@ onUnmounted(() => {
       eyebrow="Quản trị · Đấu giá"
       description="Theo dõi mọi phiên đấu giá và dừng phiên vi phạm, kể cả khi đã có người đặt giá."
     />
-    <form class="row g-2 align-items-end my-3 admin-toolbar" @submit.prevent="apply()">
-      <label class="col-sm-6 col-lg-3"
-        >Trạng thái phiên<select v-model="filters.status" name="status" class="form-select">
-          <option value="">Tất cả</option>
-          <option v-for="(label, value) in auctionStatusLabels" :key="value" :value="value">
-            {{ label }}
-          </option>
-        </select></label
-      >
-      <label class="col-sm-6 col-lg-3"
-        >Kết quả sau phiên<select v-model="filters.settlement" name="settlement" class="form-select">
-          <option value="">Tất cả</option>
-          <option v-for="(label, value) in settlementStatusLabels" :key="value" :value="value">
-            {{ label }}
-          </option>
-        </select></label
-      >
-      <div class="col-sm-6 col-lg-3">
-        <div class="form-check mb-2">
-          <input
-            id="auction-overdue"
-            v-model="filters.overdue"
-            class="form-check-input"
-            type="checkbox"
-            name="overdue"
-          /><label class="form-check-label" for="auction-overdue">Chỉ phiên quá hạn chưa kết thúc</label>
+    <FilterSheet :active="activeFilters">
+      <form class="row g-2 align-items-end admin-toolbar" @submit.prevent="apply()">
+        <label class="col-sm-6 col-lg-3"
+          >Trạng thái phiên<select v-model="filters.status" name="status" class="form-select">
+            <option value="">Tất cả</option>
+            <option v-for="(label, value) in auctionStatusLabels" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
+        >
+        <label class="col-sm-6 col-lg-3"
+          >Kết quả sau phiên<select
+            v-model="filters.settlement"
+            name="settlement"
+            class="form-select"
+          >
+            <option value="">Tất cả</option>
+            <option v-for="(label, value) in settlementStatusLabels" :key="value" :value="value">
+              {{ label }}
+            </option>
+          </select></label
+        >
+        <div class="col-sm-6 col-lg-3">
+          <div class="form-check mb-2">
+            <input
+              id="auction-overdue"
+              v-model="filters.overdue"
+              class="form-check-input"
+              type="checkbox"
+              name="overdue"
+            /><label class="form-check-label" for="auction-overdue"
+              >Chỉ phiên quá hạn chưa kết thúc</label
+            >
+          </div>
         </div>
-      </div>
-      <div class="col-sm-6 col-lg-3 d-flex gap-2">
-        <button class="btn btn-primary" :disabled="busy">Lọc</button
-        ><button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
-          Tải lại
-        </button>
-      </div>
-    </form>
+        <div class="col-sm-6 col-lg-3 d-flex gap-2">
+          <button class="btn btn-primary" :disabled="busy">Lọc</button
+          ><button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">
+            Tải lại
+          </button>
+        </div>
+      </form>
+    </FilterSheet>
     <p v-if="highlighted" class="alert alert-info" data-highlight-note>
       Đang hiển thị phiên đấu giá số {{ highlighted }}.
       <RouterLink to="/admin/auctions">Xem tất cả phiên</RouterLink>

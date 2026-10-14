@@ -257,8 +257,8 @@ function closeAccountMenu(event) {
                   >Tổng quan đơn hàng</RouterLink
                 >
                 <RouterLink to="/admin/categories">Quản lý danh mục</RouterLink
-                ><RouterLink to="/admin/shops">Kiểm duyệt gian hàng</RouterLink
-                ><RouterLink to="/admin/products">Kiểm duyệt sản phẩm</RouterLink></template
+                ><RouterLink to="/admin/shops">Gian hàng</RouterLink
+                ><RouterLink to="/admin/products">Tin đăng</RouterLink></template
               >
               <button type="button" class="marketplace-menu-button" @click="replayGuides">
                 Xem lại hướng dẫn

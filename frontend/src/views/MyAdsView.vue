@@ -18,9 +18,9 @@ import ProductPhoto from '../components/ProductPhoto.vue'
 const tabs = [
   { key: 'active', label: 'Đang hiển thị', count: 'ACTIVE', filter: { status: 'ACTIVE' } },
   { key: 'sold', label: 'Hết hàng', count: 'SOLD', filter: { status: 'SOLD' } },
-  { key: 'rejected', label: 'Bị từ chối', count: 'REJECTED', filter: { status: 'REJECTED' } },
+  { key: 'rejected', label: 'Bị gỡ', count: 'REJECTED', filter: { status: 'REJECTED' } },
   { key: 'draft', label: 'Tin nháp', count: 'DRAFT', filter: { status: 'DRAFT' } },
-  { key: 'pending', label: 'Chờ duyệt', count: 'PENDING', filter: { status: 'PENDING' } },
+  { key: 'pending', label: 'Chờ xem xét', count: 'PENDING', filter: { status: 'PENDING' } },
   { key: 'hidden', label: 'Đã ẩn', count: 'HIDDEN', filter: { status: 'HIDDEN' } },
   { key: 'auction', label: 'Đang đấu giá', count: 'AUCTION', filter: { auction: 1 } },
 ]
@@ -175,7 +175,7 @@ onMounted(() => {
           <strong class="my-ad-name">{{ product.name }}</strong>
           <span class="my-ad-price">{{ formatPrice(product.price) }}</span>
           <span class="my-ad-meta"
-            ><InventoryBadge :product="product" /> <StatusBadge :status="product.status" />
+            ><InventoryBadge :product="product" /> <StatusBadge :status="product.status" domain="product" />
             <small
               >{{ conditionLabel(product.condition) }} · Đăng ngày
               {{ new Date(product.created_at).toLocaleDateString('vi-VN') }}</small

@@ -600,7 +600,8 @@ function closeAccountMenu(event) {
     display: inline;
   }
 }
-@media (max-width: 1199px) {
+/* Below a wide desktop the mode switcher already carries this link; the search needs the room. */
+@media (max-width: 1499px) {
   .marketplace-manage {
     display: none;
   }

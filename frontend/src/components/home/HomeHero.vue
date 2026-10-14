@@ -80,6 +80,8 @@ onMounted(async () => {
 <style scoped>
 .home-hero {
   display: grid;
+  /* Without this the scrolling category row sets the column width and the page overflows on phones. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   margin-bottom: var(--space-8);
 }

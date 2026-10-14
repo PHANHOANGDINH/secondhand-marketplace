@@ -113,8 +113,8 @@ Use C1 Demo 17 (Clean Code) to demonstrate a one-unit listing. C1 Demo 18 is an 
 
 ### B — Seller (Seller 1 or Seller 2)
 
-1. Header → **Đăng bán nhanh**. Create a small draft with a repository-owned demo image, or inspect an existing C1 product.
-2. Seller → Products → Edit: basic information, image order/primary selection and optional video.
+1. Header → **Đăng tin**. Create a small draft with a repository-owned demo image, or inspect an existing C1 product.
+2. Header → **Quản lý tin** (`/my-ads`) → tab **Tin nháp** → "Xem / Sửa": basic information, image order/primary selection and optional video.
 3. Submit for moderation; it is not automatically public. Show dashboard and Orders, then Shop status.
 
 New drafts created during a presentation are intentional demo activity. Do not delete order-linked records to make the screen look pristine.
@@ -157,14 +157,16 @@ The order below matches the browser journeys that were verified end to end ([D8 
 | Min | Journey | What to show |
 | --- | --- | --- |
 | 0:00 | H | Sign in as Buyer C: the welcome tour opens. Go through one step, press "Bỏ qua". Mention "Xem lại hướng dẫn" in the account menu. |
-| 0:45 | A | Sign out. As a guest search "Sony", filter by condition, open **C1 Demo 10**. "Thêm vào giỏ" sends you to sign in (Buyer B) and back. Cart → checkout → enter **PASSLAI10** → the total drops by 50,000 ₫ → COD. Show the code on the order. |
+| 0:45 | A | Sign out. On the home page press **Chọn khu vực**, pick Hồ Chí Minh, "Xác nhận": the feed and the address bar follow. Switch back to "Toàn quốc". As a guest search "Sony", filter by condition, open **C1 Demo 10**. "Thêm vào giỏ" sends you to sign in (Buyer B) and back. Cart → checkout → enter **PASSLAI10** → the total drops by 50,000 ₫ → COD. Show the code on the order. |
 | 2:15 | B | Open **C1 Demo 09**, press "Mua ngay". Checkout lists only that line. Enter **CONGNGHE20K** in the shop box → minus 20,000 ₫ → order. Open the cart: the other item is still there. |
-| 3:15 | C | Seller 1: "Đăng bán nhanh", fill the form, upload a photo, "Gửi duyệt". Profile 2, Admin → Sản phẩm → approve with a reason. Seller 1 → Tồn kho → change the stock → still active. Seller 1 → Đơn hàng → confirm the order from A. |
+| 3:15 | C | Seller 1: open the mode switcher next to the logo → "Dành cho người bán" → **Quản lý tin**: show the counted tabs. "Đăng tin", fill the form, upload a photo, "Gửi duyệt" (the ad moves to "Chờ duyệt"). Profile 2, Admin → Sản phẩm → approve with a reason. Seller 1 → Tồn kho → change the stock → still active. Seller 1 → Đơn hàng → confirm the order from A. |
 | 5:00 | D | Buyer A (profile 1) and Buyer C (profile 2) open the same LIVE auction. A bids; the price changes in C's window without a reload. C bids higher; A gets the outbid toast. Explain that the scheduler ends the auction and only the winner gets the checkout form (show the already settled demo auction). |
 | 6:30 | E | Home → "Video đánh giá" → open a video in both profiles. Comment in one; it appears in the other. |
 | 7:15 | F | Buyer A: product page → "Nhắn người bán" → send a message; add to wishlist; "Báo cáo sản phẩm". Seller 2 sees the message in the chat drawer. |
 | 8:15 | G | Admin → Việc cần xử lý: the cards. Đối soát thanh toán → record "Đã hoàn tiền bên ngoài" with a note. Phiên đấu giá → cancel a LIVE auction with a reason. Gian hàng → suspend a shop; its public page is gone. Báo cáo vi phạm → take the report from F. |
 | 9:30 | — | Buffer and questions. |
+
+The mode switcher (buyer / seller / admin) only changes which shortcuts are shown; it never grants a role, and a normal account is not offered the admin mode. The area filter needs shops with a province: a Seller sets it in Gian hàng → "Tỉnh / thành phố" (the demo shops get one from the seeder on a freshly seeded database; on an existing database set it once by hand).
 
 Before the run: the four processes are up (`start-dev.ps1`), the demo data is seeded with the current seeder (vouchers, a payment awaiting reconciliation, a LIVE auction) and both profiles are signed out. Journey D needs a LIVE auction with enough time left; the seeded ones run for three days from seeding. Suspending a shop in G hides its products, so do G last.
 

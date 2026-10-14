@@ -3,8 +3,11 @@
 # Usage: go.sh <script.mjs> [journey ...]
 cd /d/CN/Web/secondhand-marketplace || exit 1
 EDGE="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+# Profiles live outside the repo: Vite watches frontend/ and dies with EBUSY on Edge's locked cache files.
+PROFILES="${TEMP:-/tmp}/passlai-e2e"
+mkdir -p "$PROFILES"
 for port in 9351 9352; do
-  ("$EDGE" --headless=new --remote-debugging-port=$port --user-data-dir="$(cygpath -w "$PWD/frontend/e2e/profile-$port")" --no-first-run --disable-gpu --autoplay-policy=no-user-gesture-required about:blank >/dev/null 2>&1 &)
+  ("$EDGE" --headless=new --remote-debugging-port=$port --user-data-dir="$(cygpath -w "$PROFILES/profile-$port")" --no-first-run --disable-gpu --autoplay-policy=no-user-gesture-required about:blank >/dev/null 2>&1 &)
 done
 for i in $(seq 1 15); do curl -s http://127.0.0.1:9351/json/version >/dev/null && curl -s http://127.0.0.1:9352/json/version >/dev/null && break; timeout 1 ping -n 2 127.0.0.1 >/dev/null; done
 script=$1; shift

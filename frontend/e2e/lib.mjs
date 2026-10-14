@@ -136,7 +136,8 @@ export class Page {
       const m = await this.evaluate('({w: document.documentElement.scrollWidth, vw: innerWidth})')
       const s = await this.call('Page.captureScreenshot', { format: 'png' })
       await fs.writeFile(new URL(`${name}-${width}.png`, OUT), Buffer.from(s.data, 'base64'))
-      report.shots[`${name}-${width}`] = m.w > m.vw + 1 ? `OVERFLOW ${m.w}>${m.vw}` : 'ok'
+      // An emulated phone viewport grows to fit overflowing content, so the requested width is the real limit.
+      report.shots[`${name}-${width}`] = m.w > Math.min(m.vw, width) + 1 ? `OVERFLOW ${m.w}>${width}` : 'ok'
     }
     await this.size(1440)
     await sleep(300)

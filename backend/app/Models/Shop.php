@@ -13,7 +13,7 @@ class Shop extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['owner_id', 'name', 'slug', 'description', 'logo_path', 'status', 'moderation_reason'];
+    protected $fillable = ['owner_id', 'name', 'slug', 'description', 'province_code', 'logo_path', 'status', 'moderation_reason'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

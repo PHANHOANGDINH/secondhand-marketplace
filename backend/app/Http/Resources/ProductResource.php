@@ -7,6 +7,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
 {
+    /** The shop's area, when the query selected it. The name comes from config, not from another query. */
+    private function area(): array
+    {
+        $shop = $this->shop->getAttributes();
+        if (! array_key_exists('province_code', $shop)) {
+            return [];
+        }
+
+        return ['province_code' => $shop['province_code'], 'province_name' => $shop['province_code'] === null ? null : config('provinces.list.'.$shop['province_code'])];
+    }
+
     /** Present only when the shop was loaded through ProductQuery::related(), which computes them in the same query. */
     private function sellerStats(): array
     {
@@ -35,7 +46,7 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity, 'condition' => $this->condition->value,
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
             'primary_image' => $this->whenLoaded('images', fn () => ($primary = $this->images->firstWhere('is_primary', true)) ? new ProductImageResource($primary) : null),
-            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, ...$this->sellerStats()] : null),
+            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, ...$this->area(), ...$this->sellerStats()] : null),
             'category' => $this->whenLoaded('category', fn () => $this->category ? ['id' => (string) $this->category->id, 'name' => $this->category->name, 'slug' => $this->category->slug] : null),
             'auction' => $this->whenLoaded('auctionClaim', fn () => $this->auctionClaim ? ['id' => (string) $this->auctionClaim->id, 'status' => $this->auctionClaim->status->value, 'current_price' => $this->auctionClaim->current_price] : null),
             'created_at' => $this->created_at?->toISOString(), 'published_at' => $this->published_at?->toISOString(),

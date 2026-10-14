@@ -8,15 +8,18 @@ import * as shopsApi from '../api/shop.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import { useArea } from '../composables/useArea'
 const shop = ref(null),
   loaded = ref(false)
-const form = reactive({ name: '', description: '' })
+const form = reactive({ name: '', description: '', province_code: '' })
+const { provinces, loadProvinces } = useArea()
 const { busy, error, errors, success, run } = useFeedback()
 const suspended = computed(() => shop.value?.status === 'SUSPENDED')
 function fill(value) {
   shop.value = value
   form.name = value?.name || ''
   form.description = value?.description || ''
+  form.province_code = value?.province_code || ''
 }
 const load = () =>
   run(async () => {
@@ -30,11 +33,19 @@ const load = () =>
   })
 const save = () =>
   run(async () => {
-    const data = { name: form.name, description: form.description || null }
+    const data = {
+      name: form.name,
+      description: form.description || null,
+      // Sent only when an area is chosen or an existing one is cleared.
+      ...(form.province_code || shop.value?.province_code
+        ? { province_code: form.province_code || null }
+        : {}),
+    }
     fill(await (shop.value ? shopsApi.updateShop(data) : shopsApi.createShop(data)))
   }, 'Đã lưu gian hàng.')
 const submit = () => run(async () => fill(await shopsApi.submitShop()), 'Đã gửi lại để xét duyệt.')
 onMounted(load)
+onMounted(loadProvinces)
 useSellerIdentity(() => shop.value)
 </script>
 <template>
@@ -71,6 +82,7 @@ useSellerIdentity(() => shop.value)
             }[shop.status]
           }}
         </p>
+        <p>Khu vực: {{ shop.province_name || 'Chưa chọn' }}</p>
         <p v-if="shop.moderation_reason">Thông tin kiểm duyệt: {{ shop.moderation_reason }}</p>
         <RouterLink v-if="shop.status === 'ACTIVE'" :to="`/shops/${shop.slug}`"
           >Xem gian hàng công khai</RouterLink
@@ -102,6 +114,18 @@ useSellerIdentity(() => shop.value)
           :maxlength="10000"
           :disabled="suspended || busy"
           :errors="errors.description"
+        />
+        <DomainField
+          v-model="form.province_code"
+          name="province_code"
+          label="Khu vực (tỉnh/thành)"
+          type="select"
+          :options="[
+            { value: '', label: 'Chưa chọn khu vực' },
+            ...provinces.map((row) => ({ value: row.code, label: row.name })),
+          ]"
+          :disabled="suspended || busy"
+          :errors="errors.province_code"
         />
         <button v-if="!suspended" type="submit" class="btn btn-primary" :disabled="busy">
           {{ shop ? 'Lưu gian hàng' : 'Tạo gian hàng' }}

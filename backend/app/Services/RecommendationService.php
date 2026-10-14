@@ -23,14 +23,15 @@ class RecommendationService
     public function __construct(private ProductQuery $products) {}
 
     /** Ranked public products for one user (or guests), each carrying a Vietnamese `reason_label`. */
-    public function forUser(?User $user, int $limit): Collection
+    public function forUser(?User $user, int $limit, ?string $province = null): Collection
     {
         // Only ids and reasons are cached, per user; the products themselves are re-read so
         // visibility, price and is_wishlisted are always current.
         $ranked = Cache::remember(
-            'recommendations:v1:'.($user?->id ?? 'guest'),
+            // Without an area the key and the ranking are exactly what they were before the area filter existed.
+            'recommendations:v1:'.($user?->id ?? 'guest').($province === null ? '' : ':p'.$province),
             now()->addMinutes((int) config('recommendations.cache_minutes')),
-            fn (): array => $this->rank($user),
+            fn (): array => $this->rank($user, $province),
         );
         if ($ranked === []) {
             return new Collection;
@@ -52,13 +53,14 @@ class RecommendationService
     }
 
     /** Same or parent category, price within the configured tolerance, same shop first. */
-    public function similar(Product $product, int $limit): Collection
+    public function similar(Product $product, int $limit, ?string $province = null): Collection
     {
         $tolerance = (string) config('recommendations.similar_price_tolerance');
         $categories = array_values(array_filter([$product->category_id, Category::whereKey($product->category_id)->value('parent_id')]));
 
         return $this->products->related($this->products->publicVisible())
             ->whereKeyNot($product->id)
+            ->when($province !== null, fn (Builder $query) => $this->products->inProvince($query, $province))
             ->whereIn('category_id', $categories)
             ->whereBetween('price', [bcmul($product->price, bcsub('1', $tolerance, 2), 2), bcmul($product->price, bcadd('1', $tolerance, 2), 2)])
             ->orderByRaw('shop_id = ? DESC', [$product->shop_id])
@@ -69,12 +71,12 @@ class RecommendationService
     }
 
     /** @return list<array{id: int, reason: string}> */
-    private function rank(?User $user): array
+    private function rank(?User $user, ?string $province = null): array
     {
         $config = config('recommendations');
         $now = now();
         $since = $now->copy()->subDays((int) $config['window_days']);
-        $candidates = $this->candidates($user, $since, $config);
+        $candidates = $this->candidates($user, $since, $config, $province);
         if ($candidates->isEmpty()) {
             return [];
         }
@@ -129,10 +131,11 @@ class RecommendationService
     }
 
     /** At most `candidate_limit` public products outside the user's own shop: the most popular first, then the newest. */
-    private function candidates(?User $user, Carbon $since, array $config): Collection
+    private function candidates(?User $user, Carbon $since, array $config, ?string $province = null): Collection
     {
         $ownShops = $user ? Shop::withTrashed()->where('owner_id', $user->id)->pluck('id')->all() : [];
-        $base = fn (): Builder => $this->products->publicVisible()->when($ownShops !== [], fn (Builder $query) => $query->whereNotIn('shop_id', $ownShops));
+        $base = fn (): Builder => $this->products->publicVisible()->when($ownShops !== [], fn (Builder $query) => $query->whereNotIn('shop_id', $ownShops))
+            ->when($province !== null, fn (Builder $query) => $this->products->inProvince($query, $province));
         $activity = DB::table('wishlists')->select('product_id')->where('created_at', '>=', $since)
             ->unionAll($this->orderLines($since)->select('order_items.product_id'));
         $popular = $base()

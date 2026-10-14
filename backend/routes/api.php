@@ -67,6 +67,7 @@ Route::middleware('throttle:public-read')->group(function (): void {
     Route::get('/shops', [PublicShopController::class, 'index']);
     Route::get('/shops/{slug}', [PublicShopController::class, 'show']);
     Route::get('/categories', [PublicCategoryController::class, 'index']);
+    Route::get('/provinces', fn () => response()->json(['data' => array_map(fn (string $code, string $name): array => ['code' => $code, 'name' => $name, 'featured' => in_array($code, config('provinces.featured'), true)], array_map('strval', array_keys(config('provinces.list'))), array_values(config('provinces.list')))]));
     Route::get('/categories/{slug}', [PublicCategoryController::class, 'show']);
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {

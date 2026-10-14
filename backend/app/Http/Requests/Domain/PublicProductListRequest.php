@@ -24,7 +24,7 @@ class PublicProductListRequest extends DomainRequest
     {
         return [
             'q' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search') || $this->filled('keyword'))],
-            'has_video' => ['sometimes', 'boolean'],
+            'has_video' => ['sometimes', 'boolean'], 'province' => ['sometimes', 'string', Rule::in(array_map('strval', array_keys(config('provinces.list'))))],
             'sale_type' => ['sometimes', Rule::in(['fixed', 'auction'])],
             'search' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('keyword'))], 'keyword' => ['sometimes', 'nullable', 'string', 'max:100', Rule::prohibitedIf(fn (): bool => $this->filled('search'))], 'category' => ['sometimes', 'integer', 'min:1'],
             'shop' => ['sometimes', 'integer', 'min:1'], 'condition' => ['sometimes', Rule::enum(ProductCondition::class)],

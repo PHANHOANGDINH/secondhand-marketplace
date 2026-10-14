@@ -100,6 +100,10 @@ class FinalDemoSeeder extends Seeder
                         $shop = app(ShopService::class)->create($seller, ['name' => 'C1 Demo · '.$name, 'description' => 'Gian hàng minh họa local. Sản phẩm và địa chỉ đều là dữ liệu demo.']);
                         $shop = app(ShopService::class)->moderate($this->users['admin'], $shop, ['expected_status' => 'PENDING', 'status' => 'ACTIVE', 'reason' => 'Local C1 demo approved']);
                     }
+                    // Area for the demo shops only, and only when none is set yet.
+                    if ($shop->province_code === null) {
+                        $shop->forceFill(['province_code' => $key === 'seller-1' ? '79' : '01'])->save();
+                    }
                     $shops[$key] = $shop;
                 }
                 // D6 demo vouchers: one platform code and one shop code. Created once and never overwritten.

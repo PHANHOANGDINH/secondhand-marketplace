@@ -60,6 +60,7 @@ class FinalDemoSeederTest extends TestCase
         $this->assertDatabaseCount('reports', 3);
         $this->assertSame(['DISMISSED' => 1, 'IN_REVIEW' => 1, 'PENDING' => 1], Report::select('status', DB::raw('COUNT(*) AS total'))->groupBy('status')->orderBy('status')->pluck('total', 'status')->all());
         $this->assertSame(2, Shop::where('status', 'ACTIVE')->count());
+        $this->assertSame(['79', '01'], Shop::where('name', 'like', 'C1 Demo%')->orderBy('id')->pluck('province_code')->all());
         $inventoryShop = Shop::where('owner_id', User::where('email', 'c1-seller-1@example.test')->sole()->id)->sole();
         $summary = app(SellerInventoryService::class)->summary($inventoryShop);
         $this->assertGreaterThan(0, $summary['low_stock_products']);

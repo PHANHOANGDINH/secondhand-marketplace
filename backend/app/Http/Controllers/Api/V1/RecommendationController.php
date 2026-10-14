@@ -15,13 +15,13 @@ class RecommendationController extends Controller
 
     public function index(RecommendationListRequest $request): AnonymousResourceCollection
     {
-        return ProductResource::collection($this->recommendations->forUser($request->user('sanctum'), $request->integer('limit', 12)));
+        return ProductResource::collection($this->recommendations->forUser($request->user('sanctum'), $request->integer('limit', 12), $request->input('province')));
     }
 
     public function similar(RecommendationListRequest $request, string $slug): AnonymousResourceCollection
     {
         $product = $this->query->publicVisible()->where('slug', $slug)->firstOrFail();
 
-        return ProductResource::collection($this->recommendations->similar($product, $request->integer('limit', 8)));
+        return ProductResource::collection($this->recommendations->similar($product, $request->integer('limit', 8), $request->input('province')));
     }
 }

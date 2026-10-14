@@ -7,6 +7,7 @@ use App\Enums\ProductVideoStatus;
 use App\Enums\ReviewStatus;
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\Shop;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,7 +32,13 @@ class ProductQuery
 
         $query->withExists(['videos as has_video' => $this->publicVideos()]);
 
-        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $this->sellerStats($q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at', 'created_at')), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+        return ReviewService::withSummary($query)->with(['auctionClaim:id,product_id,status,current_price', 'shop' => fn (BelongsTo $q) => $this->sellerStats($q->withTrashed()->select('id', 'name', 'slug', 'owner_id', 'status', 'deleted_at', 'created_at', 'province_code')), 'category:id,name,slug', 'images' => fn (HasMany $q) => $q->orderBy('sort_order')->orderBy('id')]);
+    }
+
+    /** Limits products to shops located in one province (config/provinces.php code). */
+    public function inProvince(Builder $query, string $code): Builder
+    {
+        return $query->whereIn('shop_id', Shop::query()->where('province_code', $code)->select('id'));
     }
 
     /** Seller-card figures for the eager-loaded shop: published reviews across all of its products, as two subselects. */
@@ -66,6 +73,9 @@ class ProductQuery
             if (isset($filters[$field])) {
                 $query->where($field, $filters[$field]);
             }
+        }
+        if (isset($filters['province'])) {
+            $this->inProvince($query, $filters['province']);
         }
         if (isset($filters['shop'])) {
             $query->where('shop_id', $filters['shop']);

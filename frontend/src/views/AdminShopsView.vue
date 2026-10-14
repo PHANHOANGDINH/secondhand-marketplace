@@ -186,6 +186,7 @@ onMounted(async () => {
             Chủ gian hàng: {{ selected.owner?.name || `#${selected.owner_id}` }}
           </p>
           <p>{{ selected.description }}</p>
+          <p>Khu vực: {{ selected.province_name || 'Chưa chọn' }}</p>
           <p v-if="selected.moderation_reason">Lý do gần nhất: {{ selected.moderation_reason }}</p>
           <button
             class="btn btn-outline-secondary btn-sm mb-3"

@@ -29,6 +29,11 @@ export async function forgotPassword(details) {
   await getCsrfCookie()
   return (await api.post('/api/v1/auth/forgot-password', details)).data
 }
+/** A signed-in user's new password; returns the user (must_change_password cleared). */
+export async function changePassword(details) {
+  await getCsrfCookie()
+  return (await api.patch('/api/v1/auth/password', details)).data.data
+}
 export async function resetPassword(details) {
   await getCsrfCookie()
   return (await api.post('/api/v1/auth/reset-password', details)).data

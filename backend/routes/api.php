@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\AdminShopController;
 use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuctionCheckoutController;
 use App\Http\Controllers\Api\V1\AuctionController;
+use App\Http\Controllers\Api\V1\Auth\AccountPasswordController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\CartController;
@@ -59,6 +60,7 @@ Route::prefix('auth')->name('auth.')->group(function (): void {
     });
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/me', [AuthController::class, 'me'])->middleware(EnsureActiveAccount::class)->name('me');
+        Route::patch('/password', [AccountPasswordController::class, 'update'])->middleware([EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:login'])->name('password');
         Route::post('/logout', [AuthController::class, 'logout'])->middleware(EnsureSpaSession::class)->name('logout');
     });
 });

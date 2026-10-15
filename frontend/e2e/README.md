@@ -13,6 +13,7 @@ Browser journeys driven over the Chrome DevTools Protocol with two headless Edge
 | G | Admin action center: reconcile a payment, cancel a live auction, suspend a shop |
 | H | First-time tour: opens after sign-in, reopens until skipped, replay, ESC, one-time auction note |
 | V | Voucher management screens for seller and admin (`vouchers.mjs`) |
+| P | Forgot password (`password.mjs`): a temporary password is stored hashed and the old one still works; signing in with it forces a new password, then it is used up |
 | M | Marketplace v2 (`marketplace.mjs`): guest home and area picker, the three modes, "Quản lý tin" counters against the database |
 
 Every screenshot is taken at 1440 and 390 px; the run fails the report on horizontal overflow or any uncaught JS error. Overflow is measured against the requested width, because an emulated phone viewport grows to fit content that overflows.

@@ -15,7 +15,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'temporary_password'];
 
     protected $fillable = ['name', 'email', 'password', 'phone', 'avatar_path'];
 
@@ -27,6 +27,8 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'status' => UserStatus::class,
             'email_verified_at' => 'datetime',
+            'temporary_password_expires_at' => 'datetime',
+            'must_change_password' => 'boolean',
             'password' => 'hashed',
         ];
     }

@@ -13,6 +13,7 @@ class AuthUserResource extends JsonResource
             'phone' => $this->phone, 'avatar_path' => $this->avatar_path,
             'role' => $this->role->value, 'status' => $this->status->value,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
+            'must_change_password' => (bool) $this->must_change_password,
             'created_at' => $this->created_at?->toISOString()];
     }
 }

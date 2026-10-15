@@ -35,6 +35,7 @@ export const pageNames = {
   'forgot-password': 'Quên mật khẩu',
   'reset-password': 'Đặt lại mật khẩu',
   account: 'Tài khoản',
+  'account-password': 'Đổi mật khẩu',
   profile: 'Hồ sơ',
   addresses: 'Địa chỉ',
   'seller-shop': 'Gian hàng của tôi',

@@ -23,7 +23,7 @@ async function submit() {
   try {
     await forgotPassword({ email: email.value })
     success.value =
-      'Nếu địa chỉ thư điện tử khớp với một tài khoản, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu. Hãy kiểm tra hộp thư và thư rác.'
+      'Nếu địa chỉ thư điện tử khớp với một tài khoản, chúng tôi đã gửi một mật khẩu tạm thời (dùng được một lần trong 60 phút). Hãy kiểm tra hộp thư và thư rác, đăng nhập bằng mật khẩu đó rồi đặt mật khẩu mới. Mật khẩu cũ của bạn vẫn dùng được.'
   } catch (failure) {
     error.value = authError(failure)
     errors.value = localizeValidationErrors(failure.response?.data?.errors)
@@ -43,7 +43,7 @@ async function submit() {
     >
       <PageHeader
         title="Quên mật khẩu?"
-        description="Nhập địa chỉ thư điện tử của bạn để nhận hướng dẫn đặt lại mật khẩu."
+        description="Nhập địa chỉ thư điện tử của bạn để nhận một mật khẩu tạm thời dùng một lần."
       />
       <DomainFeedback :error="error" :success="success" />
       <DomainField
@@ -58,7 +58,7 @@ async function submit() {
         :errors="errors.email"
       />
       <button class="btn btn-primary btn-icon auth-submit" type="submit" :disabled="busy">
-        <AppIcon name="send" :size="18" />{{ busy ? 'Đang gửi…' : 'Gửi hướng dẫn' }}
+        <AppIcon name="send" :size="18" />{{ busy ? 'Đang gửi…' : 'Gửi mật khẩu tạm' }}
       </button>
       <p class="auth-divider" aria-hidden="true"><span>hoặc</span></p>
       <div class="auth-switch">

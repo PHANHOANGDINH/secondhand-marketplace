@@ -16,6 +16,9 @@ return [
     */
 
     'password_reset_url' => env('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password'),
+    // "Forgot password" mails a one-time temporary password valid for this many minutes.
+    'temporary_password_minutes' => (int) env('TEMPORARY_PASSWORD_MINUTES', 60),
+    'frontend_login_url' => env('FRONTEND_LOGIN_URL', 'http://localhost:5173/login'),
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),

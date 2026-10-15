@@ -104,3 +104,22 @@ it('with motion allowed GSAP animates it in and it moves on by itself, pausing o
   expect(still.get('[data-slide]').attributes('data-slide')).toBe('post')
   expect(motion.from).not.toHaveBeenCalled()
 })
+
+it('leaving the page while a message slides out does not throw', async () => {
+  vi.stubGlobal('matchMedia', () => ({ matches: true }))
+  let finish
+  // Only the slide-out of the current message is left pending.
+  motion.to.mockImplementation((target, vars) =>
+    vars && vars.autoAlpha === 0 ? new Promise((resolve) => (finish = resolve)) : Promise.resolve(),
+  )
+  const wrapper = await setup()
+  await flushPromises()
+  motion.fromTo.mockClear()
+  await wrapper.findAll('.promo-dot')[1].trigger('click')
+  wrapper.unmount()
+  wrappers.splice(0)
+  finish()
+  await flushPromises()
+  expect(motion.fromTo).not.toHaveBeenCalled()
+  motion.to.mockImplementation(() => Promise.resolve())
+})

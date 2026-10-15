@@ -250,6 +250,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: false },
     },
     {
+      path: '/account/password',
+      name: 'account-password',
+      component: () => import('../views/ChangePasswordView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/account/addresses',
       name: 'addresses',
       component: () => import('../views/AddressesView.vue'),

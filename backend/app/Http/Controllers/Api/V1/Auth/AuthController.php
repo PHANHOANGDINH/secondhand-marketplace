@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\AuthUserResource;
 use App\Models\User;
+use App\Services\TemporaryPasswordService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,13 +36,20 @@ class AuthController extends Controller
         return (new AuthUserResource($user))->additional(['message' => 'Registration successful.'])->response()->setStatusCode(201);
     }
 
-    public function login(LoginRequest $request): AuthUserResource
+    public function login(LoginRequest $request, TemporaryPasswordService $temporary): AuthUserResource
     {
         abort_if(Auth::guard('web')->check(), 409, 'Already authenticated.');
         $credentials = $request->safe()->only(['email', 'password']);
         $credentials['status'] = UserStatus::ACTIVE->value;
-        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
-            throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
+        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+            $temporary->discard(Auth::guard('web')->user());
+        } else {
+            // A temporary password from "forgot password" signs in once and forces a new password.
+            $user = $temporary->consume($credentials['email'], $credentials['password']);
+            if (! $user) {
+                throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
+            }
+            Auth::guard('web')->login($user, $request->boolean('remember'));
         }
         $request->session()->regenerate();
 

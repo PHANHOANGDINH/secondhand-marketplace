@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User;
+use App\Services\TemporaryPasswordService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -18,16 +19,17 @@ use Throwable;
 
 class PasswordResetController extends Controller
 {
-    public function forgot(ForgotPasswordRequest $request): JsonResponse
+    /** Mails a one-time temporary password; the answer is the same whether or not the account exists. */
+    public function forgot(ForgotPasswordRequest $request, TemporaryPasswordService $temporary): JsonResponse
     {
         try {
-            Password::sendResetLink($request->safe()->only('email'));
+            $temporary->issue($request->safe()->string('email')->toString());
         } catch (Throwable $exception) {
-            // Never log mail content, credentials, email addresses or reset tokens.
-            Log::warning('Password reset delivery failed.', ['exception_type' => $exception::class]);
+            // Never log mail content, credentials, email addresses or the password.
+            Log::warning('Temporary password issue failed.', ['exception_type' => $exception::class]);
         }
 
-        return response()->json(['message' => 'If an account matches that email, password reset instructions have been sent.']);
+        return response()->json(['message' => 'If an account matches that email, a temporary password has been sent.']);
     }
 
     public function reset(ResetPasswordRequest $request): JsonResponse

@@ -4,7 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\UserStatus;
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\TemporaryPasswordNotification;
+use App\Services\TemporaryPasswordService;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -31,41 +32,48 @@ class PasswordResetTest extends TestCase
             'password' => 'NewSecurePassword123', 'password_confirmation' => 'NewSecurePassword123'];
     }
 
-    public function test_known_unknown_deleted_and_broker_throttled_emails_have_identical_generic_responses(): void
+    public function test_known_unknown_deleted_and_suspended_emails_have_identical_generic_responses(): void
     {
         $user = User::factory()->create();
         $known = $this->postJson('/api/v1/auth/forgot-password', ['email' => strtoupper($user->email)])->assertOk()->json();
         $this->assertSame($known, $this->postJson('/api/v1/auth/forgot-password', ['email' => 'unknown@example.test'])->assertOk()->json());
-        $this->assertSame($known, $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk()->json());
-        Notification::assertSentToTimes($user, ResetPassword::class, 1);
+        $suspended = User::factory()->create(['status' => UserStatus::SUSPENDED]);
+        $this->assertSame($known, $this->postJson('/api/v1/auth/forgot-password', ['email' => $suspended->email])->assertOk()->json());
+        Notification::assertSentToTimes($user, TemporaryPasswordNotification::class, 1);
+        Notification::assertNotSentTo($suspended, TemporaryPasswordNotification::class);
         $user->delete();
         $this->assertSame($known, $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk()->json());
+        Notification::assertSentToTimes($user, TemporaryPasswordNotification::class, 1);
         $this->assertCount(1, $known);
     }
 
-    public function test_email_contains_trusted_spa_url_and_database_stores_only_hashed_token(): void
+    public function test_mail_carries_a_one_time_password_and_the_database_keeps_only_its_hash(): void
     {
-        config(['auth.password_reset_url' => 'https://marketplace.example.test/reset-password']);
-        $user = User::factory()->create();
+        config(['auth.frontend_login_url' => 'https://marketplace.example.test/login']);
+        $user = User::factory()->create(['password' => 'OldSecurePassword123']);
         $response = $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk();
-        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user, $response): bool {
-            $stored = DB::table('password_reset_tokens')->where('email', $user->email)->value('token');
-            $this->assertNotSame($notification->token, $stored);
-            $this->assertTrue(Hash::check($notification->token, $stored));
-            $this->assertStringNotContainsString($notification->token, $response->getContent());
-            $url = $notification->toMail($user)->actionUrl;
-            $this->assertStringStartsWith('https://marketplace.example.test/reset-password?', $url);
-            parse_str(parse_url($url, PHP_URL_QUERY), $query);
-            $this->assertSame($user->email, $query['email']);
-            $this->assertSame($notification->token, $query['token']);
+        Notification::assertSentTo($user, TemporaryPasswordNotification::class, function (TemporaryPasswordNotification $notification) use ($user, $response): bool {
+            $mail = $notification->toMail($user);
+            $password = trim(collect($mail->introLines)->first(fn (string $line): bool => str_starts_with($line, '**')), '*');
+            $this->assertMatchesRegularExpression('/^(?=.*[A-Za-z])(?=.*\d)[A-HJ-NP-Za-km-z2-9]{12}$/', $password);
+            $stored = $user->refresh()->temporary_password;
+            $this->assertNotSame($password, $stored);
+            $this->assertTrue(Hash::check($password, $stored));
+            $this->assertStringNotContainsString($password, $response->getContent());
+            $this->assertSame('https://marketplace.example.test/login', $mail->actionUrl);
+            $this->assertStringContainsString('60 phút', implode(' ', $mail->introLines));
 
             return true;
         });
+        $this->assertEqualsWithDelta(now()->addMinutes(60)->timestamp, $user->temporary_password_expires_at->timestamp, 5);
+        // Asking for one changes nothing else: the old password still signs in.
+        $this->assertTrue(Hash::check('OldSecurePassword123', $user->password));
+        $this->assertFalse($user->must_change_password);
     }
 
     public function test_delivery_failure_remains_generic_and_does_not_expose_internal_error(): void
     {
-        Password::shouldReceive('sendResetLink')->once()->andThrow(new \RuntimeException('PRIVATE SMTP DETAILS'));
+        $this->mock(TemporaryPasswordService::class)->shouldReceive('issue')->once()->andThrow(new \RuntimeException('PRIVATE SMTP DETAILS'));
         $response = $this->postJson('/api/v1/auth/forgot-password', ['email' => 'delivery@example.test'])->assertOk();
         $this->assertStringNotContainsString('PRIVATE', $response->getContent());
     }

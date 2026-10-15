@@ -58,11 +58,17 @@ async function show(target) {
     index.value = next
     return
   }
+  if (!content.value) return
   switching = true
   const direction = target > index.value ? 1 : -1
   await gsap.to(content.value.children, { x: -24 * direction, autoAlpha: 0, duration: 0.25, stagger: 0.04, ease: 'power2.in' })
   index.value = next
   await nextTick()
+  // The page may have been left while the old message was sliding out.
+  if (!content.value) {
+    switching = false
+    return
+  }
   gsap.fromTo(
     content.value.children,
     { x: 24 * direction, autoAlpha: 0 },

@@ -3,6 +3,7 @@ import IconButton from '../components/ui/IconButton.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as api from '../api/auction.api'
+import { domainError } from '../api/domain.api'
 import { getSellerShop } from '../api/shop.api'
 import { listSellerProducts, listProducts } from '../api/product.api'
 import { useFeedback } from '../composables/useFeedback'
@@ -49,7 +50,9 @@ const rows = ref([]),
   shop = ref(null),
   products = ref([]),
   open = ref(false),
-  confirmation = ref(null)
+  confirmation = ref(null),
+  // "Bán ngay": the auction row, the highest bid read when the panel opened and an optional note.
+  sale = ref(null)
 const form = ref({ product_id: '', start_price: '', bid_increment: '', starts_at: '', ends_at: '' })
 const publicIds = ref(new Set()),
   reservedIds = ref(new Set())
@@ -71,6 +74,39 @@ const canCancel = (row) =>
   ['LIVE', 'SCHEDULED'].includes(row.status) &&
   row.bid_count === 0 &&
   Date.parse(row.ends_at) > clock.now()
+const canSellNow = (row) =>
+  row.status === 'LIVE' && row.bid_count > 0 && Date.parse(row.ends_at) > clock.now()
+async function openSale(row) {
+  confirmation.value = null
+  sale.value = null
+  await run(async () => {
+    // Bids only go up, so the newest bid is the highest one.
+    const top = (await api.listAuctionBids(row.id, { per_page: 1 })).data[0]
+    if (top) sale.value = { row, bid: top, reason: '' }
+    else await refresh()
+  })
+}
+async function sellNow() {
+  const current = sale.value
+  if (!current) return
+  const ok = await run(async () => {
+    await api.acceptAuctionBid(current.row.id, {
+      expected_status: 'LIVE',
+      expected_bid_id: current.bid.id,
+      ...(current.reason.trim() ? { reason: current.reason.trim() } : {}),
+    })
+    sale.value = null
+    await refresh()
+  }, 'Đã bán ngay. Phiên kết thúc, người trả giá cao nhất được mời thanh toán.')
+  // A newer bid or an ended auction: close the panel and show the latest state so the seller can decide again.
+  if (!ok) {
+    const conflict = error.value === domainError({ response: { status: 409 } })
+    sale.value = null
+    await refresh().catch(() => {})
+    if (conflict)
+      error.value = 'Vừa có giá mới hoặc phiên đã kết thúc. Danh sách đã được tải lại, vui lòng xem lại trước khi bán.'
+  }
+}
 async function refresh(page = 1) {
   const result = await api.listSellerAuctions({
     page,
@@ -273,10 +309,19 @@ const activeFilters = computed(() => [
             :to="`/auctions/${row.id}`"
             >Mở phòng đấu giá</RouterLink
           ><button
+            v-if="canSellNow(row)"
+            class="btn btn-primary"
+            :disabled="busy"
+            data-sell-now
+            @click="openSale(row)"
+          >
+            Bán ngay
+          </button
+          ><button
             v-if="canCancel(row)"
             class="btn btn-outline-danger"
             :disabled="busy"
-            @click="confirmation = row"
+            @click="(sale = null), (confirmation = row)"
           >
             Huỷ phiên
           </button>
@@ -284,6 +329,37 @@ const activeFilters = computed(() => [
       </article>
     </div>
     <CollectionPager :meta="meta" :busy="busy" @page="load" />
+    <div
+      v-if="sale"
+      class="card card-body mt-3 border-primary"
+      role="region"
+      aria-label="Xác nhận bán ngay"
+      data-sell-now-panel
+    >
+      <h2>Bán ngay {{ sale.row.product?.name }}?</h2>
+      <p>
+        Bán cho người đang trả giá cao nhất với giá
+        <strong style="color: var(--price)">{{ formatPrice(sale.bid.amount) }}</strong>. Phiên kết
+        thúc ngay và người thắng được mời thanh toán như khi phiên hết giờ. Nếu vừa có giá mới cao
+        hơn, máy chủ sẽ dừng lại để bạn xem lại.
+      </p>
+      <label for="sell-now-reason" class="form-label">Ghi chú (không bắt buộc)</label>
+      <textarea
+        id="sell-now-reason"
+        v-model="sale.reason"
+        class="form-control mb-3"
+        rows="2"
+        maxlength="500"
+        :disabled="busy"
+      ></textarea>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" :disabled="busy" data-sell-now-confirm @click="sellNow">
+          Xác nhận bán {{ formatPrice(sale.bid.amount) }}</button
+        ><button class="btn btn-outline-secondary" :disabled="busy" @click="sale = null">
+          Tiếp tục đấu giá
+        </button>
+      </div>
+    </div>
     <div
       v-if="confirmation"
       class="card card-body mt-3 border-danger"

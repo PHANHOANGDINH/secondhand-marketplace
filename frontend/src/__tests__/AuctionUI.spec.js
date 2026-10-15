@@ -8,6 +8,7 @@ import * as api from '../api/auction.api'
 import * as products from '../api/product.api'
 import * as shops from '../api/shop.api'
 import { quickBid, parseBidInput } from '../composables/auctionPresentation'
+import { formatPrice } from '../composables/productPresentation'
 import { useAuctionCountdown } from '../composables/useAuctionCountdown'
 import Arena from '../views/AuctionArenaView.vue'
 import Discovery from '../views/AuctionsView.vue'
@@ -477,4 +478,41 @@ it('expired winner sees expiry without checkout CTA', async () => {
   const { wrapper } = await setup()
   expect(wrapper.find('[data-auction-winner]').text()).toContain('hết hạn')
   expect(wrapper.find('[data-auction-winner] a').exists()).toBe(false)
+})
+it('seller "Bán ngay" confirms the highest bid it read and sends it with the expected status', async () => {
+  const live = { ...auction(), bid_count: 2, current_price: '150000.00' }
+  api.listSellerAuctions.mockImplementation(async (params) => page(params?.status ? [] : [live]))
+  api.listAuctionBids.mockResolvedValue(page([{ id: '41', auction_id: '7', amount: '150000.00' }]))
+  const accept = vi.spyOn(api, 'acceptAuctionBid').mockResolvedValue({ ...live, status: 'ENDED' })
+  const { wrapper } = await setup(Seller)
+  expect(wrapper.find('.btn-outline-danger').exists()).toBe(false)
+  await wrapper.get('[data-sell-now]').trigger('click')
+  await flushPromises()
+  expect(api.listAuctionBids).toHaveBeenCalledWith('7', { per_page: 1 })
+  expect(accept).not.toHaveBeenCalled()
+  const panel = wrapper.get('[data-sell-now-panel]')
+  expect(panel.attributes('aria-label')).toBe('Xác nhận bán ngay')
+  expect(panel.text()).toContain(formatPrice('150000.00'))
+  await wrapper.get('#sell-now-reason').setValue('  Giá đã ổn ')
+  await wrapper.get('[data-sell-now-confirm]').trigger('click')
+  await flushPromises()
+  expect(accept).toHaveBeenCalledWith('7', { expected_status: 'LIVE', expected_bid_id: '41', reason: 'Giá đã ổn' })
+  expect(wrapper.find('[data-sell-now-panel]').exists()).toBe(false)
+  expect(wrapper.text()).toContain('Đã bán ngay')
+})
+it('seller "Bán ngay" is offered only for live auctions with bids, and a newer bid closes the panel with a clear message', async () => {
+  const live = { ...auction(), bid_count: 1 }
+  api.listSellerAuctions.mockImplementation(async (params) =>
+    page(params?.status ? [] : [live, { ...auction(), id: '8', status: 'SCHEDULED', bid_count: 0 }]),
+  )
+  api.listAuctionBids.mockResolvedValue(page([{ id: '41', auction_id: '7', amount: '100000.00' }]))
+  vi.spyOn(api, 'acceptAuctionBid').mockRejectedValue({ response: { status: 409 } })
+  const { wrapper } = await setup(Seller)
+  expect(wrapper.findAll('[data-sell-now]')).toHaveLength(1)
+  await wrapper.get('[data-sell-now]').trigger('click')
+  await flushPromises()
+  await wrapper.get('[data-sell-now-confirm]').trigger('click')
+  await flushPromises()
+  expect(wrapper.find('[data-sell-now-panel]').exists()).toBe(false)
+  expect(wrapper.text()).toContain('Vừa có giá mới hoặc phiên đã kết thúc')
 })

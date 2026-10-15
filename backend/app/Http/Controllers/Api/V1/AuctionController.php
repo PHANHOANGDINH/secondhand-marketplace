@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Domain\AcceptAuctionBidRequest;
 use App\Http\Requests\Domain\AuctionListRequest;
 use App\Http\Requests\Domain\DomainRequest;
 use App\Http\Requests\Domain\StoreAuctionRequest;
@@ -60,6 +61,12 @@ class AuctionController extends Controller
     public function cancel(DomainRequest $request, Auction $auction): AuctionResource
     {
         return new AuctionResource($this->service->cancel($request->user(), $auction)->load('product:id,name,slug')->loadCount('bids'));
+    }
+
+    /** "Bán ngay": the seller ends a live auction by accepting its highest bid. */
+    public function acceptBid(AcceptAuctionBidRequest $request, Auction $auction): AuctionResource
+    {
+        return new AuctionResource($this->service->acceptHighestBid($request->user(), $auction, $request->validated())->load('product:id,name,slug')->loadCount('bids'));
     }
 
     public function placeBid(StoreBidRequest $request, Auction $auction): JsonResponse

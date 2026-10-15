@@ -33,6 +33,12 @@ class AuctionPolicy
         return $this->view($user, $auction);
     }
 
+    /** "Bán ngay": only the seller of the auction may accept its highest bid. */
+    public function acceptBid(User $user, Auction $auction): bool
+    {
+        return $this->view($user, $auction);
+    }
+
     public function checkout(User $user, Auction $auction): bool
     {
         return $this->active($user) && $user->id === $auction->winner_user_id && $user->id !== $auction->seller_id;

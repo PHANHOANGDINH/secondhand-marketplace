@@ -10,6 +10,9 @@ export const getSellerAuction = async (id) =>
 export const createAuction = async (data) => (await mutate('post', 'seller/auctions', data)).data
 export const cancelAuction = async (id) =>
   (await mutate('post', `seller/auctions/${encodeURIComponent(id)}/cancel`)).data
+// "Bán ngay": end a live auction by accepting the highest bid the seller saw.
+export const acceptAuctionBid = async (id, data) =>
+  (await mutate('post', `seller/auctions/${encodeURIComponent(id)}/accept-bid`, data)).data
 export const getAuction = async (id) => (await read(`auctions/${encodeURIComponent(id)}`)).data
 
 export const getAuctionCheckout = async (id) =>

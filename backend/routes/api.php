@@ -196,6 +196,7 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
     Route::post('/seller/auctions', [AuctionController::class, 'store']);
     Route::get('/seller/auctions/{auction}', [AuctionController::class, 'sellerShow']);
     Route::post('/seller/auctions/{auction}/cancel', [AuctionController::class, 'cancel']);
+    Route::post('/seller/auctions/{auction}/accept-bid', [AuctionController::class, 'acceptBid']);
     Route::get('/auctions/{auction}/checkout', [AuctionCheckoutController::class, 'show']);
     Route::post('/auctions/{auction}/checkout', [AuctionCheckoutController::class, 'store'])->middleware('throttle:payment');
     Route::post('/auctions/{auction}/bids', [AuctionController::class, 'placeBid'])->middleware('throttle:auction-bid');

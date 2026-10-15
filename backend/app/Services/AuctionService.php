@@ -204,12 +204,49 @@ class AuctionService
             }
             abort_unless(now()->greaterThanOrEqualTo($locked->ends_at), 409, 'Auction has not ended.');
             $winner = $locked->bids()->orderByDesc('amount')->orderBy('id')->lockForUpdate()->first();
-            $locked->forceFill(['status' => AuctionStatus::ENDED, 'winning_bid_id' => $winner?->id, 'winner_user_id' => $winner?->user_id, 'winner_checkout_expires_at' => $winner ? CarbonImmutable::now()->addHours(max(1, (int) config('auctions.winner_checkout_hours', 24))) : null])->save();
-            app(AuctionNotificationService::class)->finalized($locked);
-            $this->statusChanged($locked);
+            $this->end($locked, $winner);
 
             return $locked;
         }, 3);
+    }
+
+    /**
+     * "Bán ngay": during a live auction the seller accepts the current highest bid, which ends the auction at once.
+     * The seller confirms the bid they saw (expected_bid_id); a newer bid makes this a 409 so they can look again.
+     */
+    public function acceptHighestBid(User $seller, Auction $auction, array $data): Auction
+    {
+        return DB::transaction(function () use ($seller, $auction, $data): Auction {
+            // Same lock order as bidding: accounts, shop, categories, product, then the auction and its bids.
+            [, $shop, $actor, $visible] = $this->context($auction->product_id, $seller);
+            $locked = Auction::whereKey($auction->id)->lockForUpdate()->firstOrFail();
+            abort_unless($actor, 403);
+            Gate::forUser($actor)->authorize('acceptBid', $locked);
+            $from = $locked->status;
+            abort_unless($from->value === $data['expected_status'] && $from === AuctionStatus::LIVE && now()->lessThan($locked->ends_at), 409, 'Phiên đấu giá không còn diễn ra. Vui lòng tải lại.');
+            abort_unless($visible && $shop->owner_id === $locked->seller_id, 409, 'Sản phẩm hoặc gian hàng hiện không khả dụng.');
+            $winner = $locked->bids()->orderByDesc('amount')->orderBy('id')->lockForUpdate()->first();
+            abort_unless($winner, 409, 'Phiên chưa có lượt trả giá nào để bán.');
+            abort_unless((string) $winner->id === (string) $data['expected_bid_id'], 409, 'Vừa có giá mới cao hơn. Vui lòng xem lại trước khi bán.');
+            $reason = $data['reason'] ?? null;
+            $reason = $reason === null || $reason === '' ? 'Người bán chốt bán ở giá '.$winner->amount.' ₫.' : $reason;
+            $this->end($locked, $winner, CarbonImmutable::now());
+            app(AuditService::class)->record($actor, 'auctions', $locked->id, 'auction.accepted_by_seller', $from->value, AuctionStatus::ENDED->value, $reason);
+
+            return $locked;
+        }, 3);
+    }
+
+    /** The single place an auction becomes ENDED; an early end (seller accepted a bid) also moves ends_at to now. */
+    private function end(Auction $locked, ?Bid $winner, ?CarbonImmutable $endedAt = null): void
+    {
+        $locked->forceFill([
+            'status' => AuctionStatus::ENDED, 'winning_bid_id' => $winner?->id, 'winner_user_id' => $winner?->user_id,
+            'winner_checkout_expires_at' => $winner ? CarbonImmutable::now()->addHours(max(1, (int) config('auctions.winner_checkout_hours', 24))) : null,
+            ...($endedAt ? ['ends_at' => $endedAt] : []),
+        ])->save();
+        app(AuctionNotificationService::class)->finalized($locked);
+        $this->statusChanged($locked);
     }
 
     public static function minimumNextBid(Auction $auction, int $bidCount): ?string

@@ -11,6 +11,7 @@ stateDiagram-v2
     SCHEDULED --> LIVE: due start and eligible context
     SCHEDULED --> ENDED: already elapsed at synchronization
     LIVE --> ENDED: ends_at reached and finalize locks row
+    LIVE --> ENDED: seller accepts the highest bid (Bán ngay)
     SCHEDULED --> CANCELLED: eligible owner cancel
     LIVE --> CANCELLED
     ENDED --> [*]
@@ -85,6 +86,10 @@ The check runs inside the transaction after `ProductLocks::lock`, so the lock or
 **Deliberate exception.** Product videos (upload, metadata, hide/show, delete) remain available: they never change the product status and adding a review clip during an auction is legitimate.
 
 The hold ends by itself when the auction is cancelled, ends without a winner, the winner creates the Order, or the checkout deadline passes.
+
+### Seller "Bán ngay" (accept the highest bid)
+
+`POST /seller/auctions/{id}/accept-bid` with `expected_status` (must be `LIVE`), `expected_bid_id` (the highest bid the seller saw) and an optional `reason` (≤ 500; default "Người bán chốt bán ở giá … ₫."). Only the auction's seller; the auction must be LIVE before `ends_at`, the product/shop still available and at least one bid placed. A newer bid, another status or expiry is a 409 and changes nothing. Locks follow the bidding order (accounts, shop, categories, product, auction, bids). The auction ends exactly like a normal finalization (shared private `AuctionService::end()`): ENDED, highest bid wins, the winner gets the usual checkout window and notifications; `ends_at` moves to the moment of the sale. Audit `auction.accepted_by_seller` LIVE → ENDED with the reason; `AuctionStatusChanged` reaches open arenas. Nothing is sold until the winner checks out.
 
 ### Admin actions on auctions (D5)
 

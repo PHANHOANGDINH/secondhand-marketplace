@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOrder } from '../api/order.api'
 import { queryPayment } from '../api/payment.api'
@@ -7,36 +7,86 @@ import { domainError } from '../api/domain.api'
 import PaymentAttempts from '../components/PaymentAttempts.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
+// After ZaloPay sends the buyer back, the status comes only from the server: it asks ZaloPay itself while
+// the payment is still pending. The page re-asks every few seconds for about 30 s, then offers a manual check.
+const POLL_EVERY_MS = 3000
+const POLL_FOR_MS = 30000
 const route = useRoute(),
   order = ref(null)
 const busy = ref(false),
-  error = ref('')
+  error = ref(''),
+  // checking: still asking; settled: a final answer; waiting: gave up for now, "Kiểm tra lại" asks again.
+  phase = ref('checking')
 let revision = 0
+const settled = (value) =>
+  value.payment_method !== 'ZALOPAY' ||
+  value.reconciliation_required ||
+  ['PAID', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(value.payment_status)
+const pause = (ms, current) =>
+  new Promise((resolve) => setTimeout(() => resolve(current === revision), ms))
+const orderId = () => {
+  const id = route.query.order
+  return typeof id === 'string' && /^[1-9][0-9]*$/.test(id) ? id : null
+}
+async function poll(id, current) {
+  const started = Date.now()
+  phase.value = 'checking'
+  for (;;) {
+    const verified = await queryPayment(id)
+    if (current !== revision) return
+    order.value = verified
+    if (settled(verified)) {
+      phase.value = 'settled'
+      return
+    }
+    if (Date.now() - started + POLL_EVERY_MS > POLL_FOR_MS || !(await pause(POLL_EVERY_MS, current))) break
+  }
+  if (current === revision) phase.value = 'waiting'
+}
 async function load() {
   const current = ++revision
   order.value = null
   busy.value = true
   error.value = ''
-  const id = route.query.order
-  if (typeof id !== 'string' || !/^[1-9][0-9]*$/.test(id)) {
+  phase.value = 'checking'
+  const id = orderId()
+  if (!id) {
     error.value = 'Mã đơn hàng bị thiếu hoặc không hợp lệ. Hãy mở đơn từ danh sách đơn mua.'
     busy.value = false
+    phase.value = 'settled'
     return
   }
   try {
     const saved = await getOrder(id)
     if (current !== revision) return
     order.value = saved
-    if (saved.payment_method === 'ZALOPAY') {
-      const verified = await queryPayment(id)
-      if (current === revision) order.value = verified
-    }
+    busy.value = false
+    if (saved.payment_method === 'ZALOPAY') await poll(id, current)
+    else phase.value = 'settled'
   } catch (failure) {
-    if (current === revision) error.value = domainError(failure)
+    if (current === revision) {
+      error.value = domainError(failure)
+      phase.value = 'waiting'
+    }
   } finally {
     if (current === revision) busy.value = false
   }
 }
+async function checkAgain() {
+  const id = orderId()
+  if (!id || phase.value === 'checking') return
+  const current = ++revision
+  error.value = ''
+  try {
+    await poll(id, current)
+  } catch (failure) {
+    if (current === revision) {
+      error.value = domainError(failure)
+      phase.value = 'waiting'
+    }
+  }
+}
+const checking = computed(() => phase.value === 'checking' && order.value && !settled(order.value))
 function updated(verified) {
   if (verified.id === order.value?.id) order.value = verified
 }
@@ -74,7 +124,8 @@ onBeforeUnmount(() => revision++)
                 ? '!'
                 : '…'
         }}</span>
-        <h2 v-if="order.reconciliation_required">Giao dịch cần đối soát</h2>
+        <h2 v-if="checking" role="status">Đang xác nhận thanh toán…</h2>
+        <h2 v-else-if="order.reconciliation_required">Giao dịch cần đối soát</h2>
         <h2 v-else-if="order.payment_status === 'PAID'">Đã thanh toán</h2>
         <h2 v-else-if="order.payment_status === 'FAILED'">Thanh toán không thành công</h2>
         <h2 v-else-if="order.payment_status === 'CANCELLED'">Thanh toán đã hủy</h2>
@@ -82,6 +133,15 @@ onBeforeUnmount(() => revision++)
         <h2 v-else-if="order.payment_method === 'COD'">Đơn hàng đã được tạo</h2>
         <h2 v-else>Đang chờ kết quả thanh toán</h2>
         <p>Đơn {{ order.order_code }}</p>
+        <p v-if="checking" class="small mb-0">Đang hỏi ZaloPay, vui lòng đợi trong giây lát.</p>
+        <template v-if="phase === 'waiting' && !settled(order)">
+          <p class="small">
+            ZaloPay chưa trả kết quả. Nếu bạn đã thanh toán, trạng thái sẽ cập nhật sau ít phút.
+          </p>
+          <button type="button" class="btn btn-outline-primary" data-check-again @click="checkAgain">
+            Kiểm tra lại
+          </button>
+        </template>
       </div>
       <PaymentAttempts :key="order.id" :order="order" @changed="updated" />
       <div class="d-flex flex-wrap gap-2">

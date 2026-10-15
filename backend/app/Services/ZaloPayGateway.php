@@ -41,7 +41,7 @@ class ZaloPayGateway
     /** @return array<string, int|string> */
     public function payload(Payment $payment): array
     {
-        $embed = json_encode(['redirecturl' => config('zalopay.return_url').'?order='.$payment->order_id, 'preferred_payment_method' => $payment->preferred_payment_method ?? []], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $embed = json_encode(['redirecturl' => config('zalopay.redirect_url').'?order='.$payment->order_id, 'preferred_payment_method' => $payment->preferred_payment_method ?? []], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         $data = ['app_id' => $payment->gateway_app_id, 'app_user' => 'buyer-'.$payment->order->buyer_id, 'app_trans_id' => $payment->transaction_reference, 'app_time' => $payment->gateway_app_time, 'amount' => self::amount($payment->amount), 'embed_data' => $embed, 'item' => '[]', 'bank_code' => '', 'description' => 'Thanh toan '.$payment->order->order_code, 'expire_duration_seconds' => config('zalopay.expire_seconds')];
         $data['mac'] = hash_hmac('sha256', implode('|', array_map(fn (string $key): string => (string) $data[$key], ['app_id', 'app_trans_id', 'app_user', 'amount', 'app_time', 'embed_data', 'item'])), config('zalopay.key1'));
         if (config('zalopay.callback_url')) {

@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ZaloPayService
@@ -68,12 +69,27 @@ class ZaloPayService
         $this->audit->record($payment->order->buyer, 'payments', $payment->id, 'payment.failed', 'PENDING', 'FAILED', $code);
     }
 
+    /**
+     * ZaloPay callback: 1 = accepted now, 2 = the same transaction was already recorded, -1 = rejected
+     * (bad MAC, unknown or mismatched payment). The log carries the references and only a MAC prefix.
+     */
     public function callback(array $input): int
     {
         $data = $this->gateway->callbackData($input);
-        if (! $data) {
-            return -1;
-        }
+        $code = $data ? $this->handleCallback($data) : -1;
+        Log::log($code === -1 ? 'warning' : 'info', 'zalopay.callback', [
+            'result' => $code,
+            'mac_valid' => (bool) $data,
+            'app_trans_id' => is_string($data['app_trans_id'] ?? null) ? $data['app_trans_id'] : null,
+            'zp_trans_id' => isset($data['zp_trans_id']) && is_scalar($data['zp_trans_id']) ? (string) $data['zp_trans_id'] : null,
+            'mac_prefix' => is_string($input['mac'] ?? null) ? substr($input['mac'], 0, 8) : null,
+        ]);
+
+        return $code;
+    }
+
+    private function handleCallback(array $data): int
+    {
         $reference = $data['app_trans_id'] ?? null;
         if (! is_string($reference)) {
             return -1;
@@ -144,7 +160,8 @@ class ZaloPayService
                 $payments = $order->payments()->orderBy('id')->lockForUpdate()->get();
                 $locked = $payments->firstWhere('id', $payment->id);
                 if ($locked->gateway_transaction_id) {
-                    return hash_equals($locked->gateway_transaction_id, (string) $transaction) ? 1 : -1;
+                    // Already recorded: a repeated callback (or a later query) for the same transaction.
+                    return hash_equals($locked->gateway_transaction_id, (string) $transaction) ? 2 : -1;
                 }
                 if (Payment::where('method', PaymentMethod::ZALOPAY)->where('gateway_transaction_id', (string) $transaction)->exists()) {
                     return -1;

@@ -241,7 +241,7 @@ class AuctionSettlementTest extends TestCase
         $this->assertSame(PaymentStatus::PENDING, $payment->refresh()->status);
         $this->postJson('/api/v1/payments/zalopay/callback', $signed($payload))->assertOk()->assertJsonPath('return_code', 1);
         $auditCount = AuditLog::count();
-        $this->postJson('/api/v1/payments/zalopay/callback', $signed($payload))->assertOk()->assertJsonPath('return_code', 1);
+        $this->postJson('/api/v1/payments/zalopay/callback', $signed($payload))->assertOk()->assertJsonPath('return_code', 2);
         $this->assertSame($auditCount, AuditLog::count());
         $this->assertSame(PaymentStatus::PAID, $payment->refresh()->status);
         $this->assertSame(1, $auction->product->refresh()->stock_quantity);

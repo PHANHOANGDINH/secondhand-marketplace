@@ -166,14 +166,21 @@ class CheckoutConcurrencyTest extends TestCase
             $part = $order->shopOrders->first();
             $cancel = ['action' => 'cancel', 'user' => $order->buyer_id, 'part' => $part->id, 'transition' => ['expected_status' => 'PENDING', 'status' => 'CANCELLED', 'reason' => 'Race verification']];
             $results = $this->race([$callback, $cancelRace ? $cancel : $callback]);
-            $this->assertSame(1, $results[0]['status']);
+            // Two identical callbacks: whichever lands first records it (1), the other is "already processed" (2).
+            if ($cancelRace) {
+                $this->assertSame(1, $results[0]['status']);
+            } else {
+                $this->assertEqualsCanonicalizing([1, 2], [$results[0]['status'], $results[1]['status']]);
+            }
             $payment->refresh();
             $part->refresh();
             if ($payment->status === PaymentStatus::PAID) {
                 $this->assertSame(0, $product->refresh()->stock_quantity);
                 $this->assertSame(ShopOrderStatus::PENDING, $part->status);
                 $this->assertNull($part->stock_restored_at);
-                $this->assertSame($cancelRace ? 409 : 1, $results[1]['status']);
+                if ($cancelRace) {
+                    $this->assertSame(409, $results[1]['status']);
+                }
             } else {
                 $this->assertTrue($cancelRace);
                 $this->assertSame(200, $results[1]['status']);

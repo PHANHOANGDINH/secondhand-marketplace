@@ -19,6 +19,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -31,7 +32,7 @@ class ZaloPayTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['zalopay.app_id' => '123456', 'zalopay.key1' => bin2hex(random_bytes(32)), 'zalopay.key2' => bin2hex(random_bytes(32)), 'zalopay.create_url' => 'https://sb-openapi.zalopay.vn/v2/create', 'zalopay.query_url' => 'https://sb-openapi.zalopay.vn/v2/query', 'zalopay.return_url' => 'http://localhost:5173/payment/result', 'zalopay.callback_url' => null, 'zalopay.expire_seconds' => 900]);
+        config(['zalopay.app_id' => '123456', 'zalopay.key1' => bin2hex(random_bytes(32)), 'zalopay.key2' => bin2hex(random_bytes(32)), 'zalopay.create_url' => 'https://sb-openapi.zalopay.vn/v2/create', 'zalopay.query_url' => 'https://sb-openapi.zalopay.vn/v2/query', 'zalopay.redirect_url' => 'http://localhost:5173/payment/result', 'zalopay.callback_url' => null, 'zalopay.expire_seconds' => 900]);
         Http::preventStrayRequests();
         $this->fakeGateway(['*/v2/create' => Http::response(['return_code' => 1, 'order_url' => 'https://sbgateway.zalopay.vn/openinapp?token=test']), '*/v2/query' => Http::response(['return_code' => 3, 'is_processing' => true])]);
         $this->withHeaders(['Origin' => 'http://localhost:5173', 'Accept' => 'application/json']);
@@ -190,8 +191,9 @@ class ZaloPayTest extends TestCase
         $data = $this->signed($p);
         $this->sendCallback($data);
         $audit = AuditLog::count();
-        $this->sendCallback($data);
-        $this->sendCallback($data);
+        // ZaloPay may notify again: "already processed" (2), nothing written twice.
+        $this->sendCallback($data, 2);
+        $this->sendCallback($data, 2);
         $this->assertSame($audit, AuditLog::count());
         $this->assertSame(PaymentStatus::PAID, $p->refresh()->status);
         $this->assertNotNull($p->paid_at);
@@ -212,7 +214,10 @@ class ZaloPayTest extends TestCase
         foreach ([['amount' => 250001], ['app_id' => 987], ['app_user' => 'buyer-0'], ['app_time' => 1], ['app_trans_id' => 'unknown'], ['zp_trans_id' => 'bad'], ['currency' => 'USD']] as $change) {
             $this->sendCallback($this->signed($p, $change), -1);
         }
-        $this->postJson('/api/v1/payments/zalopay/callback', [...$valid, 'type' => 2])->assertUnprocessable();
+        // Malformed notifications are still answered with HTTP 200 and -1, as ZaloPay expects.
+        foreach ([[...$valid, 'type' => 2], ['data' => $valid['data']], [...$valid, 'mac' => 'not-hex'], [...$valid, 'extra' => 'x'], []] as $body) {
+            $this->postJson('/api/v1/payments/zalopay/callback', $body)->assertOk()->assertExactJson(['return_code' => -1, 'return_message' => 'Invalid payment']);
+        }
         $this->assertSame(PaymentStatus::PENDING, $p->refresh()->status);
         $this->assertNull($p->gateway_transaction_id);
     }
@@ -237,7 +242,7 @@ class ZaloPayTest extends TestCase
         $this->fakeGateway(['*/v2/query' => Http::response(['return_code' => 1, 'amount' => 250000, 'zp_trans_id' => 234567, 'is_processing' => false])]);
         $this->syncPayment($order)->assertOk()->assertJsonPath('data.payment_status', 'PAID');
         Http::assertSent(fn ($request): bool => $request->url() === config('zalopay.query_url') && $request['app_trans_id'] === $p->transaction_reference && $request['mac'] === hash_hmac('sha256', $p->gateway_app_id.'|'.$p->transaction_reference.'|'.config('zalopay.key1'), config('zalopay.key1')));
-        $this->sendCallback($this->signed($p, ['zp_trans_id' => 234567]));
+        $this->sendCallback($this->signed($p, ['zp_trans_id' => 234567]), 2);
     }
 
     public function test_query_processing_insufficient_funds_and_failure_are_not_false_terminal_results(): void
@@ -280,7 +285,7 @@ class ZaloPayTest extends TestCase
         $this->assertSame(3, $product->refresh()->stock_quantity);
         $this->assertSame(PaymentStatus::CANCELLED, $p->refresh()->status);
         $this->sendCallback($this->signed($p));
-        $this->sendCallback($this->signed($p));
+        $this->sendCallback($this->signed($p), 2);
         $this->assertTrue($p->refresh()->reconciliation_required);
         $this->assertSame(PaymentStatus::CANCELLED, $p->status);
         $this->assertSame(ShopOrderStatus::CANCELLED, $part->refresh()->status);
@@ -354,6 +359,79 @@ class ZaloPayTest extends TestCase
         DB::disableQueryLog();
         foreach ($queries as $query) {
             $this->assertStringNotContainsString('`payments`', strtolower($query['query']));
+        }
+    }
+
+    public function test_callback_is_public_answers_200_logs_without_secrets_and_rejects_a_wrong_amount(): void
+    {
+        [$buyer,$order] = $this->placed();
+        $p = $order->payments()->first();
+        Log::spy();
+        // A server-to-server call: no session, no Origin, no CSRF token.
+        $this->app['session']->flush();
+        Auth::forgetGuards();
+        $this->withHeaders(['Origin' => ''])->withoutHeader('Origin');
+        // Valid MAC but an amount that differs from the payment: rejected, nothing recorded.
+        $wrong = $this->signed($p, ['amount' => 250000 + 1000]);
+        $this->postJson('/api/v1/payments/zalopay/callback', $wrong)->assertOk()->assertJsonPath('return_code', -1);
+        $this->assertSame(PaymentStatus::PENDING, $p->refresh()->status);
+        $this->assertNull($p->gateway_transaction_id);
+        $valid = $this->signed($p);
+        $this->postJson('/api/v1/payments/zalopay/callback', $valid)->assertOk()->assertExactJson(['return_code' => 1, 'return_message' => 'Accepted']);
+        $this->postJson('/api/v1/payments/zalopay/callback', $valid)->assertOk()->assertExactJson(['return_code' => 2, 'return_message' => 'Already processed']);
+        $this->assertSame(PaymentStatus::PAID, $p->refresh()->status);
+        // One log line per notification (-1, 1, 2): references and an 8-character MAC prefix, never a key or a full MAC.
+        foreach ([['warning', -1, $wrong], ['info', 1, $valid], ['info', 2, $valid]] as [$level, $result, $body]) {
+            Log::shouldHaveReceived('log')->withArgs(function (string $logged, string $message, array $context) use ($level, $result, $body, $p): bool {
+                $flat = json_encode($context);
+
+                return $logged === $level && $message === 'zalopay.callback' && $context['result'] === $result
+                    && $context['app_trans_id'] === $p->transaction_reference && $context['mac_prefix'] === substr($body['mac'], 0, 8)
+                    && ! str_contains($flat, $body['mac']) && ! str_contains($flat, (string) config('zalopay.key1')) && ! str_contains($flat, (string) config('zalopay.key2'));
+            })->once();
+        }
+    }
+
+    public function test_create_sends_the_configured_redirect_and_callback_urls(): void
+    {
+        config(['zalopay.callback_url' => 'https://demo-tunnel.trycloudflare.com/api/v1/payments/zalopay/callback']);
+        [$buyer,$address] = $this->cart();
+        $id = $this->checkout($address)->assertCreated()->json('data.id');
+        Http::assertSent(function ($request) use ($id): bool {
+            $data = $request->data();
+
+            return str_ends_with($request->url(), '/v2/create')
+                && json_decode($data['embed_data'], true)['redirecturl'] === 'http://localhost:5173/payment/result?order='.$id
+                && $data['callback_url'] === 'https://demo-tunnel.trycloudflare.com/api/v1/payments/zalopay/callback'
+                && $data['bank_code'] === ''
+                && preg_match('/^\d{6}_[0-9a-f]{32}$/', $data['app_trans_id']) === 1 && strlen($data['app_trans_id']) <= 40;
+        });
+    }
+
+    public function test_callback_and_redirect_urls_default_from_app_and_frontend_urls(): void
+    {
+        $load = function (array $env): array {
+            foreach ($env as $key => $value) {
+                putenv($value === null ? $key : "$key=$value");
+                $_ENV[$key] = $_SERVER[$key] = $value;
+                if ($value === null) {
+                    unset($_ENV[$key], $_SERVER[$key]);
+                }
+            }
+
+            return require config_path('zalopay.php');
+        };
+        $keys = ['ZALOPAY_CALLBACK_URL', 'ZALOPAY_REDIRECT_URL', 'ZALOPAY_RETURN_URL', 'APP_URL', 'FRONTEND_URLS'];
+        $saved = array_combine($keys, array_map(fn ($key) => $_ENV[$key] ?? null, $keys));
+        try {
+            $config = $load(['ZALOPAY_CALLBACK_URL' => '', 'ZALOPAY_REDIRECT_URL' => '', 'ZALOPAY_RETURN_URL' => '', 'APP_URL' => 'http://127.0.0.1:8000/', 'FRONTEND_URLS' => 'http://localhost:5173,http://127.0.0.1:5173']);
+            $this->assertSame('http://127.0.0.1:8000/api/v1/payments/zalopay/callback', $config['callback_url']);
+            $this->assertSame('http://localhost:5173/payment/result', $config['redirect_url']);
+            $config = $load(['ZALOPAY_CALLBACK_URL' => 'https://x.trycloudflare.com/api/v1/payments/zalopay/callback', 'ZALOPAY_REDIRECT_URL' => 'https://shop.test/payment/result']);
+            $this->assertSame('https://x.trycloudflare.com/api/v1/payments/zalopay/callback', $config['callback_url']);
+            $this->assertSame('https://shop.test/payment/result', $config['redirect_url']);
+        } finally {
+            $load($saved);
         }
     }
 }

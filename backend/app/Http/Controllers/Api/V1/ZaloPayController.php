@@ -47,6 +47,7 @@ class ZaloPayController extends Controller
             $code = -1;
         }
 
-        return response()->json(['return_code' => $code, 'return_message' => $code === 1 ? 'Accepted' : 'Invalid payment']);
+        // Always HTTP 200: 1 accepted, 2 already processed, -1 rejected.
+        return response()->json(['return_code' => $code, 'return_message' => [1 => 'Accepted', 2 => 'Already processed'][$code] ?? 'Invalid payment']);
     }
 }

@@ -106,12 +106,81 @@ afterEach(() => {
   sessionStorage.clear()
 })
 it('result queries owned backend order and ignores forged redirect paid status', async () => {
-  const { wrapper } = await setup(PaymentResultView)
-  expect(orderApi.getOrder).toHaveBeenCalledWith('7')
-  expect(paymentApi.queryPayment).toHaveBeenCalledWith('7')
-  expect(wrapper.get('[data-payment-attempt]').text()).toContain('Chờ thanh toán')
-  expect(wrapper.get('[data-payment-attempt]').text()).not.toContain('Đã thanh toán')
-  expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang chờ kết quả thanh toán')
+  vi.useFakeTimers()
+  try {
+    const { wrapper } = await setup(PaymentResultView)
+    expect(orderApi.getOrder).toHaveBeenCalledWith('7')
+    expect(paymentApi.queryPayment).toHaveBeenCalledWith('7')
+    // "?status=PAID" on the URL changes nothing: the server still says PENDING.
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang xác nhận thanh toán…')
+    expect(wrapper.get('[data-payment-attempt]').text()).toContain('Chờ thanh toán')
+    expect(wrapper.get('[data-payment-attempt]').text()).not.toContain('Đã thanh toán')
+    expect(wrapper.find('[data-check-again]').exists()).toBe(false)
+    // About 30 s of asking every 3 s, then the page stops and offers a manual check.
+    await vi.advanceTimersByTimeAsync(31000)
+    expect(paymentApi.queryPayment.mock.calls.length).toBeGreaterThanOrEqual(9)
+    expect(paymentApi.queryPayment.mock.calls.length).toBeLessThanOrEqual(11)
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang chờ kết quả thanh toán')
+    expect(wrapper.find('[data-check-again]').exists()).toBe(true)
+    const calls = paymentApi.queryPayment.mock.calls.length
+    await vi.advanceTimersByTimeAsync(60000)
+    expect(paymentApi.queryPayment.mock.calls.length).toBe(calls)
+  } finally {
+    vi.useRealTimers()
+  }
+})
+it('result keeps asking while pending and shows success as soon as the server confirms it', async () => {
+  vi.useFakeTimers()
+  try {
+    paymentApi.queryPayment
+      .mockResolvedValueOnce(structuredClone(order))
+      .mockResolvedValueOnce(structuredClone(order))
+      .mockResolvedValue({
+        ...order,
+        payment_status: 'PAID',
+        payments: [{ ...pending, status: 'PAID', order_url: null }],
+      })
+    const { wrapper } = await setup(PaymentResultView)
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang xác nhận thanh toán…')
+    await vi.advanceTimersByTimeAsync(6500)
+    expect(paymentApi.queryPayment).toHaveBeenCalledTimes(3)
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đã thanh toán')
+    expect(wrapper.find('[data-verified-result].buyer-result-success').exists()).toBe(true)
+    await vi.advanceTimersByTimeAsync(30000)
+    expect(paymentApi.queryPayment).toHaveBeenCalledTimes(3)
+  } finally {
+    vi.useRealTimers()
+  }
+})
+it('result shows failure, and "Kiểm tra lại" asks again after the waiting state', async () => {
+  vi.useFakeTimers()
+  try {
+    paymentApi.queryPayment.mockResolvedValueOnce({
+      ...order,
+      payment_status: 'FAILED',
+      payments: [{ ...pending, status: 'FAILED', order_url: null }],
+    })
+    const failed = (await setup(PaymentResultView)).wrapper
+    expect(failed.get('[data-verified-result] h2').text()).toBe('Thanh toán không thành công')
+    expect(failed.find('[data-verified-result].buyer-result-failure').exists()).toBe(true)
+    expect(paymentApi.queryPayment).toHaveBeenCalledTimes(1)
+
+    paymentApi.queryPayment.mockResolvedValue(structuredClone(order))
+    const waiting = (await setup(PaymentResultView)).wrapper
+    await vi.advanceTimersByTimeAsync(31000)
+    expect(waiting.get('[data-verified-result] h2').text()).toBe('Đang chờ kết quả thanh toán')
+    paymentApi.queryPayment.mockResolvedValue({
+      ...order,
+      payment_status: 'PAID',
+      payments: [{ ...pending, status: 'PAID', order_url: null }],
+    })
+    await waiting.get('[data-check-again]').trigger('click')
+    await flushPromises()
+    expect(waiting.get('[data-verified-result] h2').text()).toBe('Đã thanh toán')
+    expect(waiting.find('[data-check-again]').exists()).toBe(false)
+  } finally {
+    vi.useRealTimers()
+  }
 })
 it.each([
   ['FAILED', false, 'Thanh toán không thành công'],

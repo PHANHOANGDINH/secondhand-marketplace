@@ -124,7 +124,7 @@ onMounted(async () => {
   width: 60px;
   height: 60px;
   border-radius: 18px;
-  background: rgb(255 255 255 / 55%);
+  background: var(--band-glass-strong);
   color: var(--band-ink);
 }
 .home-banner-art.is-a {
@@ -178,7 +178,7 @@ onMounted(async () => {
   padding: 0.9rem 1.1rem;
   border-radius: 20px;
   background: var(--surface);
-  box-shadow: 0 6px 20px rgb(21 22 26 / 9%);
+  box-shadow: 0 6px 20px rgb(var(--shadow-rgb) / 9%);
 }
 .home-search-input {
   flex: 1;

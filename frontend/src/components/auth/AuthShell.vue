@@ -2,6 +2,7 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import AppIcon from '../ui/AppIcon.vue'
 import BrandLogo from '../ui/BrandLogo.vue'
+import ThemeToggle from '../ui/ThemeToggle.vue'
 import { brand } from '../../config/brand'
 import '../../styles/auth.css'
 // The frame of the sign-in, sign-up and password pages: brand and a way home instead of the site menu,
@@ -129,6 +130,7 @@ defineExpose({ shake })
       <RouterLink to="/" class="auth-home" data-auth-home
         ><AppIcon name="arrowLeft" :size="18" />Về trang chủ</RouterLink
       >
+      <ThemeToggle class="auth-theme" />
     </nav>
     <aside class="auth-showcase" aria-label="Giới thiệu sàn mua bán">
       <span class="auth-glow" aria-hidden="true"></span>

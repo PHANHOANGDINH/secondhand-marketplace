@@ -211,6 +211,6 @@ onUnmounted(() => {
   background: var(--bs-body-bg);
 }
 .report-dialog::backdrop {
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--scrim);
 }
 </style>

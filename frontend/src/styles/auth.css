@@ -29,7 +29,7 @@
   padding: 0 1.1rem;
   border-radius: var(--radius-pill);
   background: var(--surface);
-  box-shadow: 0 4px 14px rgb(21 22 26 / 8%);
+  box-shadow: 0 4px 14px rgb(var(--shadow-rgb) / 8%);
   color: var(--band-ink);
   font-weight: 700;
   font-size: 0.9rem;
@@ -40,7 +40,7 @@
 }
 .auth-home:hover {
   background: var(--band-soft);
-  box-shadow: 0 6px 18px rgb(21 22 26 / 12%);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 12%);
   color: var(--band-ink);
 }
 .auth-home svg {
@@ -59,7 +59,7 @@
   padding: var(--space-6) !important;
   border: 0;
   border-radius: var(--radius-xl);
-  box-shadow: 0 12px 40px rgb(21 22 26 / 10%) !important;
+  box-shadow: 0 12px 40px rgb(var(--shadow-rgb) / 10%) !important;
 }
 /* Welcome panel in the marketplace band colours. */
 .auth-showcase {
@@ -72,7 +72,7 @@
   padding: var(--space-8);
   overflow: hidden;
   border-radius: var(--radius-xl);
-  background: linear-gradient(150deg, var(--band) 0%, #ffd95a 55%, #ffe9a3 100%);
+  background: linear-gradient(150deg, var(--band) 0%, var(--band-soft) 100%);
   color: var(--band-ink);
 }
 .auth-glow {
@@ -82,7 +82,7 @@
   left: -80px;
   top: -90px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(255 255 255 / 60%), rgb(255 255 255 / 0%) 70%);
+  background: radial-gradient(circle, var(--band-glass-strong), transparent 70%);
   pointer-events: none;
 }
 /* The tiles fill the free space above the slogan, so they never cover it however tall the panel is. */
@@ -99,8 +99,8 @@
   width: 64px;
   height: 64px;
   border-radius: 20px;
-  background: rgb(255 255 255 / 70%);
-  box-shadow: 0 10px 24px rgb(21 22 26 / 10%);
+  background: var(--band-glass-strong);
+  box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 10%);
   color: var(--band-ink);
 }
 .auth-tile.is-a {
@@ -167,7 +167,7 @@
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 55%);
+  background: var(--band-glass-strong);
   font-weight: 700;
   font-size: 0.92rem;
 }
@@ -178,8 +178,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--band-ink);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 /* Password with a show/hide button inside the field. */
 .auth-password {
@@ -279,7 +279,7 @@
 }
 .auth-switch-link:hover {
   background: var(--band-soft);
-  box-shadow: 0 6px 16px rgb(21 22 26 / 10%);
+  box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 10%);
   color: var(--band-ink);
 }
 .auth-switch-link:focus-visible,
@@ -312,4 +312,7 @@
   .auth-perks {
     display: none;
   }
+}
+.auth-top .auth-brand {
+  margin-right: auto;
 }

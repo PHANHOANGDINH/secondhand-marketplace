@@ -6,6 +6,7 @@ use App\Models\Auction;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Voucher;
 use Database\Seeders\MarketplaceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -67,5 +68,10 @@ class MarketplaceSeederTest extends TestCase
         $this->seed(MarketplaceSeeder::class);
         $this->assertSame($counts, collect(array_keys(self::TEXT))->mapWithKeys(fn (string $table) => [$table => DB::table($table)->count()])->all());
         $this->assertSame($stocks, Product::orderBy('id')->pluck('stock_quantity', 'id')->all());
+
+        // The pre-Passdi platform code is switched off on a re-seed, never deleted.
+        Voucher::create(['code' => 'PASSLAI10', 'scope' => Voucher::PLATFORM, 'type' => Voucher::PERCENT, 'value' => '10.00', 'min_order' => '0.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => User::where('role', 'ADMIN')->value('id')]);
+        $this->seed(MarketplaceSeeder::class);
+        $this->assertSame(['PASSDI10' => Voucher::ACTIVE, 'PASSLAI10' => Voucher::INACTIVE], Voucher::where('scope', Voucher::PLATFORM)->orderBy('code')->pluck('status', 'code')->all());
     }
 }

@@ -91,6 +91,10 @@ class MarketplaceSeeder extends Seeder
         }
         $this->call([CategorySeeder::class, MarketplaceCatalogSeeder::class]);
         if (Order::where('checkout_key', $this->key('order-pending'))->exists()) {
+            $admin = User::where('email', 'admin@'.self::DOMAIN)->first();
+            if ($admin) {
+                DB::transaction(fn () => $this->platformVoucher($admin));
+            }
             $this->command?->info('Marketplace activity already present; nothing added.');
 
             return;
@@ -141,7 +145,7 @@ class MarketplaceSeeder extends Seeder
 
     private function people(string $password): void
     {
-        $this->admin = $this->account('Ban quản trị pass lại', 'admin@'.self::DOMAIN, UserRole::ADMIN, $password);
+        $this->admin = $this->account('Ban quản trị Passdi', 'admin@'.self::DOMAIN, UserRole::ADMIN, $password);
         foreach (self::BUYERS as $index => [$name, $province, $street, $ward]) {
             $buyer = $this->account($name, $this->email($name), UserRole::USER, $password);
             $this->buyers[$index] = $buyer;
@@ -168,9 +172,16 @@ class MarketplaceSeeder extends Seeder
         return $product;
     }
 
+    /** The platform code follows the brand: the old PASSLAI10 is kept (orders may reference it) but switched off. */
+    private function platformVoucher(User $admin): void
+    {
+        Voucher::where('code', 'PASSLAI10')->where('status', Voucher::ACTIVE)->update(['status' => Voucher::INACTIVE]);
+        Voucher::firstOrCreate(['code' => 'PASSDI10'], ['scope' => Voucher::PLATFORM, 'type' => Voucher::PERCENT, 'value' => '10.00', 'max_discount' => '50000.00', 'min_order' => '200000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => $admin->id]);
+    }
+
     private function vouchers(): void
     {
-        Voucher::firstOrCreate(['code' => 'PASSLAI10'], ['scope' => Voucher::PLATFORM, 'type' => Voucher::PERCENT, 'value' => '10.00', 'max_discount' => '50000.00', 'min_order' => '200000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addYear(), 'status' => Voucher::ACTIVE, 'created_by' => $this->admin->id]);
+        $this->platformVoucher($this->admin);
         $shop = Shop::where('slug', 'vn-goc-tao-cu')->firstOrFail();
         Voucher::firstOrCreate(['code' => 'GOCTAO50K'], ['scope' => Voucher::SHOP, 'shop_id' => $shop->id, 'type' => Voucher::FIXED, 'value' => '50000.00', 'min_order' => '1000000.00', 'starts_at' => now()->subDay(), 'ends_at' => now()->addMonths(3), 'status' => Voucher::ACTIVE, 'created_by' => $shop->owner_id]);
         $style = Shop::where('slug', 'vn-tu-do-secondhand')->firstOrFail();

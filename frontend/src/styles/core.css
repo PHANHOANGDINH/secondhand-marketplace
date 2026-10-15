@@ -70,26 +70,36 @@ h4,
   outline-offset: 2px;
 }
 .btn-primary {
-  --bs-btn-color: #fff;
+  --bs-btn-color: var(--on-primary);
   --bs-btn-bg: var(--primary);
   --bs-btn-border-color: var(--primary);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: var(--on-primary);
   --bs-btn-hover-bg: var(--primary-hover);
   --bs-btn-hover-border-color: var(--primary-hover);
-  --bs-btn-active-color: #fff;
+  --bs-btn-active-color: var(--on-primary);
   --bs-btn-active-bg: var(--primary-ink);
   --bs-btn-active-border-color: var(--primary-ink);
-  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-color: var(--on-primary);
   --bs-btn-disabled-bg: var(--primary);
   --bs-btn-disabled-border-color: var(--primary);
+}
+/* Bootstrap picks the text colour of these badges at build time; the tokens know it per theme. */
+.text-bg-primary {
+  color: var(--on-primary) !important;
+}
+.text-bg-success {
+  color: var(--on-success) !important;
+}
+.text-bg-danger {
+  color: var(--on-danger) !important;
 }
 .btn-outline-primary {
   --bs-btn-color: var(--primary);
   --bs-btn-border-color: var(--primary);
-  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-color: var(--on-primary);
   --bs-btn-hover-bg: var(--primary);
   --bs-btn-hover-border-color: var(--primary);
-  --bs-btn-active-color: #fff;
+  --bs-btn-active-color: var(--on-primary);
   --bs-btn-active-bg: var(--primary-ink);
   --bs-btn-active-border-color: var(--primary-ink);
   --bs-btn-disabled-color: var(--primary);
@@ -262,7 +272,7 @@ h4,
 
 /* Dialog */
 .ui-dialog-backdrop {
-  background: rgb(21 22 26 / 48%);
+  background: var(--scrim);
 }
 .ui-dialog {
   border: 1px solid var(--border);
@@ -370,15 +380,23 @@ nav[aria-label='Phân trang'] > span {
   margin: 0;
 }
 :is(.seller-brand, .admin-brand) .brand-logo-mark {
-  display: grid;
+  display: block;
 }
 :is(.seller-brand, .admin-brand) .brand-logo-word {
   display: inline;
   margin: 0;
   color: var(--text);
-  font-size: 1.05rem;
+  font-size: calc(var(--brand-logo-size) * 0.72);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+:is(.seller-brand, .admin-brand) .brand-logo-ss {
+  display: inline;
+  margin: 0;
+  color: var(--brand-text);
+  font: inherit;
+  letter-spacing: inherit;
   text-transform: none;
 }
 

@@ -72,7 +72,7 @@ All accounts use `DEMO_PASSWORD` from `backend/.env`.
 | Auctions | LIVE: "Xiaomi Redmi Note 12 8/128GB" (4 bids), "Vợt tennis Wilson Blade 98" (2 bids); SCHEDULED: "Trống cajon gỗ"; ENDED: "Xe đạp mini Nhật bãi" (won and paid), "Giường gỗ thông 1m6" (no bids). Live ones end 2–3 days after seeding. |
 | Orders | 5 completed with reviews, 1 shipping, 1 confirmed, 1 pending, 1 cancelled online payment awaiting reconciliation |
 | Video | "Fujifilm X-A5 kèm lens", "Amply Marantz PM6006", each with a buyer comment |
-| Vouchers | platform **PASSLAI10** (10 %, max 50,000 ₫, from 200,000 ₫), shop **GOCTAO50K** |
+| Vouchers | platform **PASSDI10** (10 %, max 50,000 ₫, from 200,000 ₫), shop **GOCTAO50K** |
 
 ## Accounts (test database / E2E harness)
 
@@ -181,7 +181,7 @@ The order below matches the browser journeys that were verified end to end ([D8 
 | Min | Journey | What to show |
 | --- | --- | --- |
 | 0:00 | H | Sign in as Buyer C: the welcome tour opens. Go through one step, press "Bỏ qua". Mention "Xem lại hướng dẫn" in the account menu. |
-| 0:45 | A | Sign out. On the home page press **Chọn khu vực**, pick Hồ Chí Minh, "Xác nhận": the feed and the address bar follow. Switch back to "Toàn quốc". As a guest search "Sony", filter by condition, open **C1 Demo 10**. "Thêm vào giỏ" sends you to sign in (Buyer B) and back. Cart → checkout → enter **PASSLAI10** → the total drops by 50,000 ₫ → COD. Show the code on the order. |
+| 0:45 | A | Sign out. On the home page press **Chọn khu vực**, pick Hồ Chí Minh, "Xác nhận": the feed and the address bar follow. Switch back to "Toàn quốc". As a guest search "Sony", filter by condition, open **C1 Demo 10**. "Thêm vào giỏ" sends you to sign in (Buyer B) and back. Cart → checkout → enter **PASSDI10** → the total drops by 50,000 ₫ → COD. Show the code on the order. |
 | 2:15 | B | Open **C1 Demo 09**, press "Mua ngay". Checkout lists only that line. Enter **CONGNGHE20K** in the shop box → minus 20,000 ₫ → order. Open the cart: the other item is still there. |
 | 3:15 | C | Seller 1: open the mode switcher next to the logo → "Dành cho người bán" → **Quản lý tin**: show the counted tabs. "Đăng tin", fill the form, upload a photo, "Gửi duyệt" (the ad moves to "Chờ duyệt"). Profile 2, Admin → Sản phẩm → approve with a reason. Seller 1 → Tồn kho → change the stock → still active. Seller 1 → Đơn hàng → confirm the order from A. |
 | 5:00 | D | Buyer A (profile 1) and Buyer C (profile 2) open the same LIVE auction. A bids; the price changes in C's window without a reload. C bids higher; A gets the outbid toast. Explain that the scheduler ends the auction and only the winner gets the checkout form (show the already settled demo auction). |

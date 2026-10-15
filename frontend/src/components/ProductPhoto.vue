@@ -18,7 +18,7 @@ watch(
     :alt="alt"
     loading="lazy"
     class="img-fluid rounded"
-    style="object-fit: contain; background: #f5f5f5"
+    style="object-fit: contain; background: var(--surface-2)"
     @error="failed = true"
   />
 </template>

@@ -2,10 +2,23 @@
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js'
 import { formatPrice } from '../composables/productPresentation'
+import { cssVar, useTheme } from '../composables/useTheme'
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip)
 const props = defineProps({ series: { type: Array, required: true } })
 const canvas = ref(null)
 let chart = null
+const { theme } = useTheme()
+// A canvas cannot use CSS variables, so the colours are read from the tokens on every draw.
+function paint(target) {
+  const bar = cssVar('--primary', '#c2410c')
+  const grid = cssVar('--border', '#eadfcb')
+  const text = cssVar('--muted', '#6b6660')
+  target.data.datasets[0].backgroundColor = bar
+  for (const axis of ['x', 'y']) {
+    target.config.options.scales[axis].ticks.color = text
+    target.config.options.scales[axis].grid.color = grid
+  }
+}
 function draw() {
   if (!canvas.value) return
   const labels = props.series.map((row) => row.period)
@@ -14,6 +27,7 @@ function draw() {
   if (chart) {
     chart.data.labels = labels
     chart.data.datasets[0].data = values
+    paint(chart)
     chart.update('none')
     return
   }
@@ -25,7 +39,7 @@ function draw() {
         {
           label: 'Doanh thu',
           data: values,
-          backgroundColor: '#0d6efd',
+          backgroundColor: cssVar('--primary', '#c2410c'),
           borderRadius: 5,
           maxBarThickness: 36,
         },
@@ -37,10 +51,11 @@ function draw() {
       animation: false,
       layout: { padding: { top: 12, right: 8 } },
       scales: {
+        x: { grid: { display: false }, ticks: {} },
         y: {
           beginAtZero: true,
           border: { display: false },
-          grid: { color: 'rgba(108, 117, 125, 0.1)' },
+          grid: {},
           ticks: {
             callback: (value) =>
               new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value),
@@ -54,9 +69,12 @@ function draw() {
       },
     },
   })
+  paint(chart)
+  chart.update('none')
 }
 onMounted(draw)
 watch(() => props.series, draw, { deep: true })
+watch(theme, draw, { flush: 'post' })
 onBeforeUnmount(() => {
   chart?.destroy()
   chart = null

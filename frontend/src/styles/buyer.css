@@ -642,7 +642,7 @@
 .order-tab.is-active {
   border-color: var(--primary);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .order-tab:focus-visible {
   outline: var(--focus-ring);
@@ -689,7 +689,7 @@
 }
 .account-nav a.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .account-address-card {
   transition: border-color var(--transition-fast);

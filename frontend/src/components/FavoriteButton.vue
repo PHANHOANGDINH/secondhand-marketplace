@@ -65,6 +65,7 @@ async function toggle() {
   gap: 0.5rem;
 }
 .favorite-control .saved {
+  --bs-btn-color: var(--primary-ink);
   background: var(--bs-primary-bg-subtle);
 }
 .compact .btn {

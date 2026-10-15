@@ -626,7 +626,7 @@
 }
 .seller-sidebar nav a.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .seller-sidebar nav a.active span {
   opacity: 1;

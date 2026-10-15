@@ -5,36 +5,58 @@
  * to --surface; the page itself is painted with --bg.
  */
 :root {
-  --bg: #f7f7f4;
+  /* Passdi palette, light theme. Contrast is checked by scripts/contrast.mjs. */
+  --bg: #fbf8f3;
   --surface: #fff;
-  --surface-2: #f1f1ec;
-  --border: #e6e5df;
-  --text: #15161a;
-  --muted: #5b5d66;
-  --primary: #1e3be8;
-  --primary-rgb: 30, 59, 232;
-  --primary-hover: #1429a8;
-  --primary-ink: #14279b;
-  --primary-soft: #e8ecfe;
-  --accent: #c6ff3d;
-  --accent-ink: #15161a;
+  --surface-2: #f4efe7;
+  --border: #eadfcb;
+  --text: #2b2b2e;
+  --muted: #6b6660;
+  /* The logo orange: large areas and icons only. Small text on it is never white. */
+  --brand: #f26b3a;
+  --brand-soft: #fde7dc;
+  /* Orange text in the logo ("ss"): a shade that keeps 3:1 on the page. */
+  --brand-text: #e25a26;
+  /* Buttons and links. */
+  --primary: #c2410c;
+  --primary-rgb: 194, 65, 12;
+  --primary-hover: #9a3412;
+  --primary-ink: #9a3412;
+  --primary-soft: #fdebdf;
+  --on-primary: #fff;
+  --price: #c2410c;
+  --accent: #ffe2d1;
+  --accent-ink: #7c2d12;
   /* The marketplace band: header and home banner. Text on it is always --band-ink. */
-  --band: #ffc928;
-  --band-hover: #ffb800;
-  --band-soft: #fff4c7;
-  --band-ink: #15161a;
-  --danger: #e5243b;
-  --danger-rgb: 229, 36, 59;
-  /* #E5243B reaches 4.5:1 only on pure white; text on tinted backgrounds uses this. */
-  --danger-ink: #b3172b;
-  --success: #12805c;
-  --success-rgb: 18, 128, 92;
-  --success-ink: #0c5c42;
+  --band: var(--brand);
+  --band-hover: #e0552a;
+  --band-soft: var(--brand-soft);
+  --band-ink: #2b2b2e;
+  --band-ink-muted: #3a2218;
+  /* Frosted chips on the band (hover, tiles). */
+  --band-glass: rgb(255 255 255 / 45%);
+  --band-glass-strong: rgb(255 255 255 / 70%);
+  /* Dark pills ("Đăng tin", banner buttons) and the text on them. */
+  --inverse: #2b2b2e;
+  --inverse-hover: #17130f;
+  --on-inverse: #fff;
+  --danger: #dc2626;
+  --danger-rgb: 220, 38, 38;
+  --danger-ink: #b91c1c;
+  --on-danger: #fff;
+  --on-success: #fff;
+  --success: #15803d;
+  --success-rgb: 21, 128, 61;
+  --success-ink: #166534;
   --warning: var(--bs-warning, #ffc107);
+  --rating: #b45309;
+  /* Shadows and scrims are tinted by this triplet. */
+  --shadow-rgb: 43 43 46;
+  --scrim: rgb(23 19 15 / 48%);
 
   /* Names kept from the previous token set so existing rules keep working. */
   --surface-muted: var(--surface-2);
-  --surface-skeleton: #e9e8e1;
+  --surface-skeleton: #efe7da;
   --text-muted: var(--muted);
   --auction-accent: #ff5a36;
   --auction-accent-soft: #fff0eb;
@@ -69,7 +91,7 @@
   /* Borders carry the structure; shadows are reserved for floating layers. */
   --shadow-card: none;
   --shadow-hover: 0 1px 0 var(--border);
-  --shadow-dialog: 0 24px 64px rgb(21 22 26 / 18%);
+  --shadow-dialog: 0 24px 64px rgb(var(--shadow-rgb) / 18%);
   --control-height: 44px;
   --focus-ring: 3px solid rgba(var(--primary-rgb), 0.45);
   --layer-header: 1020;
@@ -80,12 +102,14 @@
   --bs-body-bg: var(--surface);
   --bs-body-bg-rgb: 255, 255, 255;
   --bs-body-color: var(--text);
-  --bs-body-color-rgb: 21, 22, 26;
+  --bs-body-color-rgb: 43, 43, 46;
   --bs-emphasis-color: var(--text);
-  --bs-emphasis-color-rgb: 21, 22, 26;
+  --bs-emphasis-color-rgb: 43, 43, 46;
   --bs-heading-color: var(--text);
   --bs-secondary-color: var(--muted);
-  --bs-secondary-color-rgb: 91, 93, 102;
+  --bs-secondary-color-rgb: 107, 102, 96;
+  /* .text-secondary and its siblings read --bs-secondary-rgb, not the colour above. */
+  --bs-secondary-rgb: 107, 102, 96;
   --bs-secondary-bg: var(--surface-2);
   --bs-tertiary-bg: var(--surface-2);
   --bs-tertiary-color: var(--muted);
@@ -95,23 +119,23 @@
   --bs-primary-rgb: var(--primary-rgb);
   --bs-primary-text-emphasis: var(--primary-ink);
   --bs-primary-bg-subtle: var(--primary-soft);
-  --bs-primary-border-subtle: #c3ccfb;
+  --bs-primary-border-subtle: #f6c3a8;
   --bs-danger: var(--danger);
   --bs-danger-rgb: var(--danger-rgb);
   --bs-danger-text-emphasis: var(--danger-ink);
-  --bs-danger-bg-subtle: #fdeaec;
-  --bs-danger-border-subtle: #f7c2c9;
+  --bs-danger-bg-subtle: #fdecec;
+  --bs-danger-border-subtle: #f6c5c5;
   --bs-form-invalid-color: var(--danger-ink);
   --bs-form-invalid-border-color: var(--danger);
   --bs-link-color: var(--primary);
   --bs-link-color-rgb: var(--primary-rgb);
   --bs-link-hover-color: var(--primary-hover);
-  --bs-link-hover-color-rgb: 20, 41, 168;
+  --bs-link-hover-color-rgb: 154, 52, 18;
   --bs-success: var(--success);
   --bs-success-rgb: var(--success-rgb);
   --bs-success-text-emphasis: var(--success-ink);
-  --bs-success-bg-subtle: #e3f4ee;
-  --bs-success-border-subtle: #b5dfd0;
+  --bs-success-bg-subtle: #e6f4ea;
+  --bs-success-border-subtle: #b7dfc3;
   --bs-border-radius: var(--radius-sm);
   --bs-border-radius-sm: 8px;
   --bs-border-radius-lg: var(--radius-md);
@@ -122,8 +146,119 @@
   --bs-focus-ring-color: rgba(var(--primary-rgb), 0.25);
 }
 
+/*
+ * Dark theme: set on <html> before the app mounts (index.html), together with data-bs-theme="dark"
+ * so Bootstrap's own components follow. Only values change; every name stays the same.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #17130f;
+  --surface: #211c17;
+  --surface-2: #2b251f;
+  --border: #3a322a;
+  --text: #f4efe7;
+  --muted: #a89f94;
+  --brand-soft: #3a2418;
+  --brand-text: #f26b3a;
+  --primary: #f26b3a;
+  --primary-rgb: 242, 107, 58;
+  --primary-hover: #ff8a5c;
+  --primary-ink: #ff8a5c;
+  --primary-soft: #3a2418;
+  --on-primary: #17130f;
+  --price: #ff8a5c;
+  --accent: #3a2418;
+  --accent-ink: #ffb38f;
+  --band: #2b251f;
+  --band-hover: #3a322a;
+  --band-soft: #3a2418;
+  --band-ink: #f4efe7;
+  --band-ink-muted: #a89f94;
+  --band-glass: rgb(255 255 255 / 8%);
+  --band-glass-strong: rgb(255 255 255 / 10%);
+  /* Dark pills take the brand orange, so no light box is left on a dark page. */
+  --inverse: #f26b3a;
+  --inverse-hover: #ff8a5c;
+  --on-inverse: #17130f;
+  --danger: #f87171;
+  --danger-rgb: 248, 113, 113;
+  --danger-ink: #fca5a5;
+  --on-danger: #17130f;
+  --success: #4ade80;
+  --success-rgb: 74, 222, 128;
+  --success-ink: #86efac;
+  --on-success: #17130f;
+  --rating: #f5b544;
+  --shadow-rgb: 0 0 0;
+  --scrim: rgb(0 0 0 / 62%);
+  --surface-skeleton: #332b24;
+  --auction-accent-soft: #3a2418;
+  --auction-accent-ink: #ffb38f;
+  --shadow-dialog: 0 24px 64px rgb(0 0 0 / 55%);
+  --bs-body-bg-rgb: 33, 28, 23;
+  --bs-body-color-rgb: 244, 239, 231;
+  --bs-emphasis-color-rgb: 244, 239, 231;
+  --bs-secondary-color-rgb: 168, 159, 148;
+  --bs-secondary-rgb: 168, 159, 148;
+  --bs-primary-border-subtle: #6b3a22;
+  --bs-danger-bg-subtle: #3b1d1d;
+  --bs-danger-border-subtle: #7f2d2d;
+  --bs-success-bg-subtle: #16301f;
+  --bs-success-border-subtle: #276b3f;
+  --bs-link-hover-color-rgb: 255, 138, 92;
+  --bs-form-valid-color: var(--success-ink);
+  --bs-form-invalid-color: var(--danger-ink);
+}
+
 /* Dark auction surface: a scope, so it can wrap one page or one card. */
 .theme-auction {
+  /* Always dark, whatever the site theme: the shared tokens are pinned to their dark values here. */
+  color-scheme: dark;
+  --primary: #f26b3a;
+  --primary-rgb: 242, 107, 58;
+  --primary-hover: #ff8a5c;
+  --primary-ink: #ff8a5c;
+  --primary-soft: #3a2418;
+  --on-primary: #17130f;
+  --price: #ff8a5c;
+  --brand-text: #f26b3a;
+  --accent: #3a2418;
+  --accent-ink: #ffb38f;
+  --inverse: #f4efe7;
+  --inverse-hover: #fff;
+  --on-inverse: #17130f;
+  --danger: #f87171;
+  --danger-rgb: 248, 113, 113;
+  --danger-ink: #fca5a5;
+  --on-danger: #17130f;
+  --success: #4ade80;
+  --success-rgb: 74, 222, 128;
+  --success-ink: #86efac;
+  --on-success: #17130f;
+  --rating: #f5b544;
+  --shadow-rgb: 0 0 0;
+  --surface-skeleton: #332d5c;
+  --bs-secondary-rgb: 139, 134, 179;
+  /* --bs-* aliases set on :root resolve there, so the scope re-points them at its own tokens. */
+  --bs-primary: var(--primary);
+  --bs-primary-text-emphasis: var(--primary-ink);
+  --bs-danger: var(--danger);
+  --bs-danger-text-emphasis: var(--danger-ink);
+  --bs-success: var(--success);
+  --bs-success-text-emphasis: var(--success-ink);
+  --bs-form-invalid-color: var(--danger-ink);
+  --bs-form-invalid-border-color: var(--danger);
+  --bs-primary-rgb: var(--primary-rgb);
+  --bs-danger-rgb: var(--danger-rgb);
+  --bs-success-rgb: var(--success-rgb);
+  --bs-body-bg-rgb: 30, 26, 56;
+  --bs-body-color-rgb: 255, 255, 255;
+  --bs-primary-bg-subtle: var(--primary-soft);
+  --bs-primary-border-subtle: #6b3a22;
+  --bs-danger-bg-subtle: #3b1d1d;
+  --bs-danger-border-subtle: #7f2d2d;
+  --bs-success-bg-subtle: #16301f;
+  --bs-success-border-subtle: #276b3f;
   --bg: #0e0b1f;
   --surface: #1e1a38;
   --surface-2: #2a2550;

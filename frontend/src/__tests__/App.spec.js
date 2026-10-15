@@ -21,7 +21,7 @@ describe('Home page API connection', () => {
   it('renders the project and successful API status', async () => {
     api.get.mockResolvedValue({ data: { status: 'ok' } })
     const wrapper = mountHome()
-    expect(wrapper.text()).toContain('pass lại · Đồ cũ, giá trị mới')
+    expect(wrapper.text()).toContain('Passdi · Không dùng nữa? Passdi!')
     expect(wrapper.text()).toContain('Mua và bán đồ đã qua sử dụng')
     expect(
       wrapper.findAllComponents({ name: 'RouterLink' }).map((link) => link.attributes('to')),

@@ -46,9 +46,9 @@ onMounted(async () => {
         >
           <input v-model="choice" type="radio" name="area" :value="city.code" class="visually-hidden" />
           <svg class="area-card-art" viewBox="0 0 160 90" aria-hidden="true" focusable="false">
-            <rect width="160" height="90" :fill="['#e8ecfe', '#eef9d6', '#fdeaec'][index % 3]" />
-            <circle cx="128" cy="24" r="12" :fill="['#c6ff3d', '#1e3be8', '#ffb347'][index % 3]" />
-            <g :fill="['#1e3be8', '#12805c', '#e5243b'][index % 3]">
+            <rect width="160" height="90" :style="{ fill: ['var(--primary-soft)', 'var(--surface-2)', 'var(--brand-soft)'][index % 3] }" />
+            <circle cx="128" cy="24" r="12" :style="{ fill: ['var(--brand)', 'var(--rating)', 'var(--brand)'][index % 3] }" />
+            <g :style="{ fill: ['var(--primary)', 'var(--success)', 'var(--accent-ink)'][index % 3] }">
               <rect x="14" y="46" width="18" height="44" rx="2" />
               <rect x="36" :y="index === 0 ? 22 : 34" width="20" :height="index === 0 ? 68 : 56" rx="2" />
               <rect x="60" y="52" width="16" height="38" rx="2" />

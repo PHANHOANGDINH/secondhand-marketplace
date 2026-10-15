@@ -260,7 +260,7 @@ onUnmounted(release)
   position: fixed;
   inset: 0;
   z-index: 1060;
-  background: rgb(21 22 26 / 48%);
+  background: var(--scrim);
 }
 .chat-drawer {
   position: absolute;

@@ -1,6 +1,6 @@
-# Secondhand Marketplace
+# Secondhand Marketplace — Passdi
 
-A Vietnamese secondhand marketplace with Buyer, Seller and Admin interfaces. The application uses Vue 3/Vite, Bootstrap, Pinia, Chart.js and homepage-only GSAP; Laravel 13/Sanctum provides the JSON API, cookie authentication and MySQL persistence.
+**Passdi** ("Không dùng nữa? Passdi!") is a Vietnamese secondhand marketplace with Buyer, Seller and Admin interfaces. The name, slogan and page titles come from `frontend/src/config/brand.js`; the logo is `frontend/src/components/ui/BrandLogo.vue` (favicon `frontend/public/favicon.svg`). The site has a light and a dark theme: it follows the operating system until the visitor picks one with the sun/moon button in the header or under "Giao diện" in the account menu (stored in `localStorage` as `passdi:theme`). The auction area is always dark. Colour tokens live in `frontend/src/styles/tokens.css`; `node frontend/scripts/contrast.mjs` checks their contrast. The application uses Vue 3/Vite, Bootstrap, Pinia, Chart.js and homepage-only GSAP; Laravel 13/Sanctum provides the JSON API, cookie authentication and MySQL persistence.
 
 Canonical documentation entry point: [Final project index](docs/final-project-index.md), including the [release checklist](docs/final-release-checklist.md).
 
@@ -217,7 +217,7 @@ Demo accounts (all use the private `DEMO_PASSWORD` set when they were first seed
 | Seller 2 (C1 Demo · Nhà & Phong Cách) | `c1-seller-2@example.test` |
 | Buyers | `c1-buyer-a@example.test`, `c1-buyer-b@example.test`, `c1-buyer-c@example.test` |
 
-Demo voucher codes created by the current seeder: **`PASSLAI10`** (platform, 10 %, at most 50,000 ₫, order from 200,000 ₫) and **`CONGNGHE20K`** (shop "Góc Công Nghệ", 20,000 ₫, shop order from 100,000 ₫). The seeder also adds one payment awaiting reconciliation and view/search signals so the admin payments page and "Gợi ý cho bạn" are not empty. The local development database was re-seeded with it on 2026-10-14.
+Demo voucher codes created by the current seeder: **`PASSDI10`** (platform, 10 %, at most 50,000 ₫, order from 200,000 ₫) and **`CONGNGHE20K`** (shop "Góc Công Nghệ", 20,000 ₫, shop order from 100,000 ₫). The pre-rebrand code `PASSLAI10` is no longer created; a seeder run switches an existing one to `INACTIVE` and keeps it, since orders may reference it. The seeder also adds one payment awaiting reconciliation and view/search signals so the admin payments page and "Gợi ý cho bạn" are not empty. The local development database was re-seeded with it on 2026-10-14.
 
 Keep four terminals running (start MySQL first):
 

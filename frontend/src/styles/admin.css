@@ -292,7 +292,7 @@
 .admin-moderation .btn[data-target='REJECTED']:hover,
 .admin-moderation .btn[data-target='SUSPENDED']:hover,
 .admin-moderation .btn[data-target='HIDDEN']:hover {
-  color: var(--bs-white);
+  color: var(--on-danger);
   background: var(--bs-danger);
 }
 .admin-moderation .btn[data-target='ACTIVE'],
@@ -302,7 +302,7 @@
 }
 .admin-moderation .btn[data-target='ACTIVE']:hover,
 .admin-moderation .btn[data-target='PUBLISHED']:hover {
-  color: var(--bs-white);
+  color: var(--on-primary);
   background: var(--bs-primary);
 }
 .admin-rating {
@@ -651,7 +651,7 @@
 }
 .admin-sidebar nav a.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .admin-sidebar nav a.active span {
   opacity: 1;

@@ -168,9 +168,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
   color: var(--accent-ink);
 }
 .mode-switcher[data-mode='admin'] .mode-switcher-button {
-  background: var(--text);
-  border-color: var(--text);
-  color: #fff;
+  background: var(--inverse);
+  border-color: var(--inverse);
+  color: var(--on-inverse);
 }
 .mode-switcher-panel {
   position: absolute;

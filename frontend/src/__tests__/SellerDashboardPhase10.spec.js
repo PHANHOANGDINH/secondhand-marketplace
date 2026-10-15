@@ -135,6 +135,8 @@ it('renders Chart.js series and exact decimal tooltip/table, updates and destroy
   expect(chart.config.type).toBe('bar')
   expect(chart.data.labels).toEqual(['2026-09'])
   expect(chart.data.datasets[0].data).toEqual([20000000000000.08])
+  expect(chart.data.datasets[0].backgroundColor).toBeTruthy()
+  expect(chart.config.options.scales.y.grid.color).toBeTruthy()
   expect(chart.config.options.plugins.tooltip.callbacks.label({ dataIndex: 0 })).toBe(
     formatPrice(series[0].revenue),
   )

@@ -227,7 +227,7 @@ onUnmounted(() => {
   border-radius: 18px;
   background: var(--surface);
   color: var(--promo-ink);
-  box-shadow: 0 6px 16px rgb(21 22 26 / 8%);
+  box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 8%);
 }
 .promo-content {
   position: relative;
@@ -261,16 +261,16 @@ onUnmounted(() => {
   min-height: 44px;
   padding: 0 1.1rem;
   border-radius: var(--radius-pill);
-  background: var(--band-ink);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
 }
 .promo-cta:hover {
-  background: #000;
-  color: #fff;
+  background: var(--inverse-hover);
+  color: var(--on-inverse);
 }
 .promo-cta:focus-visible,
 .promo-dot:focus-visible {

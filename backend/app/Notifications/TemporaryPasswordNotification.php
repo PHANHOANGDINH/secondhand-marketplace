@@ -17,7 +17,7 @@ class TemporaryPasswordNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $brand = config('app.brand_name', 'pass lại');
+        $brand = config('app.brand_name', 'Passdi');
 
         return (new MailMessage)
             ->subject("Mật khẩu tạm thời cho tài khoản {$brand}")

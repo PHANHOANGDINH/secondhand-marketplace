@@ -88,7 +88,7 @@ class FinalDemoSeederTest extends TestCase
         $recommended = app(RecommendationService::class)->forUser($buyerA, 12);
         $this->assertGreaterThan(0, $recommended->count());
         $this->assertTrue($recommended->contains(fn ($product) => str_starts_with($product->reason_label, 'Vì bạn')));
-        $this->assertSame(['CONGNGHE20K' => 'SHOP', 'PASSLAI10' => 'PLATFORM'], Voucher::orderBy('code')->pluck('scope', 'code')->all());
+        $this->assertSame(['CONGNGHE20K' => 'SHOP', 'PASSDI10' => 'PLATFORM'], Voucher::orderBy('code')->pluck('scope', 'code')->all());
         $this->assertSame($inventoryShop->id, Voucher::where('code', 'CONGNGHE20K')->value('shop_id'));
         $this->assertSame(2, ReviewService::published(Review::query())->count());
         $this->assertDatabaseCount('product_videos', 2);

@@ -15,6 +15,7 @@ Browser journeys driven over the Chrome DevTools Protocol with two headless Edge
 | V | Voucher management screens for seller and admin (`vouchers.mjs`) |
 | P | Forgot password (`password.mjs`): a temporary password is stored hashed and the old one still works; signing in with it forces a new password, then it is used up |
 | M | Marketplace v2 (`marketplace.mjs`): guest home and area picker, the three modes, "Quản lý tin" counters against the database |
+| T | Passdi light/dark (`theme.mjs`): system default and toggle, home, detail, checkout, "Quản lý tin", seller, admin and login in both themes; flags text below 4.5:1 (3:1 large) and light boxes on dark pages; the auction area stays dark |
 
 Every screenshot is taken at 1440 and 390 px; the run fails the report on horizontal overflow or any uncaught JS error. Overflow is measured against the requested width, because an emulated phone viewport grows to fit content that overflows.
 
@@ -30,7 +31,7 @@ All commands use the Herd PHP from `CLAUDE.md`. Ports: backend 8001, Reverb 8081
    - backend, from `backend/public`: `SESSION_DRIVER=file BROADCAST_CONNECTION=reverb APP_URL=http://localhost:5174 SANCTUM_STATEFUL_DOMAINS=localhost:5174 FRONTEND_URLS=http://localhost:5174 REVERB_APP_ID=e2e REVERB_APP_KEY=e2ekey REVERB_APP_SECRET=e2esecret REVERB_HOST=127.0.0.1 REVERB_PORT=8081 REVERB_SCHEME=http php -S 127.0.0.1:8001 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
    - Reverb, from `backend`: same `REVERB_*` variables, `php artisan reverb:start --host=127.0.0.1 --port=8081`
    - Vite, from `frontend`: `VITE_BACKEND_PROXY_TARGET=http://127.0.0.1:8001 VITE_REVERB_APP_KEY=e2ekey VITE_REVERB_HOST=127.0.0.1 VITE_REVERB_PORT=8081 VITE_REVERB_SCHEME=http npx vite --port 5174`
-4. `bash frontend/e2e/go.sh journeys.mjs` (all journeys, in order), `bash frontend/e2e/go.sh vouchers.mjs` and `bash frontend/e2e/go.sh marketplace.mjs`. Pass journey letters to run a subset, e.g. `go.sh journeys.mjs D E`.
+4. `bash frontend/e2e/go.sh journeys.mjs` (all journeys, in order), `bash frontend/e2e/go.sh vouchers.mjs`, `bash frontend/e2e/go.sh marketplace.mjs` and `bash frontend/e2e/go.sh theme.mjs` (writes `theme-report.json`; delete it afterwards). Pass journey letters to run a subset, e.g. `go.sh journeys.mjs D E`.
 
 Journeys change data (orders, a suspended shop, a cancelled auction): reload the data (step 1–2) before a second full run. Journey D creates its own auction and ends it by moving `ends_at` and running `auctions:sync` once.
 

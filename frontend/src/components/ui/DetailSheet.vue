@@ -77,7 +77,7 @@ onUnmounted(() => {
   z-index: var(--layer-dialog);
   display: flex;
   justify-content: flex-end;
-  background: rgb(21 22 26 / 45%);
+  background: var(--scrim);
 }
 .detail-sheet {
   display: flex;

@@ -178,7 +178,7 @@ it('welcome tour opens on every signed-in page view until skipped, and can be re
 
   // A page that loads already signed in shows the tour; so does the next page view.
   const first = await setup(DefaultLayout, { user: '9' })
-  expect(dialog().textContent).toContain('Chào mừng đến pass lại')
+  expect(dialog().textContent).toContain('Chào mừng đến Passdi')
   first.wrapper.unmount()
   wrappers.splice(wrappers.indexOf(first.wrapper), 1)
   expect(window.localStorage.getItem(KEY('9', 'welcome'))).toBeNull()

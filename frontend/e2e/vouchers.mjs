@@ -31,7 +31,7 @@ await journey('V voucher management screens', async () => {
   await one.goto('/admin/vouchers', 2500)
   await one.wait("document.querySelectorAll('[data-voucher]').length >= 3", 'admin sees all vouchers')
   const text = await one.text('main')
-  check(text.includes('PASSLAI10') && text.includes('Chỉ xem'), 'platform voucher editable, shop vouchers read-only')
+  check(text.includes('PASSDI10') && text.includes('Chỉ xem'), 'platform voucher editable, shop vouchers read-only')
   await one.shot('V-admin-vouchers')
 })
 console.log(JSON.stringify({ journeys: report.journeys, overflow: Object.entries(report.shots).filter(([, v]) => v !== 'ok'), errors: report.errors }))

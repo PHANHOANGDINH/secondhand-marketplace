@@ -6,7 +6,7 @@ defineProps({
 })
 </script>
 <template>
-  <span v-if="auctionId" class="badge text-bg-light me-2" data-auction-source>
+  <span v-if="auctionId" class="badge text-bg-secondary me-2" data-auction-source>
     <span v-if="admin">Thắng đấu giá #{{ auctionId }}</span>
     <RouterLink
       v-else

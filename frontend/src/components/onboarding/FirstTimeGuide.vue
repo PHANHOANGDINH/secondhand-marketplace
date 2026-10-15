@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--primary);
   border-radius: var(--radius-lg);
   background: var(--primary-soft);
-  color: #15161a;
+  color: var(--text);
 }
 .first-time-note ul {
   margin: 0;
@@ -153,9 +153,9 @@ onBeforeUnmount(() => {
 }
 .first-time-note .btn {
   flex: none;
-  --bs-btn-color: #15161a;
-  --bs-btn-bg: #fff;
-  --bs-btn-border-color: #c3ccfb;
+  --bs-btn-color: var(--text);
+  --bs-btn-bg: var(--surface);
+  --bs-btn-border-color: var(--border);
 }
 @media (max-width: 575px) {
   .first-time-note {

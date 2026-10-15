@@ -123,11 +123,10 @@ it('listing card labels an auction on the image corner and keeps the link to the
   expect(wrapper.get('.product-card-reason').text()).toBe('Mới đăng gần đây')
 })
 
-it('interim logo, line icons and empty state use SVG with text labels and no emoji glyphs', () => {
+it('logo, line icons and empty state use SVG with text labels and no emoji glyphs', () => {
   const logo = mount(BrandLogo)
-  expect(logo.text()).toBe('pass lại')
+  expect(logo.text()).toBe('passdi')
   expect(logo.get('.brand-logo-mark').attributes('aria-hidden')).toBe('true')
-  expect(logo.get('svg path').attributes('stroke')).toBe('var(--accent)')
   for (const name of ['search', 'menu', 'plus', 'chevronDown', 'heart', 'star', 'box', 'play', 'gavel', 'tag']) {
     const icon = mount(AppIcon, { props: { name } })
     expect(icon.get('svg').attributes()).toMatchObject({ 'aria-hidden': 'true', fill: 'none', 'stroke-width': '1.6' })
@@ -141,7 +140,7 @@ it('interim logo, line icons and empty state use SVG with text labels and no emo
 
 it('header shows the logo, the post button and no emoji glyphs', async () => {
   const { wrapper } = await setup(DefaultLayout, { path: '/products' })
-  expect(wrapper.get('.marketplace-brand').text()).toBe('pass lại')
+  expect(wrapper.get('.marketplace-brand').text()).toBe('passdi')
   expect(wrapper.get('.marketplace-brand').attributes('href')).toBe('/')
   expect(wrapper.get('.marketplace-sell').text()).toBe('Đăng tin')
   expect(wrapper.get('[role="search"] button').attributes('aria-label')).toBe('Tìm sản phẩm')
@@ -167,17 +166,17 @@ it('listing card marks a video on the image and ends the meta line with a compac
 })
 
 it('brand config is the single source for the name, area labels and document titles', async () => {
-  expect(brand).toMatchObject({ name: 'pass lại', slogan: 'Đồ cũ, giá trị mới' })
-  expect(brandLine).toBe('pass lại · Đồ cũ, giá trị mới')
-  expect(sellerBrand).toBe('pass lại · Kênh người bán')
-  expect(adminBrand).toBe('pass lại · Quản trị')
-  expect(pageTitle('Giỏ hàng')).toBe('Giỏ hàng · pass lại')
+  expect(brand).toMatchObject({ name: 'Passdi', slogan: 'Không dùng nữa? Passdi!' })
+  expect(brandLine).toBe('Passdi · Không dùng nữa? Passdi!')
+  expect(sellerBrand).toBe('Passdi · Kênh người bán')
+  expect(adminBrand).toBe('Passdi · Quản trị')
+  expect(pageTitle('Giỏ hàng')).toBe('Giỏ hàng · Passdi')
   expect(pageTitle('')).toBe(brandLine)
   expect(pageTitle(undefined)).toBe(brandLine)
   // Every named route has a Vietnamese document title.
   const names = router.getRoutes().map((route) => route.name)
   expect(names.filter((name) => !(name in pageNames))).toEqual([])
-  expect(mount(BrandLogo).text()).toBe(brand.name)
+  expect(mount(BrandLogo).attributes('aria-label')).toBe(brand.name)
   expect(mount(PageHeader, { props: { title: 'Đơn mua' } }).get('.buyer-eyebrow').text()).toBe(brandLine)
 })
 

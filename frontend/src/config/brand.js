@@ -1,7 +1,7 @@
 // Single source for the product name. A rebrand touches this file and components/ui/BrandLogo.vue only.
 export const brand = {
-  name: 'pass lại',
-  slogan: 'Đồ cũ, giá trị mới',
+  name: 'Passdi',
+  slogan: 'Không dùng nữa? Passdi!',
   sellerArea: 'Kênh người bán',
   adminArea: 'Quản trị',
 }
@@ -9,7 +9,7 @@ export const brandLine = `${brand.name} · ${brand.slogan}`
 export const sellerBrand = `${brand.name} · ${brand.sellerArea}`
 export const adminBrand = `${brand.name} · ${brand.adminArea}`
 
-/** "<page> · pass lại"; without a page name, the brand line. */
+/** "<page> · Passdi"; without a page name, the brand line. */
 export const pageTitle = (page) => (page ? `${page} · ${brand.name}` : brandLine)
 
 // Document titles by route name.

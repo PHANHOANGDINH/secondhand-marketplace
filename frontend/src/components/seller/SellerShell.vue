@@ -1,6 +1,7 @@
 <script setup>
 import { brand } from '../../config/brand'
 import BrandLogo from '../ui/BrandLogo.vue'
+import ThemeToggle from '../ui/ThemeToggle.vue'
 import ModeSwitcher from '../layout/ModeSwitcher.vue'
 import NotificationBell from '../notifications/NotificationBell.vue'
 import { provide, ref, watch } from 'vue'
@@ -46,6 +47,7 @@ function close() {
         ><BrandLogo compact /> <span>{{ brand.sellerArea }}</span></RouterLink
       >
       <ModeSwitcher />
+      <ThemeToggle class="seller-theme" />
       <div class="seller-topbar-actions">
         <RouterLink to="/products">← Sàn mua bán</RouterLink
         ><RouterLink to="/account/profile" class="seller-user">{{

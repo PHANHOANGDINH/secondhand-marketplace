@@ -67,7 +67,7 @@ it('disables duplicate submissions while a recovery request is in flight', async
   await flushPromises()
   await wrapper.get('form').trigger('submit')
   expect(api.post).toHaveBeenCalledTimes(1)
-  expect(wrapper.get('button').attributes('disabled')).toBeDefined()
+  expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
   resolve({ data: {} })
   await flushPromises()
   wrapper.unmount()

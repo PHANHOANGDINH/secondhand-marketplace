@@ -22,7 +22,7 @@
   min-width: 18px;
   border-radius: 999px;
   background: var(--bs-primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 0.65rem;
   font-weight: 700;
 }
@@ -36,7 +36,7 @@
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 40px rgb(var(--shadow-rgb) / 12%);
   padding: 16px;
 }
 .notification-panel-header {

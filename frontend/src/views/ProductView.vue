@@ -204,7 +204,7 @@ const joined = computed(() => {
   padding: 0.1rem 0.5rem;
   border-radius: var(--radius-pill);
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   font-size: 0.45em;
   font-weight: 800;
   vertical-align: middle;
@@ -295,7 +295,7 @@ const joined = computed(() => {
   gap: 0.25rem;
 }
 .product-seller-stats :deep(svg) {
-  color: #b7791f;
+  color: var(--rating);
 }
 .product-seller :deep(.btn) {
   width: 100%;

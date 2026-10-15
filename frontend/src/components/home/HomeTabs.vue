@@ -134,7 +134,7 @@ watch(
   padding: 0 var(--space-1);
   border: 0;
   background: transparent;
-  color: #9a9ba3;
+  color: var(--muted);
   font-size: 1.3rem;
   font-weight: 700;
   white-space: nowrap;

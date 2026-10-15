@@ -12,6 +12,8 @@ import '../styles/seller.css'
 import '../styles/admin.css'
 import '../styles/core.css'
 import BrandLogo from '../components/ui/BrandLogo.vue'
+import ThemeChoices from '../components/ui/ThemeChoices.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import AdminShell from '../components/admin/AdminShell.vue'
 import SellerShell from '../components/seller/SellerShell.vue'
@@ -225,6 +227,7 @@ function closeAccountMenu(event) {
           ><AppIcon name="chevronDown" :size="14" />
         </button>
       </div>
+      <ThemeToggle class="marketplace-theme" />
       <div class="marketplace-links">
         <template v-if="auth.isAuthenticated">
           <RouterLink to="/wishlist" class="marketplace-icon-link" aria-label="Sản phẩm yêu thích"
@@ -273,6 +276,7 @@ function closeAccountMenu(event) {
                   ><AppIcon :name="icon" :size="18" />{{ label }}</RouterLink
                 ></template
               >
+              <ThemeChoices />
               <button type="button" class="marketplace-menu-button" @click="replayGuides">
                 <AppIcon name="refresh" :size="18" />Xem lại hướng dẫn
               </button>
@@ -324,7 +328,7 @@ function closeAccountMenu(event) {
   transition: box-shadow var(--transition-fast);
 }
 .marketplace-header.is-scrolled {
-  box-shadow: 0 2px 10px rgb(21 22 26 / 12%);
+  box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / 12%);
 }
 .marketplace-nav {
   display: flex;
@@ -368,7 +372,7 @@ function closeAccountMenu(event) {
 }
 .marketplace-header .marketplace-nav .marketplace-mode :deep(.mode-switcher-button:hover),
 .marketplace-header .marketplace-nav .marketplace-mode :deep(.mode-switcher-button[aria-expanded='true']) {
-  background: rgb(255 255 255 / 45%);
+  background: var(--band-glass);
 }
 .marketplace-directory {
   flex: 1;
@@ -383,7 +387,7 @@ function closeAccountMenu(event) {
   min-height: 44px;
   padding: 0 0.9rem;
   border-radius: var(--radius-pill);
-  color: rgb(21 22 26 / 55%);
+  color: var(--band-ink-muted);
   font-size: 0.95rem;
   font-weight: 700;
   text-decoration: none;
@@ -393,7 +397,7 @@ function closeAccountMenu(event) {
     color var(--transition-fast);
 }
 .marketplace-directory a:hover {
-  background: rgb(255 255 255 / 45%);
+  background: var(--band-glass);
   color: var(--band-ink);
 }
 .marketplace-directory a.is-current {
@@ -470,6 +474,13 @@ function closeAccountMenu(event) {
   margin-left: auto;
   font-size: 0.85rem;
 }
+/* The theme button leads the links on wide screens and sits beside the logo on phones. */
+.marketplace-theme {
+  margin-left: auto;
+}
+.marketplace-theme + .marketplace-links {
+  margin-left: 0;
+}
 .marketplace-links a {
   color: var(--text);
   text-decoration: none;
@@ -495,17 +506,18 @@ function closeAccountMenu(event) {
 }
 .marketplace-sell {
   white-space: nowrap;
-  --bs-btn-color: #fff;
-  --bs-btn-bg: var(--band-ink);
-  --bs-btn-border-color: var(--band-ink);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #000;
-  --bs-btn-hover-border-color: #000;
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: #000;
-  --bs-btn-active-border-color: #000;
-  --bs-btn-disabled-bg: var(--band-ink);
-  --bs-btn-disabled-border-color: var(--band-ink);
+  --bs-btn-color: var(--on-inverse);
+  --bs-btn-bg: var(--inverse);
+  --bs-btn-border-color: var(--inverse);
+  --bs-btn-hover-color: var(--on-inverse);
+  --bs-btn-hover-bg: var(--inverse-hover);
+  --bs-btn-hover-border-color: var(--inverse-hover);
+  --bs-btn-active-color: var(--on-inverse);
+  --bs-btn-active-bg: var(--inverse-hover);
+  --bs-btn-active-border-color: var(--inverse-hover);
+  --bs-btn-disabled-color: var(--on-inverse);
+  --bs-btn-disabled-bg: var(--inverse);
+  --bs-btn-disabled-border-color: var(--inverse);
   min-height: var(--control-height);
   border-radius: var(--radius-pill);
   font-size: 0.85rem;
@@ -637,7 +649,7 @@ function closeAccountMenu(event) {
   border: 2px solid var(--surface);
   border-radius: var(--radius-pill);
   background: var(--danger) !important;
-  color: #fff !important;
+  color: var(--on-danger) !important;
   font-family: var(--font-money);
   font-size: 0.62rem;
   font-weight: 700;
@@ -687,6 +699,9 @@ function closeAccountMenu(event) {
   }
   .marketplace-brand :deep(.brand-logo-word) {
     display: none;
+  }
+  .marketplace-theme + .marketplace-links {
+    margin-left: auto;
   }
   .marketplace-sell {
     padding-inline: 0.7rem;

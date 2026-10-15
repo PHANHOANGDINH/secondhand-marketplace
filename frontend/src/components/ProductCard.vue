@@ -151,8 +151,8 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
   max-width: calc(100% - 1rem);
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius-pill);
-  background: var(--text);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1.3;
@@ -172,7 +172,7 @@ const rating = (product) => Number(product.average_rating).toFixed(1)
 }
 .product-card-badge-auction:hover {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .card-body {
   padding: 0.85rem 0.5rem 0.5rem;
@@ -228,7 +228,7 @@ h2 a:hover {
   padding: 0.05rem 0.4rem;
   border-radius: var(--radius-pill);
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -319,7 +319,7 @@ h2 a:hover {
   white-space: nowrap;
 }
 .product-card-rating :deep(svg) {
-  color: #b7791f;
+  color: var(--rating);
 }
 a:focus-visible {
   outline: var(--focus-ring);

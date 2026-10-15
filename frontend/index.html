@@ -2,11 +2,32 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
+    <!-- Theme before first paint (same rule as src/composables/useTheme.js), so a dark page never flashes white. -->
+    <script>
+      (function () {
+        var preference = 'system'
+        try {
+          preference = window.localStorage.getItem('passdi:theme') || 'system'
+        } catch (e) {}
+        var systemDark = false
+        try {
+          systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        } catch (e) {}
+        var theme = preference === 'dark' || (preference !== 'light' && systemDark) ? 'dark' : 'light'
+        var root = document.documentElement
+        root.setAttribute('data-theme', theme)
+        root.setAttribute('data-bs-theme', theme)
+      })()
+    </script>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FBF8F3" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17130F" media="(prefers-color-scheme: dark)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <title>%BRAND_LINE%</title>
   </head>
   <body>

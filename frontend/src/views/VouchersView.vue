@@ -7,6 +7,7 @@ import { formatPrice } from '../composables/productPresentation'
 import PageHeader from '../components/ui/PageHeader.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import AccessibleDialog from '../components/ui/AccessibleDialog.vue'
+import MoneyInput from '../components/ui/MoneyInput.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 // One screen for both areas: a seller manages the vouchers of their shop,
@@ -313,11 +314,10 @@ onMounted(() => load())
           <label for="voucher-value" class="form-label">{{
             form.type === 'PERCENT' ? 'Phần trăm giảm (1–100)' : 'Số tiền giảm (₫)'
           }}</label>
-          <input
+          <MoneyInput
             id="voucher-value"
             v-model="form.value"
             class="form-control"
-            inputmode="decimal"
             :disabled="locked"
             :aria-invalid="formErrors.value ? 'true' : undefined"
           />
@@ -327,11 +327,10 @@ onMounted(() => load())
         </div>
         <div v-if="form.type === 'PERCENT'" class="voucher-field">
           <label for="voucher-max" class="form-label">Giảm tối đa (₫, bỏ trống nếu không giới hạn)</label>
-          <input
+          <MoneyInput
             id="voucher-max"
             v-model="form.max_discount"
             class="form-control"
-            inputmode="decimal"
             :disabled="locked"
           />
           <div v-if="formErrors.max_discount" class="invalid-feedback d-block">
@@ -340,11 +339,10 @@ onMounted(() => load())
         </div>
         <div class="voucher-field">
           <label for="voucher-min" class="form-label">Đơn tối thiểu (₫)</label>
-          <input
+          <MoneyInput
             id="voucher-min"
             v-model="form.min_order"
             class="form-control"
-            inputmode="decimal"
             :disabled="locked"
           />
           <div v-if="formErrors.min_order" class="invalid-feedback d-block">

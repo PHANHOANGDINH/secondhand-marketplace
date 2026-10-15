@@ -130,7 +130,7 @@ it('quick chips calculate from the latest realtime minimum', async () => {
   })
   await flushPromises()
   await wrapper.findAll('.auction-chips button')[0].trigger('click')
-  expect(wrapper.get('#auction-bid-amount').element.value).toBe('260000.00')
+  expect(wrapper.get('#auction-bid-amount').element.value).toBe('260.000')
   expect(wrapper.get('.auction-price').classes()).toContain('is-changed')
   expect(wrapper.get('.auction-bid-log').text()).toContain('Người mua #2')
   expect(wrapper.findAll('.auction-bid-log li')).toHaveLength(1)

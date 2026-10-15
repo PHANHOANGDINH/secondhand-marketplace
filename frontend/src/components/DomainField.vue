@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import MoneyInput from './ui/MoneyInput.vue'
 const props = defineProps({
   idPrefix: { type: String, default: '' },
   name: { type: String, required: true },
@@ -51,6 +52,20 @@ defineEmits(['update:modelValue'])
       class="form-control"
       :class="{ 'is-invalid': errors.length }"
       @input="$emit('update:modelValue', $event.target.value)"
+    />
+    <!-- type="money": thousands grouped with dots while typing; the model stays "1500000". -->
+    <MoneyInput
+      v-else-if="type === 'money'"
+      :id="fieldId"
+      :name="name"
+      :model-value="modelValue"
+      :required="required"
+      :disabled="disabled"
+      :aria-invalid="errors.length ? 'true' : undefined"
+      :aria-describedby="errors.length ? `${fieldId}-errors` : undefined"
+      class="form-control"
+      :class="{ 'is-invalid': errors.length }"
+      @update:model-value="$emit('update:modelValue', $event)"
     />
     <input
       v-else

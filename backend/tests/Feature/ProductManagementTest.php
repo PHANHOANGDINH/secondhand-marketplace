@@ -77,6 +77,13 @@ class ProductManagementTest extends TestCase
             $this->patchJson('/api/v1/seller/products/'.$product->id, [$field => $value])->assertUnprocessable()->assertJsonValidationErrors($field);
         }
         $this->postJson('/api/v1/seller/products', $this->data(['price' => '0', 'stock_quantity' => -1, 'condition' => 'NEW']))->assertUnprocessable()->assertJsonValidationErrors(['price', 'stock_quantity', 'condition']);
+        // A listing costs at least 1 ₫, on create and on edit; the compare-at price follows the same floor.
+        foreach (['0.99', '0.01'] as $price) {
+            $this->postJson('/api/v1/seller/products', $this->data(['price' => $price]))->assertUnprocessable()->assertJsonPath('errors.price.0', 'Số tiền phải từ 1 ₫ trở lên.');
+            $this->patchJson('/api/v1/seller/products/'.$product->id, ['price' => $price])->assertUnprocessable()->assertJsonValidationErrors('price');
+        }
+        $this->postJson('/api/v1/seller/products', $this->data(['compare_at_price' => '0.50']))->assertUnprocessable()->assertJsonValidationErrors('compare_at_price');
+        $this->postJson('/api/v1/seller/products', $this->data(['price' => '1', 'name' => 'Món một đồng']))->assertCreated()->assertJsonPath('data.price', '1.00');
         $root = Category::factory()->create(['status' => CategoryStatus::INACTIVE]);
         $child = Category::factory()->create(['parent_id' => $root->id]);
         $this->postJson('/api/v1/seller/products', $this->data(['category_id' => $child->id]))->assertUnprocessable()->assertJsonValidationErrors('category_id');
@@ -199,11 +206,11 @@ class ProductManagementTest extends TestCase
     {
         $shop = Shop::factory()->create();
         $this->loginAs($shop->owner);
-        foreach (['0.10', '999999.99', '9999999999999.99', '1250000.00'] as $price) {
+        foreach (['1.10', '999999.99', '9999999999999.99', '1250000.00'] as $price) {
             $id = $this->postJson('/api/v1/seller/products', $this->data(['price' => $price]))->assertCreated()->assertJsonPath('data.price', $price)->json('data.id');
             $this->assertSame($price, Product::findOrFail($id)->price);
         }
-        foreach (['1.001', '10000000000000.00', '1e3', '-1', 'NaN', 0.1] as $price) {
+        foreach (['1.001', '10000000000000.00', '1e3', '-1', 'NaN', 0.1, '0.10'] as $price) {
             $this->postJson('/api/v1/seller/products', $this->data(['price' => $price]))->assertUnprocessable()->assertJsonValidationErrors('price');
         }
     }

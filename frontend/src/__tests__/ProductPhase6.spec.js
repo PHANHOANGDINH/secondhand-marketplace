@@ -117,8 +117,10 @@ it('catalog submission changes query and sends filters only on submit', async ()
   await wrapper.get('input[name=search]').setValue('updated')
   await wrapper.get('select[name=category]').setValue('3')
   await wrapper.get('select[name=condition]').setValue('GOOD')
-  await wrapper.get('input[name=min_price]').setValue('100.00')
-  await wrapper.get('input[name=max_price]').setValue('500.00')
+  // Typed the Vietnamese way; the query keeps plain numbers.
+  await wrapper.get('input[name=min_price]').setValue('100.000')
+  await wrapper.get('input[name=max_price]').setValue('500.000')
+  expect(wrapper.get('input[name=min_price]').element.value).toBe('100.000')
   await wrapper.get('select[name=sort]').setValue('price_desc')
   expect(productApi.listProducts).toHaveBeenCalledTimes(1)
   await wrapper.get('form').trigger('submit')
@@ -127,8 +129,8 @@ it('catalog submission changes query and sends filters only on submit', async ()
     search: 'updated',
     category: '3',
     condition: 'GOOD',
-    min_price: '100.00',
-    max_price: '500.00',
+    min_price: '100000',
+    max_price: '500000',
     sort: 'price_desc',
   })
   expect(productApi.listProducts).toHaveBeenLastCalledWith(

@@ -19,6 +19,7 @@ import CollectionPager from '../components/CollectionPager.vue'
 import '../styles/auction.css'
 import FilterSheet from '../components/ui/FilterSheet.vue'
 import DetailSheet from '../components/ui/DetailSheet.vue'
+import MoneyInput from '../components/ui/MoneyInput.vue'
 const route = useRoute(),
   router = useRouter()
 const auctionFilter = ref(
@@ -255,12 +256,21 @@ const activeFilters = computed(() => [
               {{ product.name }}
             </option>
           </select>
+          <MoneyInput
+            v-else-if="!key.endsWith('_at')"
+            :id="'create-auction-' + key"
+            v-model="form[key]"
+            class="form-control"
+            required
+            :disabled="busy"
+            :aria-invalid="!!errors[key]"
+            :aria-describedby="'error-' + key"
+          />
           <input
             v-else
             :id="'create-auction-' + key"
             v-model="form[key]"
-            :type="key.endsWith('_at') ? 'datetime-local' : 'text'"
-            :inputmode="key.endsWith('_at') ? undefined : 'decimal'"
+            type="datetime-local"
             class="form-control"
             required
             :disabled="busy"

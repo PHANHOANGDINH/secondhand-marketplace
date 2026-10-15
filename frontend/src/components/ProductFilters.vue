@@ -13,8 +13,8 @@ const set = (key, value) => emit('update:modelValue', { ...props.modelValue, [ke
         { key: 'category', label: 'Danh mục', options: [...all, ...categories] },
         { key: 'condition', label: 'Tình trạng', options: [...all, ...conditions] },
         { key: 'shop', label: 'Gian hàng', options: [...all, ...shops] },
-        { key: 'min_price', label: 'Giá từ (VND)' },
-        { key: 'max_price', label: 'Giá đến (VND)' },
+        { key: 'min_price', label: 'Giá từ (₫)', money: true },
+        { key: 'max_price', label: 'Giá đến (₫)', money: true },
         {
           key: 'has_video',
           label: 'Video sản phẩm',
@@ -42,7 +42,7 @@ const set = (key, value) => emit('update:modelValue', { ...props.modelValue, [ke
         :model-value="modelValue[field.key]"
         :name="field.key"
         :label="field.label"
-        :type="field.options ? 'select' : 'text'"
+        :type="field.options ? 'select' : field.money ? 'money' : 'text'"
         :options="field.options"
         :errors="errors[field.key]"
         @update:model-value="(value) => set(field.key, value)"

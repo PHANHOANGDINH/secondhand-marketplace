@@ -265,17 +265,20 @@ defineExpose({ hasUnsavedChanges })
                       v-model="form.price"
                       :id-prefix="embedded ? 'quick-' : ''"
                       name="price"
-                      label="Giá (VND, tối đa 2 chữ số sau dấu chấm)"
+                      label="Giá bán (₫)"
+                      type="money"
                       required
                       :errors="errors.price"
                     />
+                    <p v-if="!errors.price?.length" class="form-text">Tối thiểu 1 ₫. Ví dụ: 1.500.000</p>
                   </div>
                   <div class="col-md-6">
                     <DomainField
                       v-model="form.compare_at_price"
                       :id-prefix="embedded ? 'quick-' : ''"
                       name="compare_at_price"
-                      label="Giá trước khi giảm (không bắt buộc)"
+                      label="Giá trước khi giảm (₫, không bắt buộc)"
+                      type="money"
                       :errors="errors.compare_at_price"
                     />
                     <p class="form-text">Để trống nếu không giảm giá. Phải cao hơn giá bán.</p>

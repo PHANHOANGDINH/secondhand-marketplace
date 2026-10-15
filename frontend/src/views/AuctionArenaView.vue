@@ -25,6 +25,7 @@ import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import AuctionCountdown from '../components/auction/AuctionCountdown.vue'
+import MoneyInput from '../components/ui/MoneyInput.vue'
 import '../styles/auction.css'
 const props = defineProps({ seller: Boolean })
 const route = useRoute(),
@@ -342,13 +343,11 @@ onUnmounted(() => {
           </p>
           <form v-else-if="liveStatus" class="auction-bid-form" @submit.prevent="submit">
             <label for="auction-bid-amount" class="form-label">Giá của bạn</label
-            ><input
+            ><MoneyInput
               id="auction-bid-amount"
               ref="inputElement"
               v-model="input"
               class="form-control"
-              inputmode="decimal"
-              autocomplete="off"
               maxlength="30"
               :disabled="submitting || !canSubmit"
               :aria-invalid="!!bidError"

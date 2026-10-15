@@ -5,7 +5,7 @@ import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import * as categoriesApi from '../api/category.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
@@ -63,10 +63,16 @@ function reset() {
   editing.value = null
   Object.assign(form, blank())
 }
+// On narrow screens the form sits under the list: bring it into view when a row is opened for editing.
+function revealForm(selector) {
+  if (typeof window === 'undefined' || !window.matchMedia?.('(max-width: 991px)').matches) return
+  nextTick(() => document.querySelector(selector)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }))
+}
 function edit(row) {
   clear()
   deleting.value = null
   editing.value = row.id
+  revealForm('[data-category-form]')
   Object.assign(form, {
     name: row.name,
     description: row.description || '',

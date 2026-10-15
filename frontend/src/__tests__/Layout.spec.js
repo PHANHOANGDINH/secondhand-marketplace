@@ -108,19 +108,18 @@ it('menu button opens a drawer with every category and the main pages, closed by
 
 it('mode switcher offers buyer and seller shortcuts, remembers the choice per user and never grants admin', async () => {
   const { wrapper } = await setup({ role: 'USER' })
-  const button = wrapper.get('.mode-switcher-button')
-  expect(button.text()).toBe('Dành cho người mua')
-  await button.trigger('click')
+  // The switcher sits open inside the account menu.
+  expect(wrapper.get('.marketplace-account-menu .mode-switcher.is-inline').exists()).toBe(true)
+  expect(wrapper.get('[data-mode-option][aria-pressed="true"]').attributes('aria-label')).toBe('Dành cho người mua')
   expect(wrapper.findAll('[data-mode-option]').map((b) => b.attributes('data-mode-option'))).toEqual(['buyer', 'seller'])
-  expect(wrapper.findAll('.mode-switcher-links a').map((a) => [a.text(), a.attributes('href')])).toEqual([
-    ['Đơn mua', '/orders'],
-    ['Yêu thích', '/wishlist'],
-    ['Báo cáo đã gửi', '/reports'],
-    ['Địa chỉ', '/account/addresses'],
-  ])
+  // Buyer pages are the account menu's own links, so the buyer mode adds no duplicate shortcuts.
+  expect(wrapper.find('.mode-switcher-links').exists()).toBe(false)
+  expect(wrapper.findAll('.marketplace-account-links a').map((a) => a.attributes('href'))).toEqual(
+    expect.arrayContaining(['/orders', '/wishlist', '/reports', '/account/addresses']),
+  )
   await wrapper.get('[data-mode-option="seller"]').trigger('click')
   await flushPromises()
-  expect(wrapper.get('.mode-switcher-button').text()).toBe('Dành cho người bán')
+  expect(wrapper.get('[data-mode-option][aria-pressed="true"]').attributes('aria-label')).toBe('Dành cho người bán')
   expect(wrapper.findAll('.mode-switcher-links a').map((a) => a.attributes('href'))).toEqual([
     '/my-ads',
     '/seller/orders',
@@ -133,27 +132,25 @@ it('mode switcher offers buyer and seller shortcuts, remembers the choice per us
   // A stored "admin" for a normal user is ignored.
   localStorage.setItem('passlai:mode:6', 'admin')
   const other = await setup({ role: 'USER', id: '6' })
-  expect(other.wrapper.get('.mode-switcher-button').text()).toBe('Dành cho người mua')
+  expect(other.wrapper.get('[data-mode-option][aria-pressed="true"]').attributes('aria-label')).toBe('Dành cho người mua')
   // The same browser, the first user again: the choice is still theirs.
   const again = await setup({ role: 'USER', id: '5' })
-  expect(again.wrapper.get('.mode-switcher-button').text()).toBe('Dành cho người bán')
+  expect(again.wrapper.get('[data-mode-option][aria-pressed="true"]').attributes('aria-label')).toBe('Dành cho người bán')
 })
 
 it('seller mode offers "Tạo cửa hàng" when the user has no shop, and admins get the admin mode', async () => {
   shopApi.getSellerShop.mockRejectedValue({ response: { status: 404 } })
   localStorage.setItem('passlai:mode:5', 'seller')
   const { wrapper } = await setup({ role: 'USER' })
-  await wrapper.get('.mode-switcher-button').trigger('click')
   await flushPromises()
   expect(wrapper.findAll('.mode-switcher-links a').map((a) => [a.text(), a.attributes('href')])).toEqual([
     ['Tạo cửa hàng', '/seller/shop'],
   ])
 
   const admin = await setup({ role: 'ADMIN', id: '9' })
-  await admin.wrapper.get('.mode-switcher-button').trigger('click')
   expect(admin.wrapper.findAll('[data-mode-option]')).toHaveLength(3)
   await admin.wrapper.get('[data-mode-option="admin"]').trigger('click')
-  expect(admin.wrapper.get('.mode-switcher-button').text()).toBe('Quản trị')
+  expect(admin.wrapper.get('[data-mode-option][aria-pressed="true"]').attributes('aria-label')).toBe('Quản trị')
   const links = admin.wrapper.findAll('.mode-switcher-links a').map((a) => a.attributes('href'))
   expect(links).toEqual(['/admin', '/admin/products', '/admin/shops', '/admin/users', '/admin/reports', '/admin/payments', '/admin/vouchers'])
   for (const href of links) expect(admin.router.resolve(href).name).not.toBe('not-found')

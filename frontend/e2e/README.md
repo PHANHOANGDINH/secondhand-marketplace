@@ -15,7 +15,7 @@ Browser journeys driven over the Chrome DevTools Protocol with two headless Edge
 | V | Voucher management screens for seller and admin (`vouchers.mjs`) |
 | P | Forgot password (`password.mjs`): a temporary password is stored hashed and the old one still works; signing in with it forces a new password, then it is used up |
 | M | Marketplace v2 (`marketplace.mjs`): guest home and area picker, the three modes, "Quản lý tin" counters against the database |
-| T | Passdi light/dark (`theme.mjs`): system default and toggle, home, detail, checkout, "Quản lý tin", seller, admin and login in both themes; flags text below 4.5:1 (3:1 large) and light boxes on dark pages; the auction area stays dark |
+| T | Passdi light/dark and the neutral redesign (`theme.mjs`): system default and toggle, home, detail, checkout, cart, "Quản lý tin", seller dashboard, inventory panel, seller auctions and "Bán ngay", quick listing, admin, login, the phone account menu and tab bar; flags text below 4.5:1 (3:1 large) and light boxes on dark pages; the auction area stays dark |
 
 Every screenshot is taken at 1440 and 390 px; the run fails the report on horizontal overflow or any uncaught JS error. Overflow is measured against the requested width, because an emulated phone viewport grows to fit content that overflows.
 
@@ -39,6 +39,6 @@ Start Vite from `frontend/` (from the repo root it serves an empty page). The Ed
 
 ## Clean up
 
-Stop the three processes and Edge, delete `secret.json`, and remove what the stack wrote outside the database: session files in `backend/storage/framework/sessions` created during the run and the uploaded image folders of the test products in `backend/storage/app/public/products`. The next backend test run rebuilds the test database.
+Stop the three processes and Edge, delete `secret.json`, and remove what the stack wrote outside the database. **The test seed writes `products/{id}/vn-*.svg` into the same `storage/app/public` as the development site, so when test product IDs overlap development ones it overwrites their images:** compare file lists *and* modification times before/after, and regenerate any overwritten catalogue illustration from `MarketplaceCatalogSeeder::illustration()` for the development product at that ID. Also remove: session files in `backend/storage/framework/sessions` created during the run and the uploaded image folders of the test products in `backend/storage/app/public/products`. The next backend test run rebuilds the test database.
 
 `rows.php` takes a row-level snapshot (`id → sha256`) of whichever database the environment points to and compares two snapshots; it is how "only additions, no changed rows" is checked.

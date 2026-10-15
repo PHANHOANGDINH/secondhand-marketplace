@@ -300,9 +300,14 @@ onMounted(() => {
   max-width: 420px;
 }
 .my-ads-tabs {
+  /* The status tabs stay under the header while the list scrolls. */
+  position: sticky;
+  top: 68px;
+  z-index: 2;
   display: flex;
   gap: var(--space-1);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
@@ -351,24 +356,24 @@ onMounted(() => {
 }
 .my-ads-list {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .my-ad {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
   gap: var(--space-3);
-  align-items: start;
-  padding: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
 }
 .my-ad-photo {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   border-radius: var(--radius-sm);
   object-fit: cover;
 }
@@ -383,7 +388,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .my-ad-price {
-  color: var(--danger-ink);
+  color: var(--price);
   font-weight: 700;
 }
 .my-ad-meta {
@@ -399,6 +404,11 @@ onMounted(() => {
   justify-content: flex-end;
   gap: var(--space-2);
   max-width: 260px;
+}
+@media (max-width: 991px) {
+  .my-ads-tabs {
+    position: static;
+  }
 }
 @media (max-width: 640px) {
   .my-ads-search {

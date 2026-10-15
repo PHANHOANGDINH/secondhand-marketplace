@@ -18,6 +18,7 @@ import EmptyState from '../components/ui/EmptyState.vue'
 import CollectionPager from '../components/CollectionPager.vue'
 import '../styles/auction.css'
 import FilterSheet from '../components/ui/FilterSheet.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const route = useRoute(),
   router = useRouter()
 const auctionFilter = ref(
@@ -216,13 +217,13 @@ const activeFilters = computed(() => [
     <p v-if="shop && shop.status !== 'ACTIVE'" class="alert alert-info">
       Gian hàng phải đang hoạt động để mở đấu giá.
     </p>
+    <DetailSheet id="auction-create" :open="open" title="Tạo phiên đấu giá" :busy="busy" @close="open = false">
     <form
       v-if="open"
       aria-label="Tạo phiên đấu giá"
-      class="card card-body auction-create mb-4"
+      class="auction-create"
       @submit.prevent="create"
     >
-      <h2>Tạo phiên đấu giá</h2>
       <p class="small text-muted">
         Chỉ sản phẩm đang hoạt động còn hàng được chọn. Máy chủ kiểm tra lại điều kiện và phiên chưa
         hoàn tất.
@@ -286,6 +287,7 @@ const activeFilters = computed(() => [
         </button>
       </div>
     </form>
+    </DetailSheet>
     <EmptyState
       v-if="!busy && !error && !rows.length"
       title="Chưa có phiên đấu giá"
@@ -329,14 +331,14 @@ const activeFilters = computed(() => [
       </article>
     </div>
     <CollectionPager :meta="meta" :busy="busy" @page="load" />
+    <DetailSheet id="auction-sell-now" :open="!!sale" title="Bán ngay" :busy="busy" @close="sale = null">
     <div
       v-if="sale"
-      class="card card-body mt-3 border-primary"
       role="region"
       aria-label="Xác nhận bán ngay"
       data-sell-now-panel
     >
-      <h2>Bán ngay {{ sale.row.product?.name }}?</h2>
+      <p class="fw-semibold">{{ sale.row.product?.name }}</p>
       <p>
         Bán cho người đang trả giá cao nhất với giá
         <strong style="color: var(--price)">{{ formatPrice(sale.bid.amount) }}</strong>. Phiên kết
@@ -360,13 +362,20 @@ const activeFilters = computed(() => [
         </button>
       </div>
     </div>
+    </DetailSheet>
+    <DetailSheet
+      id="auction-cancel"
+      :open="!!confirmation"
+      title="Huỷ phiên đấu giá"
+      :busy="busy"
+      @close="confirmation = null"
+    >
     <div
       v-if="confirmation"
-      class="card card-body mt-3 border-danger"
       role="region"
       aria-label="Xác nhận huỷ đấu giá"
     >
-      <h2>Huỷ phiên {{ confirmation.product?.name }}?</h2>
+      <p class="fw-semibold">Huỷ phiên {{ confirmation.product?.name }}?</p>
       <p>Chỉ phiên chưa có lượt ra giá và chưa hết hạn được huỷ. Máy chủ sẽ xác nhận lại.</p>
       <div class="d-flex gap-2">
         <button class="btn btn-danger" :disabled="busy" @click="cancel">Xác nhận huỷ</button
@@ -375,5 +384,6 @@ const activeFilters = computed(() => [
         </button>
       </div>
     </div>
+    </DetailSheet>
   </section>
 </template>

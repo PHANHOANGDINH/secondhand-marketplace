@@ -2,6 +2,7 @@
 // no text sinks into its background and no stray light box is left on a dark page.
 import fs from 'node:fs/promises'
 import process from 'node:process'
+import { Buffer } from 'node:buffer'
 import { Page, report, journey, check, php, sleep } from './lib.mjs'
 const U = (key) => `c1-${key}@example.test`
 const one = await Page.open(9351, 'browser-1')
@@ -51,6 +52,7 @@ const AUDIT = `(() => {
 })()`
 
 const audits = {}
+const heights = {}
 // Leave the app first: a request still in flight could set the old session cookie again after sign-out.
 async function switchUser(key) {
   await one.call('Page.navigate', { url: 'about:blank' })
@@ -136,6 +138,20 @@ await journey('T2 home, product detail, checkout (buyer)', async () => {
   await one.clickText('Đặt hàng', 'main', 'a')
   await one.wait("location.pathname === '/checkout' && !!document.querySelector('#voucher-platform')", 'checkout')
   await both('checkout', "!!document.querySelector('#voucher-platform')")
+  heights.checkout = await one.evaluate('document.documentElement.scrollHeight')
+  await one.goto('/cart', 2200)
+  await both('cart', "!!document.querySelector('[data-cart-total]')")
+  // Phone: the account menu with modes and theme, and the bottom tab bar.
+  await setTheme('light')
+  await one.size(390)
+  await one.call('Page.reload')
+  await sleep(2200)
+  check(await one.evaluate("getComputedStyle(document.querySelector('.mobile-tabbar')).display === 'grid'"), 'tab bar on phones')
+  await one.evaluate("(document.querySelector('.marketplace-account').setAttribute('open', ''), true)")
+  await sleep(300)
+  const s = await one.call('Page.captureScreenshot', { format: 'png' })
+  await fs.writeFile(new URL('../../docs/ui-redesign/e2e/R-account-menu-390.png', import.meta.url), Buffer.from(s.data, 'base64'))
+  await one.size(1440)
 })
 
 await journey('T3 my ads and seller dashboard (seller)', async () => {
@@ -144,9 +160,24 @@ await journey('T3 my ads and seller dashboard (seller)', async () => {
   await both('my-ads', "document.querySelectorAll('.my-ads-count').length > 0")
   await one.goto('/seller/dashboard', 2500)
   await both('seller', "!!document.querySelector('canvas')")
-  // The revenue chart takes its colours from the tokens (the last capture left the page dark).
+  await one.goto('/seller/inventory', 2500)
+  await one.wait("!!document.querySelector('[aria-label^=\"Cập nhật tồn kho:\"]')", 'inventory rows')
+  await one.click('[aria-label^="Cập nhật tồn kho:"]')
+  await one.wait("!!document.querySelector('#inventory-edit #inventory-quantity')", 'stock sheet')
+  await one.shot('R-inventory-sheet')
+  await one.goto('/seller/auctions', 2500)
+  await capture('seller-auctions', 'light', "!!document.querySelector('.auction-seller-list')")
+  if (await one.exists('[data-sell-now]')) {
+    await one.click('[data-sell-now]')
+    await one.wait("!!document.querySelector('[data-sell-now-panel]')", 'sell-now sheet')
+    await one.shot('R-sell-now-sheet')
+  }
+  await one.goto('/?quick-listing=1', 2500)
+  await one.wait("!!document.querySelector('#quick-listing-dialog #quick-product-form')", 'quick listing form')
+  await one.shot('R-quick-listing')
+  // The pages take their colours from the tokens (the last capture above was light).
   const bar = await one.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()")
-  check(bar === '#f26b3a', 'dark primary token is ' + bar)
+  check(bar === '#c2410c', 'light primary token is ' + bar)
   // What sticks out at phone width, if anything.
   await one.size(390)
   await sleep(600)
@@ -158,6 +189,8 @@ await journey('T4 admin, auction stays dark', async () => {
   await switchUser('admin')
   await one.goto('/admin/dashboard', 2500)
   await both('admin', "!!document.querySelector('.admin-shell')")
+  await one.goto('/admin/products', 2500)
+  await capture('admin-products', 'light', "!!document.querySelector('.admin-shell')")
   await one.goto('/admin/payments', 2500)
   await capture('admin-payments', 'dark', "!!document.querySelector('.admin-shell')")
   await one.goto('/auctions', 2500)
@@ -175,5 +208,5 @@ one.close()
 const problems = Object.entries(audits).filter(([, a]) => a.lowCount || a.lightCount)
 report.audits = Object.fromEntries(problems)
 await fs.writeFile(new URL('./theme-report.json', import.meta.url), JSON.stringify(report, null, 2))
-console.log(JSON.stringify({ notes: report.notes, journeys: report.journeys, shots: Object.entries(report.shots).filter(([, v]) => v !== 'ok'), errors: report.errors.slice(0, 8), audits: report.audits }, null, 1))
+console.log(JSON.stringify({ heights, notes: report.notes, journeys: report.journeys, shots: Object.entries(report.shots).filter(([, v]) => v !== 'ok'), errors: report.errors.slice(0, 8), audits: report.audits }, null, 1))
 process.exit(Object.values(report.journeys).every((v) => v.startsWith('PASS')) && !report.errors.length ? 0 : 1)

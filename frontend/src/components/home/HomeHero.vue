@@ -112,8 +112,8 @@ onMounted(async () => {
   position: relative;
   margin-top: -3rem;
   padding: clamp(1.25rem, 3vw, 2.25rem) var(--space-4) 5.25rem;
-  background: var(--band);
-  box-shadow: 0 0 0 100vmax var(--band);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 100vmax var(--brand-soft);
   clip-path: inset(0 -100vmax);
   text-align: center;
 }
@@ -124,8 +124,9 @@ onMounted(async () => {
   width: 60px;
   height: 60px;
   border-radius: 18px;
-  background: var(--band-glass-strong);
-  color: var(--band-ink);
+  background: var(--surface);
+  color: var(--brand-text);
+  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 8%);
 }
 .home-banner-art.is-a {
   top: 14%;
@@ -218,15 +219,15 @@ onMounted(async () => {
   border-color: var(--band-ink);
 }
 .home-search-submit {
-  --bs-btn-color: var(--band-ink);
-  --bs-btn-bg: var(--band);
-  --bs-btn-border-color: var(--band);
-  --bs-btn-hover-color: var(--band-ink);
-  --bs-btn-hover-bg: var(--band-hover);
-  --bs-btn-hover-border-color: var(--band-hover);
-  --bs-btn-active-color: var(--band-ink);
-  --bs-btn-active-bg: var(--band-hover);
-  --bs-btn-active-border-color: var(--band-hover);
+  --bs-btn-color: var(--on-primary);
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-color: var(--on-primary);
+  --bs-btn-hover-bg: var(--primary-hover);
+  --bs-btn-hover-border-color: var(--primary-hover);
+  --bs-btn-active-color: var(--on-primary);
+  --bs-btn-active-bg: var(--primary-hover);
+  --bs-btn-active-border-color: var(--primary-hover);
   border-radius: var(--radius-md);
   flex: none;
   min-height: 48px;

@@ -182,7 +182,7 @@ it('shows the loading skeleton and reloads the list after successful removal', a
 
 it('exposes the wishlist account-menu entry only for authenticated users', async () => {
   const { wrapper, auth } = await setup(DefaultLayout, {})
-  expect(wrapper.get('.marketplace-account-menu a[href="/wishlist"]').text()).toBe('Sản phẩm yêu thích')
+  expect(wrapper.get('.marketplace-account-links a[href="/wishlist"]').text()).toBe('Sản phẩm yêu thích')
   auth.user = null; await flushPromises()
   expect(wrapper.find('a[href="/wishlist"]').exists()).toBe(false)
 })

@@ -60,9 +60,12 @@ function close() {
         class="btn btn-outline-secondary seller-menu-toggle"
         :aria-expanded="open"
         aria-controls="seller-navigation"
+        :aria-label="open ? 'Đóng điều hướng' : 'Điều hướng gian hàng'"
         @click="open = !open"
       >
-        {{ open ? 'Đóng điều hướng' : 'Điều hướng gian hàng' }}
+        <AppIcon :name="open ? 'close' : 'menu'" /><span class="seller-menu-toggle-label">{{
+          open ? 'Đóng điều hướng' : 'Điều hướng gian hàng'
+        }}</span>
       </button>
     </header>
     <div class="seller-workspace">

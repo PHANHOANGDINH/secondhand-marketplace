@@ -2,7 +2,7 @@
 import PageHeader from '../components/ui/PageHeader.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import * as addressesApi from '../api/address.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
@@ -58,7 +58,14 @@ function edit(row) {
   editing.value = row.id
   for (const key of Object.keys(blank())) form[key] = row[key] ?? ''
   form.is_default = row.is_default
+  revealForm('.account-address-form')
 }
+// On narrow screens the form sits under the list: bring it into view when a row is opened for editing.
+function revealForm(selector) {
+  if (typeof window === 'undefined' || !window.matchMedia?.('(max-width: 991px)').matches) return
+  nextTick(() => document.querySelector(selector)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }))
+}
+
 const save = () =>
   run(async () => {
     const data = { ...form, district: form.district || null, country_code: 'VN' }

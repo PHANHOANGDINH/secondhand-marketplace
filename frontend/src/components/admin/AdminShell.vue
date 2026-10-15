@@ -64,9 +64,12 @@ function close() {
         class="btn btn-outline-secondary admin-menu-toggle"
         :aria-expanded="open"
         aria-controls="admin-navigation"
+        :aria-label="open ? 'Đóng điều hướng' : 'Điều hướng quản trị'"
         @click="open = !open"
       >
-        {{ open ? 'Đóng điều hướng' : 'Điều hướng quản trị' }}
+        <AppIcon :name="open ? 'close' : 'menu'" /><span class="admin-menu-toggle-label">{{
+          open ? 'Đóng điều hướng' : 'Điều hướng quản trị'
+        }}</span>
       </button>
     </header>
     <div class="admin-workspace">

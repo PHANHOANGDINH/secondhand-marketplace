@@ -6,6 +6,8 @@ import { getSellerShop } from '../../api/shop.api'
 import AppIcon from '../ui/AppIcon.vue'
 // A UI context, not a role: it only decides which shortcuts are offered.
 // What a user may actually open is still decided by the route guard and the backend.
+// inline: drawn open inside another menu (the account menu), as a segmented control plus its shortcuts.
+const props = defineProps({ inline: Boolean })
 const auth = useAuthStore(),
   route = useRoute()
 const open = ref(false),
@@ -14,6 +16,7 @@ const open = ref(false),
   hasShop = ref(null)
 const key = () => `passlai:mode:${auth.user?.id}`
 const labels = { buyer: 'Dành cho người mua', seller: 'Dành cho người bán', admin: 'Quản trị' }
+const shortLabels = { buyer: 'Mua', seller: 'Bán', admin: 'Quản trị' }
 const modes = computed(() => (auth.isAdmin ? ['buyer', 'seller', 'admin'] : ['buyer', 'seller']))
 // The page decides first: the seller and admin areas are their own context.
 const fromRoute = computed(() =>
@@ -91,6 +94,12 @@ function outside(event) {
   if (open.value && root.value && !root.value.contains(event.target)) open.value = false
 }
 watch(() => auth.user?.id, restore, { immediate: true })
+// Drawn open, the seller shortcuts need to know whether there is a shop as soon as they show.
+watch(
+  () => props.inline && mode.value === 'seller',
+  (shown) => shown && checkShop(),
+  { immediate: true },
+)
 watch(
   () => route.fullPath,
   () => {
@@ -105,10 +114,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
     v-if="auth.isAuthenticated"
     ref="root"
     class="mode-switcher"
+    :class="{ 'is-inline': inline }"
     :data-mode="mode"
     @keydown.esc.stop="open = false"
   >
+    <p v-if="inline" class="mode-switcher-title">Chế độ</p>
     <button
+      v-if="!inline"
       type="button"
       class="mode-switcher-button"
       :aria-expanded="open"
@@ -117,7 +129,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
     >
       {{ labels[mode] }} <AppIcon name="chevronDown" :size="16" />
     </button>
-    <div v-if="open" id="mode-switcher-panel" class="mode-switcher-panel">
+    <div v-if="open || inline" :id="inline ? undefined : 'mode-switcher-panel'" class="mode-switcher-panel">
       <div class="mode-switcher-modes" role="group" aria-label="Chế độ sử dụng">
         <button
           v-for="item in modes"
@@ -128,12 +140,14 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
           :aria-pressed="mode === item"
           :disabled="Boolean(fromRoute) && fromRoute !== item"
           :data-mode-option="item"
-          @click="choose(item)"
+          :aria-label="inline ? labels[item] : undefined"
+          @click.stop="choose(item)"
         >
-          {{ labels[item] }}
+          {{ inline ? shortLabels[item] : labels[item] }}
         </button>
       </div>
-      <nav class="mode-switcher-links" :aria-label="labels[mode]">
+      <!-- Inside the account menu the buyer pages are already listed, so only selling/admin shortcuts show. -->
+      <nav v-if="!(inline && mode === 'buyer')" class="mode-switcher-links" :aria-label="labels[mode]">
         <RouterLink v-for="[to, text] in links" :key="to" :to="to">{{ text }}</RouterLink>
       </nav>
     </div>
@@ -233,5 +247,55 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
 .mode-switcher :is(button, a):focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
+}
+.mode-switcher.is-inline .mode-switcher-panel {
+  position: static;
+  width: auto;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.mode-switcher-title {
+  margin: 0 0 0.4rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mode-switcher.is-inline .mode-switcher-modes {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.mode-switcher.is-inline .mode-switcher-modes {
+  border-bottom: 0;
+}
+.mode-switcher.is-inline .mode-switcher-mode {
+  min-height: 36px;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  text-align: center;
+}
+.mode-switcher.is-inline .mode-switcher-mode.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(var(--shadow-rgb) / 14%);
+}
+.mode-switcher.is-inline .mode-switcher-links a {
+  min-height: 36px;
+  padding: 0 0.5rem;
+}
+.mode-switcher.is-inline .mode-switcher-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.15rem 0.5rem;
+  margin-top: 0.5rem;
 }
 </style>

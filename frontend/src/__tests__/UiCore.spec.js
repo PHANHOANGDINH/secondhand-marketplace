@@ -143,7 +143,7 @@ it('header shows the logo, the post button and no emoji glyphs', async () => {
   expect(wrapper.get('.marketplace-brand').text()).toBe('passdi')
   expect(wrapper.get('.marketplace-brand').attributes('href')).toBe('/')
   expect(wrapper.get('.marketplace-sell').text()).toBe('Đăng tin')
-  expect(wrapper.get('[role="search"] button').attributes('aria-label')).toBe('Tìm sản phẩm')
+  expect(wrapper.get('[role="search"] button[type="submit"]').attributes('aria-label')).toBe('Tìm sản phẩm')
   expect(wrapper.get('header').text()).not.toMatch(/[↗＋⌄♥♡★☰▾]/)
 })
 
@@ -177,7 +177,8 @@ it('brand config is the single source for the name, area labels and document tit
   const names = router.getRoutes().map((route) => route.name)
   expect(names.filter((name) => !(name in pageNames))).toEqual([])
   expect(mount(BrandLogo).attributes('aria-label')).toBe(brand.name)
-  expect(mount(PageHeader, { props: { title: 'Đơn mua' } }).get('.buyer-eyebrow').text()).toBe(brandLine)
+  expect(mount(PageHeader, { props: { title: 'Đơn mua' } }).find('.buyer-eyebrow').exists()).toBe(false)
+  expect(mount(PageHeader, { props: { title: 'Đơn mua', eyebrow: brandLine } }).get('.buyer-eyebrow').text()).toBe(brandLine)
 })
 
 it('product detail seller card shows the shop rating and join month only when the API provides them', async () => {

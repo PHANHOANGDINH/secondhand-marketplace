@@ -427,3 +427,171 @@ nav[aria-label='Phân trang'] > span {
     overflow-wrap: anywhere;
   }
 }
+
+/*
+ * Density (redesign 2026-10): page chrome stays short so lists, forms and their buttons start above the
+ * fold. These rules come last on purpose and win over the older per-area sizes.
+ */
+.buyer-page-header {
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5) !important;
+  padding-bottom: var(--space-4);
+}
+.buyer-page-header h1,
+.buyer-flow > h1 {
+  margin-bottom: 0.2rem;
+  font-size: clamp(1.35rem, 2vw, 1.75rem) !important;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.buyer-eyebrow {
+  margin-bottom: 0.4rem;
+}
+.buyer-page-description {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.buyer-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+@media (max-width: 767px) {
+  .buyer-page-header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+
+/* Order summaries (cart, checkout, auction checkout): on narrow screens the total and the main button
+   ride along at the bottom of the screen instead of waiting at the end of the page. */
+@media (max-width: 991px) {
+  .buyer-sticky-summary {
+    position: sticky !important;
+    bottom: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.15rem 0.75rem;
+    margin-top: var(--space-4);
+    padding: 0.75rem 1rem !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    box-shadow: 0 -8px 24px rgb(var(--shadow-rgb) / 12%);
+  }
+  .buyer-sticky-summary > :is(h2, .buyer-summary-note, a:not(.btn)) {
+    display: none !important;
+  }
+  .buyer-sticky-summary > p {
+    grid-column: 1;
+    margin: 0;
+    font-size: 0.78rem;
+  }
+  .buyer-sticky-summary > .buyer-summary-total {
+    order: -1;
+    font-size: 1.05rem;
+  }
+  .buyer-sticky-summary > .btn {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    width: auto !important;
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767px) {
+  .has-tabbar .buyer-sticky-summary {
+    bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+}
+
+/* List + form pages (addresses, categories): the form stays beside the list while the list scrolls. */
+@media (min-width: 992px) {
+  .admin-split > .col-lg-5 > form,
+  .account-address-form {
+    position: sticky;
+    top: var(--space-6);
+  }
+}
+
+/* Tables: compact rows and a header that stays visible inside long lists. */
+.table > :not(caption) > * > * {
+  padding: 0.6rem 0.75rem;
+}
+.table thead th {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.table-hover > tbody > tr:hover > * {
+  --bs-table-bg-state: var(--surface-2);
+}
+
+/* Seller and admin top bars on phones: one row of icons instead of four rows of links. */
+@media (max-width: 767px) {
+  :is(.seller-topbar, .admin-topbar) {
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+  }
+  :is(.seller-brand, .admin-brand) {
+    flex: none;
+    gap: 0.4rem;
+  }
+  :is(.seller-brand, .admin-brand) .brand-logo-word,
+  :is(.seller-brand, .admin-brand) > span:last-child,
+  :is(.seller-topbar, .admin-topbar) .theme-toggle,
+  :is(.seller-topbar-actions, .admin-topbar-actions) > a,
+  .admin-identity,
+  :is(.seller-menu-toggle-label, .admin-menu-toggle-label) {
+    display: none !important;
+  }
+  :is(.seller-topbar, .admin-topbar) .mode-switcher-button {
+    max-width: 9.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :is(.seller-topbar-actions, .admin-topbar-actions) {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0.15rem !important;
+    width: auto;
+    margin-left: auto;
+  }
+  :is(.seller-topbar, .admin-topbar) .mode-switcher {
+    flex: 0 1 auto;
+  }
+  :is(.seller-topbar-actions, .admin-topbar-actions) :is(.chat-launcher, .btn-icon) {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+  :is(.seller-topbar-actions, .admin-topbar-actions) :is(.chat-launcher, .btn-icon) .badge {
+    font-size: 0.6rem;
+  }
+  :is(.seller-menu-toggle, .admin-menu-toggle) {
+    display: inline-grid !important;
+    flex: none !important;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+}
+@media (min-width: 768px) {
+  :is(.seller-menu-toggle, .admin-menu-toggle) svg {
+    display: none;
+  }
+}
+
+/* Inside the seller and admin areas the shell already says where you are; the page eyebrow is noise. */
+:is(.seller-shell, .admin-shell) .buyer-page-header .buyer-eyebrow {
+  display: none;
+}

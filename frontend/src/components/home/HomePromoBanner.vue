@@ -172,7 +172,7 @@ onUnmounted(() => {
 .home-promo {
   --promo-bg: var(--band-soft);
   --promo-ink: var(--band-ink);
-  --promo-accent: var(--band);
+  --promo-accent: var(--brand);
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

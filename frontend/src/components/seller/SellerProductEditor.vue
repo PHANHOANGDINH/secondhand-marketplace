@@ -176,6 +176,7 @@ defineExpose({ hasUnsavedChanges })
       bán.
     </p>
     <IconButton
+      v-if="error || !loaded"
       class="btn btn-outline-secondary mb-3"
       icon="refresh"
       label="Tải lại dữ liệu"
@@ -198,7 +199,7 @@ defineExpose({ hasUnsavedChanges })
         Tin đang hiển thị; sửa nội dung, hình ảnh hay tồn kho đều có hiệu lực ngay. Đặt tồn kho bằng
         0 chuyển tin sang trạng thái đã bán.
       </p>
-      <div class="listing-layout">
+      <div class="listing-layout" :class="{ 'is-new': !product }">
         <div class="listing-main">
           <ProductImagesEditor
             :product="imageProduct"
@@ -399,6 +400,35 @@ defineExpose({ hasUnsavedChanges })
 .listing-review {
   min-width: 0;
 }
+/* A new listing starts with its text: a draft must exist before photos can be uploaded. */
+.is-new .listing-main {
+  display: flex;
+  flex-direction: column;
+}
+.is-new .listing-main .seller-form {
+  order: -1;
+}
+.is-new :deep(.workspace-step),
+.is-new .workspace-step {
+  display: none;
+}
+/* Preview and "Đăng bán" stay in view while the long form scrolls. */
+.listing-review {
+  position: sticky;
+  top: var(--space-4);
+}
+/* The save button rides along at the bottom of the form instead of waiting under the last field. */
+.seller-form :deep(.seller-submit-bar) {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-3) var(--space-2);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  /* Paints over the scroll container's bottom padding so nothing peeks out under the bar. */
+  box-shadow: 0 2rem 0 var(--surface);
+}
 .listing-main :deep(.seller-images) {
   margin-top: 0 !important;
 }
@@ -406,8 +436,8 @@ defineExpose({ hasUnsavedChanges })
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  padding: var(--space-6);
-  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  margin-bottom: var(--space-3);
   box-shadow: var(--shadow-card);
 }
 .workspace-panel-heading {
@@ -451,6 +481,7 @@ defineExpose({ hasUnsavedChanges })
     grid-template-columns: minmax(0, 1fr);
   }
   .listing-review {
+    position: static;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-4);

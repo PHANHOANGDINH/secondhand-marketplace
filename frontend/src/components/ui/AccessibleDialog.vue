@@ -1,6 +1,5 @@
 <script setup>
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { brandLine } from '../../config/brand'
 defineOptions({ inheritAttrs: false })
 const props = defineProps({
   id: { type: String, required: true },
@@ -87,7 +86,6 @@ defineExpose({ focusClose: () => closeButton.value?.focus() })
       >
         <header class="ui-dialog-header">
           <div>
-            <p class="buyer-eyebrow mb-1">{{ brandLine }}</p>
             <h2 :id="`${id}-title`" class="h4 mb-1">{{ title }}</h2>
             <p v-if="description" :id="`${id}-description`" class="text-muted mb-0">
               {{ description }}

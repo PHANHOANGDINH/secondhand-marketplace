@@ -15,6 +15,7 @@ import { useSellerIdentity } from '../components/seller/useSellerIdentity'
 import InventoryBadge from '../components/seller/InventoryBadge.vue'
 import AuctionLockNotice from '../components/seller/AuctionLockNotice.vue'
 import FilterSheet from '../components/ui/FilterSheet.vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const route = useRoute(),
   router = useRouter()
 const result = ref(null),
@@ -194,24 +195,50 @@ const activeFilters = computed(() => [
       Ngưỡng sắp hết: {{ result.low_stock_threshold }}. Cảnh báo tồn kho chỉ tính sản phẩm đang bán
       hoặc đã bán hết; tin đã ẩn và tin chờ quản trị viên xem xét được theo dõi riêng.
     </p>
-    <form v-if="editing" class="card mb-3" aria-label="Cập nhật tồn kho" @submit.prevent="save">
-      <div class="card-body">
-        <h2 class="h5">Cập nhật tồn kho</h2>
-        <p>{{ editing.name }}</p>
-        <label for="inventory-quantity" class="form-label">Số lượng mới</label
-        ><input
-          id="inventory-quantity"
-          v-model="quantity"
-          class="form-control"
-          type="number"
-          min="0"
-          max="4294967295"
-          step="1"
-          required
-          :disabled="saving"
-          :aria-invalid="!!stockError"
-          aria-describedby="inventory-help inventory-error"
-        />
+    <!-- The stock form opens beside the list instead of at the top of the page. -->
+    <DetailSheet
+      id="inventory-edit"
+      :open="!!editing"
+      title="Cập nhật tồn kho"
+      :busy="saving"
+      @close="editing = null"
+    >
+    <form v-if="editing" aria-label="Cập nhật tồn kho" @submit.prevent="save">
+      <div>
+        <p class="fw-semibold">{{ editing.name }}</p>
+        <label for="inventory-quantity" class="form-label">Số lượng mới</label>
+        <div class="inventory-stepper">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            aria-label="Giảm 1"
+            :disabled="saving || !(Number(quantity) > 0)"
+            @click="quantity = String(Math.max(0, Number(quantity || 0) - 1))"
+          >
+            −
+          </button
+          ><input
+            id="inventory-quantity"
+            v-model="quantity"
+            class="form-control"
+            type="number"
+            min="0"
+            max="4294967295"
+            step="1"
+            required
+            :disabled="saving"
+            :aria-invalid="!!stockError"
+            aria-describedby="inventory-help inventory-error"
+          /><button
+            type="button"
+            class="btn btn-outline-secondary"
+            aria-label="Tăng 1"
+            :disabled="saving"
+            @click="quantity = String(Number(quantity || 0) + 1)"
+          >
+            +
+          </button>
+        </div>
         <p id="inventory-help" class="small text-muted mt-2">
           Chỉ thay đổi tồn kho thì sản phẩm đang bán vẫn tiếp tục được bán. Sản phẩm đã bán hết sẽ
           mở bán lại ngay nếu đã được duyệt và không có chỉnh sửa nào chưa duyệt; nếu không sẽ
@@ -239,6 +266,7 @@ const activeFilters = computed(() => [
         </div>
       </div>
     </form>
+    </DetailSheet>
     <EmptyState
       v-if="result && !result.data.length && !busy && !error"
       title="Không có sản phẩm phù hợp"
@@ -304,6 +332,16 @@ const activeFilters = computed(() => [
   </section>
 </template>
 <style scoped>
+.inventory-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 0.5rem;
+}
+.inventory-stepper .btn {
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.2rem;
+}
 .inventory-toolbar {
   display: grid;
   grid-template-columns: minmax(12rem, 2fr) minmax(9rem, 1fr) minmax(10rem, 1fr) auto;

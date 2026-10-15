@@ -121,7 +121,7 @@ it.each(['-1', '1.5', '4294967296'])('prevents invalid stock %s', async (value) 
   await wrapper.find('[aria-label^="Cập nhật tồn kho:"]').trigger('click')
   await wrapper.find('#inventory-quantity').setValue(value)
   expect(
-    wrapper.find('form[aria-label="Cập nhật tồn kho"] button').attributes('disabled'),
+    wrapper.find('form[aria-label="Cập nhật tồn kho"] button.btn-primary').attributes('disabled'),
   ).toBeDefined()
   await wrapper.find('form[aria-label="Cập nhật tồn kho"]').trigger('submit')
   expect(products.updateProduct).not.toHaveBeenCalled()

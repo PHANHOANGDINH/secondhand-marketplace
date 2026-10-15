@@ -134,8 +134,10 @@ const buyerPage = computed(() => !/^\/(seller|admin)(\/|$)/.test(route?.path || 
 const sellerPage = computed(() => /^\/seller(\/|$)/.test(route?.path || ''))
 const adminPage = computed(() => /^\/admin(\/|$)/.test(route?.path || ''))
 const accountPage = computed(() => /^\/account(\/|$)/.test(route?.path || ''))
-// Sign-in and sign-up stand on their own: no pinned menu, just a way back home inside the page.
-const authPage = computed(() => ['/login', '/register'].includes(route?.path))
+// Sign-in, sign-up and the password pages stand on their own: no pinned menu, a way home inside the page.
+const authPage = computed(() =>
+  ['/login', '/register', '/forgot-password', '/reset-password'].includes(route?.path),
+)
 // The home page has its own large search box; every other page gets the compact one in the header.
 const homePage = computed(() => (route?.path || '/') === '/')
 // Account menu entries with an icon each: [path, label, icon].

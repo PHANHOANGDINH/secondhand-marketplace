@@ -36,7 +36,7 @@ it('requests CSRF before recovery and shows a generic success with a login link'
     email: 'unknown@example.test',
   })
   expect(wrapper.get('[role=status]').text()).toContain('Nếu địa chỉ thư điện tử khớp')
-  expect(wrapper.get('a').attributes('href')).toBe('/login')
+  expect(wrapper.get('.auth-form a').attributes('href')).toBe('/login')
   wrapper.unmount()
 })
 it.each([422, 429, 419, 500])(
@@ -75,7 +75,7 @@ it('disables duplicate submissions while a recovery request is in flight', async
 it('shows a useful missing-link state and never sends an empty token', async () => {
   const { wrapper } = await setup(ResetPasswordView)
   expect(wrapper.find('form').exists()).toBe(false)
-  expect(wrapper.get('a').attributes('href')).toBe('/forgot-password')
+  expect(wrapper.get('.auth-form a').attributes('href')).toBe('/forgot-password')
   expect(api.post).not.toHaveBeenCalled()
   wrapper.unmount()
 })
@@ -109,7 +109,7 @@ it('resets through CSRF, clears passwords and token URL, and guides back to logi
   expect(router.currentRoute.value.query).toEqual({})
   expect(wrapper.find('input[type=password]').exists()).toBe(false)
   expect(wrapper.get('[role=status]').text()).toContain('Đã đặt lại')
-  expect(wrapper.get('a').attributes('href')).toBe('/login')
+  expect(wrapper.get('.auth-form a').attributes('href')).toBe('/login')
   wrapper.unmount()
 })
 it('renders invalid-token errors without displaying the token and clears passwords', async () => {

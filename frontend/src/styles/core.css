@@ -507,15 +507,6 @@ nav[aria-label='Phân trang'] > span {
   }
 }
 
-/* List + form pages (addresses, categories): the form stays beside the list while the list scrolls. */
-@media (min-width: 992px) {
-  .admin-split > .col-lg-5 > form,
-  .account-address-form {
-    position: sticky;
-    top: var(--space-6);
-  }
-}
-
 /* Tables: compact rows and a header that stays visible inside long lists. */
 .table > :not(caption) > * > * {
   padding: 0.6rem 0.75rem;
@@ -594,4 +585,31 @@ nav[aria-label='Phân trang'] > span {
 /* Inside the seller and admin areas the shell already says where you are; the page eyebrow is noise. */
 :is(.seller-shell, .admin-shell) .buyer-page-header .buyer-eyebrow {
   display: none;
+}
+
+/* Read-only details shown before "Sửa" opens a form (profile, shop). */
+.account-details {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  gap: 0.6rem 1rem;
+  margin: 0;
+}
+.account-details dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.account-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+@media (max-width: 575px) {
+  .account-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
+  .account-details dd {
+    margin-bottom: 0.5rem;
+  }
 }

@@ -5,7 +5,8 @@ import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 import * as categoriesApi from '../api/category.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
@@ -59,20 +60,25 @@ function cancelEdit() {
   reset()
   clear()
 }
+// The category form only opens on "Thêm danh mục" or "Sửa", in a panel beside the table.
+const formOpen = ref(false)
 function reset() {
   editing.value = null
+  formOpen.value = false
   Object.assign(form, blank())
 }
-// On narrow screens the form sits under the list: bring it into view when a row is opened for editing.
-function revealForm(selector) {
-  if (typeof window === 'undefined' || !window.matchMedia?.('(max-width: 991px)').matches) return
-  nextTick(() => document.querySelector(selector)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }))
+function add() {
+  clear()
+  deleting.value = null
+  editing.value = null
+  Object.assign(form, blank())
+  formOpen.value = true
 }
 function edit(row) {
   clear()
   deleting.value = null
   editing.value = row.id
-  revealForm('[data-category-form]')
+  formOpen.value = true
   Object.assign(form, {
     name: row.name,
     description: row.description || '',
@@ -129,15 +135,23 @@ function categoryDepth(row) {
       title="Quản lý danh mục"
       eyebrow="Quản trị · Sàn mua bán"
       description="Quản lý cây danh mục, quan hệ cha–con và khả năng hiển thị."
-    />
+      ><IconButton
+        class="btn btn-primary"
+        icon="plus"
+        label="Thêm danh mục"
+        show-label
+        :disabled="busy"
+        data-category-add
+        @click="add"
+    /></PageHeader>
     <p class="text-secondary">
       Cây danh mục tối đa 3 cấp. Danh mục có sản phẩm hoặc danh mục con có thể chuyển sang ngừng hoạt động để
       ngừng hiển thị.
     </p>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
-    <div class="row g-4 admin-split">
-      <div class="col-lg-7">
-        <IconButton class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()" icon="refresh" label="Tải lại" />
+    <div>
+      <div>
+        <IconButton v-if="error" class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()" icon="refresh" label="Tải lại" />
         <div class="table-responsive admin-table-wrap">
           <table class="table align-middle admin-table">
             <thead>
@@ -197,16 +211,24 @@ function categoryDepth(row) {
         <EmptyState
           v-if="!rows.length && !busy && !error"
           title="Chưa có danh mục."
-          description="Thêm danh mục bằng biểu mẫu quản lý."
+          description="Bấm “Thêm danh mục” để tạo danh mục đầu tiên."
         />
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
+      </div>
+    </div>
+    <DetailSheet
+      id="category-delete"
+      :open="!!deleting"
+      :title="deleting ? `Xóa ${deleting.name}` : 'Xóa danh mục'"
+      :busy="busy"
+      @close="cancelDelete"
+    >
         <form
           v-if="deleting"
           class="admin-delete-confirm"
           data-delete-category
           @submit.prevent="remove"
         >
-          <h2 class="h5">Xóa {{ deleting.name }}</h2>
           <p class="text-secondary">
             Thao tác này không thể hoàn tác. Danh mục có sản phẩm hoặc danh mục con không thể xóa.
           </p>
@@ -225,10 +247,15 @@ function categoryDepth(row) {
             </button>
           </div>
         </form>
-      </div>
-      <div class="col-lg-5">
-        <form class="admin-detail" data-category-form @submit.prevent="save">
-          <h2 class="h5">{{ editing ? 'Sửa danh mục' : 'Thêm danh mục' }}</h2>
+    </DetailSheet>
+    <DetailSheet
+      id="category-form"
+      :open="formOpen"
+      :title="editing ? 'Sửa danh mục' : 'Thêm danh mục'"
+      :busy="busy"
+      @close="cancelEdit"
+    >
+        <form data-category-form @submit.prevent="save">
           <DomainField
             v-model="form.name"
             name="name"
@@ -272,17 +299,15 @@ function categoryDepth(row) {
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary" :disabled="busy">Lưu danh mục</button
             ><button
-              v-if="editing"
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-outline-secondary"
               :disabled="busy"
               @click="cancelEdit"
             >
-              Hủy sửa
+              {{ editing ? 'Hủy sửa' : 'Đóng' }}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </DetailSheet>
   </section>
 </template>

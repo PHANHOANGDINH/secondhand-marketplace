@@ -2,7 +2,9 @@
 import PageHeader from '../components/ui/PageHeader.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
+import DetailSheet from '../components/ui/DetailSheet.vue'
+import IconButton from '../components/ui/IconButton.vue'
 import * as addressesApi from '../api/address.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
@@ -11,6 +13,8 @@ import CollectionPager from '../components/CollectionPager.vue'
 const rows = ref([]),
   meta = ref(null),
   editing = ref(null),
+  // The address form only opens on "Thêm địa chỉ" or "Sửa".
+  formOpen = ref(false),
   page = ref(1)
 const blank = () => ({
   recipient_name: '',
@@ -51,19 +55,21 @@ function cancelEdit() {
 }
 function reset() {
   editing.value = null
+  formOpen.value = false
   Object.assign(form, blank())
+}
+function add() {
+  clear()
+  editing.value = null
+  Object.assign(form, blank())
+  formOpen.value = true
 }
 function edit(row) {
   clear()
   editing.value = row.id
   for (const key of Object.keys(blank())) form[key] = row[key] ?? ''
   form.is_default = row.is_default
-  revealForm('.account-address-form')
-}
-// On narrow screens the form sits under the list: bring it into view when a row is opened for editing.
-function revealForm(selector) {
-  if (typeof window === 'undefined' || !window.matchMedia?.('(max-width: 991px)').matches) return
-  nextTick(() => document.querySelector(selector)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }))
+  formOpen.value = true
 }
 
 const save = () =>
@@ -93,17 +99,25 @@ onMounted(() => load())
       title="Địa chỉ của tôi"
       eyebrow="Tài khoản"
       description="Lưu địa chỉ nhận hàng và chọn địa chỉ mặc định cho lần mua tiếp theo."
-    />
+      ><IconButton
+        class="btn btn-primary"
+        icon="plus"
+        label="Thêm địa chỉ"
+        show-label
+        :disabled="busy"
+        data-address-add
+        @click="add"
+    /></PageHeader>
     <DomainFeedback :busy="busy" :error="error" :success="success" />
-    <div class="row g-4">
-      <div class="col-lg-7">
-        <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()">
+    <div class="account-address-list">
+      <div>
+        <button v-if="error" class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load()">
           Tải lại danh sách
         </button>
         <EmptyState
           v-if="!rows.length && !busy && !error"
           title="Chưa có địa chỉ."
-          description="Thêm địa chỉ nhận hàng bằng biểu mẫu bên cạnh."
+          description="Bấm “Thêm địa chỉ” để lưu địa chỉ nhận hàng đầu tiên."
         />
         <article
           v-for="row in rows"
@@ -140,9 +154,15 @@ onMounted(() => load())
         </article>
         <CollectionPager :meta="meta" :busy="busy" @page="load" />
       </div>
-      <div class="col-lg-5">
+    </div>
+    <DetailSheet
+      id="address-form"
+      :open="formOpen"
+      :title="editing ? 'Sửa địa chỉ' : 'Thêm địa chỉ'"
+      :busy="busy"
+      @close="cancelEdit"
+    >
         <form class="account-address-form" @submit.prevent="save">
-          <h2 class="h5">{{ editing ? 'Sửa địa chỉ' : 'Thêm địa chỉ' }}</h2>
           <DomainField
             v-for="[key, label, max] in fields"
             :key="key"
@@ -169,17 +189,20 @@ onMounted(() => load())
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary" :disabled="busy">Lưu địa chỉ</button
             ><button
-              v-if="editing"
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-outline-secondary"
               :disabled="busy"
               @click="cancelEdit"
             >
-              Hủy sửa
+              {{ editing ? 'Hủy sửa' : 'Đóng' }}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </DetailSheet>
   </section>
 </template>
+<style scoped>
+.account-address-list {
+  max-width: 820px;
+}
+</style>

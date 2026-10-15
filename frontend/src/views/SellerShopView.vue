@@ -9,8 +9,11 @@ import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import { useArea } from '../composables/useArea'
+import DetailSheet from '../components/ui/DetailSheet.vue'
 const shop = ref(null),
-  loaded = ref(false)
+  loaded = ref(false),
+  // An existing shop is shown as details; "Sửa thông tin" opens the form beside them.
+  editing = ref(false)
 const form = reactive({ name: '', description: '', province_code: '' })
 const { provinces, loadProvinces } = useArea()
 const { busy, error, errors, success, run } = useFeedback()
@@ -42,7 +45,12 @@ const save = () =>
         : {}),
     }
     fill(await (shop.value ? shopsApi.updateShop(data) : shopsApi.createShop(data)))
+    editing.value = false
   }, 'Đã lưu gian hàng.')
+function closeEdit() {
+  fill(shop.value)
+  editing.value = false
+}
 const submit = () => run(async () => fill(await shopsApi.submitShop()), 'Đã gửi lại để xét duyệt.')
 onMounted(load)
 onMounted(loadProvinces)
@@ -56,7 +64,9 @@ useSellerIdentity(() => shop.value)
       description="Thông tin giới thiệu và trạng thái hoạt động của gian hàng."
     />
     <DomainFeedback :busy="busy" :error="error" :success="success" />
-    <button class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">Tải lại</button>
+    <button v-if="error" class="btn btn-outline-secondary mb-3" :disabled="busy" @click="load">
+      Tải lại
+    </button>
     <template v-if="loaded">
       <FirstTimeGuide
         v-if="shop"
@@ -68,9 +78,21 @@ useSellerIdentity(() => shop.value)
           { title: 'Đơn bán:', text: 'đơn mới xuất hiện ở mục Đơn bán và trên trang Thống kê.' },
         ]"
       />
-      <div v-if="shop" class="workspace-panel">
-        <h2 class="h4 mb-3">{{ shop.name }}</h2>
-        <p>Trạng thái: <StatusBadge :status="shop.status" /></p>
+      <div v-if="shop" class="workspace-panel" data-shop-view>
+        <div class="workspace-panel-heading">
+          <h2 class="h4 m-0">{{ shop.name }}</h2>
+          <StatusBadge :status="shop.status" />
+          <button
+            v-if="!suspended"
+            type="button"
+            class="btn btn-outline-primary btn-sm ms-auto"
+            :disabled="busy"
+            data-edit
+            @click="editing = true"
+          >
+            Sửa thông tin
+          </button>
+        </div>
         <p class="text-secondary">
           {{
             {
@@ -83,9 +105,14 @@ useSellerIdentity(() => shop.value)
             }[shop.status]
           }}
         </p>
-        <p>Khu vực: {{ shop.province_name || 'Chưa chọn' }}</p>
+        <dl class="account-details">
+          <dt>Giới thiệu</dt>
+          <dd>{{ shop.description || 'Chưa có giới thiệu' }}</dd>
+          <dt>Khu vực</dt>
+          <dd>{{ shop.province_name || 'Chưa chọn' }}</dd>
+        </dl>
         <p v-if="shop.moderation_reason">Quản trị viên: {{ shop.moderation_reason }}</p>
-        <RouterLink v-if="shop.status === 'ACTIVE'" :to="`/shops/${shop.slug}`"
+        <RouterLink v-if="shop.status === 'ACTIVE'" class="d-inline-block mt-3" :to="`/shops/${shop.slug}`"
           >Xem gian hàng công khai</RouterLink
         >
       </div>
@@ -96,8 +123,15 @@ useSellerIdentity(() => shop.value)
       <p v-if="suspended" class="alert alert-warning">
         Gian hàng đang tạm ngừng. Bạn có thể xem thông tin và liên hệ quản trị viên.
       </p>
-      <form class="workspace-panel" @submit.prevent="save">
-        <div class="workspace-panel-heading"><h2>Thông tin gian hàng</h2></div>
+      <!-- A new shop fills the form on the page; an existing one edits it in a side panel. -->
+      <component
+        :is="shop ? DetailSheet : 'div'"
+        v-if="!shop || editing"
+        v-bind="shop ? { id: 'shop-edit', open: editing, title: 'Sửa thông tin gian hàng', busy } : {}"
+        @close="closeEdit"
+      >
+      <form :class="{ 'workspace-panel': !shop }" @submit.prevent="save">
+        <div v-if="!shop" class="workspace-panel-heading"><h2>Thông tin gian hàng</h2></div>
         <DomainField
           v-model="form.name"
           name="name"
@@ -128,10 +162,15 @@ useSellerIdentity(() => shop.value)
           :disabled="suspended || busy"
           :errors="errors.province_code"
         />
-        <button v-if="!suspended" type="submit" class="btn btn-primary" :disabled="busy">
-          {{ shop ? 'Lưu gian hàng' : 'Tạo gian hàng' }}
-        </button>
+        <div class="d-flex gap-2">
+          <button v-if="!suspended" type="submit" class="btn btn-primary" :disabled="busy">
+            {{ shop ? 'Lưu gian hàng' : 'Tạo gian hàng' }}</button
+          ><button v-if="shop" type="button" class="btn btn-outline-secondary" :disabled="busy" @click="closeEdit">
+            Hủy
+          </button>
+        </div>
       </form>
+      </component>
       <button
         v-if="shop?.status === 'REJECTED'"
         class="btn btn-outline-primary mt-3"

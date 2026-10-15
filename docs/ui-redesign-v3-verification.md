@@ -47,3 +47,12 @@ The test seed writes catalogue illustrations to `storage/app/public/products/{id
 
 - Isolating test storage (a separate public disk root for the E2E stack) would remove this risk; not changed without approval.
 - Seller and admin top bars on phones hide the sun/moon button for lack of room; the theme can be changed from the marketplace account menu.
+
+## Follow-up: details first, "Sửa" opens the form
+
+- **Gian hàng của tôi**: name, status, introduction and area as details; "Sửa thông tin" opens the form in a side panel (Lưu / Hủy). A new shop still fills the form on the page; a suspended shop shows details only.
+- **Hồ sơ**: details (e-mail, name, phone); "Sửa hồ sơ" switches to the form, "Hủy thay đổi" restores and closes it.
+- **Địa chỉ**: the list only; "Thêm địa chỉ" (page header) or "Sửa" on a card opens the form in a side panel.
+- **Danh mục (admin)**: the table only; "Thêm danh mục" or "Sửa" opens the form in a side panel, and "Xóa" asks for the reason in a side panel instead of under the table.
+- "Tải lại" buttons on these pages only show after an error.
+- Checks: vitest 518/518 (DomainViews updated to press "Sửa"/"Thêm" first), oxlint 0, eslint 0, build OK; screenshots `docs/ui-redesign/e2e/S-*` (1440 + 390, no overflow, no JS error) taken without reseeding; storage file list and timestamps unchanged afterwards.

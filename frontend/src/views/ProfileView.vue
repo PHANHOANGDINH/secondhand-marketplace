@@ -7,7 +7,9 @@ import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 const auth = useAuthStore()
-const profile = ref(null)
+const profile = ref(null),
+  // Shown as read-only details until "Sửa hồ sơ" is pressed.
+  editing = ref(false)
 const form = reactive({ name: '', phone: '' })
 const { busy, error, errors, success, run } = useFeedback()
 function fill(user) {
@@ -21,7 +23,12 @@ const save = () =>
     const user = await updateProfile({ name: form.name, phone: form.phone || null })
     fill(user)
     auth.user = user
+    editing.value = false
   }, 'Đã cập nhật hồ sơ.')
+function cancel() {
+  fill(profile.value)
+  editing.value = false
+}
 onMounted(load)
 </script>
 <template>
@@ -38,8 +45,24 @@ onMounted(load)
     >
       Tải lại
     </button>
-    <form v-if="profile" class="workspace-panel" @submit.prevent="save">
-      <div class="workspace-panel-heading"><h2>Thông tin cá nhân</h2></div>
+    <section v-if="profile && !editing" class="workspace-panel" data-profile-view>
+      <div class="workspace-panel-heading">
+        <h2>Thông tin cá nhân</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm ms-auto" data-edit @click="editing = true">
+          Sửa hồ sơ
+        </button>
+      </div>
+      <dl class="account-details">
+        <dt>Thư điện tử đăng nhập</dt>
+        <dd>{{ profile.email }}</dd>
+        <dt>Họ tên</dt>
+        <dd>{{ profile.name }}</dd>
+        <dt>Số điện thoại</dt>
+        <dd>{{ profile.phone || 'Chưa có' }}</dd>
+      </dl>
+    </section>
+    <form v-if="profile && editing" class="workspace-panel" @submit.prevent="save">
+      <div class="workspace-panel-heading"><h2>Sửa thông tin cá nhân</h2></div>
       <div class="account-readonly">
         <small>Thư điện tử đăng nhập</small><strong>{{ profile.email }}</strong>
       </div>
@@ -73,7 +96,7 @@ onMounted(load)
           type="button"
           class="btn btn-outline-secondary"
           :disabled="busy"
-          @click="fill(profile)"
+          @click="cancel"
         >
           Hủy thay đổi
         </button>

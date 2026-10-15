@@ -114,10 +114,17 @@ it('anonymous Quick Sell goes to login with a safe internal dialog return URL', 
   expect(products.createProduct).not.toHaveBeenCalled()
 })
 it('auth-page Quick Sell returns to the homepage instead of creating a login redirect loop', async () => {
-  const { wrapper, router } = await setup(DefaultLayout, { role: null, path: '/login' })
+  // Sign-in and sign-up have no menu any more; the password pages keep it and the same rule.
+  const { wrapper, router } = await setup(DefaultLayout, { role: null, path: '/forgot-password' })
   await wrapper.get('.marketplace-sell').trigger('click')
   await flushPromises()
   expect(router.currentRoute.value.query.redirect).toBe('/?quick-listing=1')
+})
+it('sign-in and sign-up pages show no pinned menu', async () => {
+  for (const path of ['/login', '/register']) {
+    const { wrapper } = await setup(DefaultLayout, { role: null, path })
+    expect(wrapper.find('.marketplace-header').exists()).toBe(false)
+  }
 })
 it('embedded creation uses the existing product API, stays in the dialog and preserves submit rules', async () => {
   const { wrapper, router } = await setup(SellerProductEditor, { props: { embedded: true } })

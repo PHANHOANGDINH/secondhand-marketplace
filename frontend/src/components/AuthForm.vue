@@ -3,6 +3,7 @@ import { localizeValidationErrors } from '../utils/validationLabels'
 
 import PageHeader from './ui/PageHeader.vue'
 import AppIcon from './ui/AppIcon.vue'
+import BrandLogo from './ui/BrandLogo.vue'
 import { brand } from '../config/brand'
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -57,7 +58,8 @@ onMounted(async () => {
       animate = true
       const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
       intro
-        .from('.auth-showcase', { x: -40, autoAlpha: 0, duration: 0.7 })
+        .from('.auth-top', { y: -14, autoAlpha: 0, duration: 0.5 })
+        .from('.auth-showcase', { x: -40, autoAlpha: 0, duration: 0.7 }, '<0.1')
         .from('.auth-form', { x: 40, autoAlpha: 0, duration: 0.7 }, '<0.1')
         .from(
           '.auth-showcase-title > *',
@@ -172,6 +174,14 @@ async function submit() {
 </script>
 <template>
   <div ref="page" class="auth-page">
+    <nav class="auth-top" aria-label="Quay lại">
+      <RouterLink to="/" class="auth-brand" :aria-label="`${brand.name} · Trang chủ`"
+        ><BrandLogo
+      /></RouterLink>
+      <RouterLink to="/" class="auth-home" data-auth-home
+        ><AppIcon name="arrowLeft" :size="18" />Về trang chủ</RouterLink
+      >
+    </nav>
     <aside class="auth-showcase" aria-label="Giới thiệu sàn mua bán">
       <span class="auth-glow" aria-hidden="true"></span>
       <div class="auth-tiles" aria-hidden="true">
@@ -348,6 +358,53 @@ async function submit() {
   align-items: stretch;
   max-width: 1040px;
   margin: 0 auto;
+}
+/* Brand and the way back home, in place of the site menu. */
+.auth-top {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.auth-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgb(21 22 26 / 8%);
+  color: var(--band-ink);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.auth-home:hover {
+  background: var(--band-soft);
+  box-shadow: 0 6px 18px rgb(21 22 26 / 12%);
+  color: var(--band-ink);
+}
+.auth-home :deep(svg) {
+  transition: transform 0.2s ease;
+}
+.auth-home:hover :deep(svg) {
+  transform: translateX(-3px);
+}
+.auth-home:focus-visible,
+.auth-brand:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 .auth-form {
   width: 100%;

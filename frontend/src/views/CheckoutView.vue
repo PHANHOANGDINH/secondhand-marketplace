@@ -199,8 +199,11 @@ async function submit() {
       online.order_url &&
       !order.reconciliation_required
     )
-      paymentApi.redirectToGateway(online.order_url)
-    else await router.push(`/orders/${order.id}`)
+    {
+      // ZaloPay opens in a new tab; this tab waits for the verified result.
+      if (paymentApi.redirectToGateway(online.order_url) === 'tab')
+        await router.push(paymentApi.paymentResultPath(order.id))
+    } else await router.push(`/orders/${order.id}`)
   })
 }
 onMounted(load)

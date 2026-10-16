@@ -4,7 +4,7 @@ import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { getAuctionCheckout, checkoutAuction } from '../api/auction.api'
-import { redirectToGateway } from '../api/payment.api'
+import { paymentResultPath, redirectToGateway } from '../api/payment.api'
 import { domainError } from '../api/domain.api'
 import { formatPrice } from '../composables/productPresentation'
 import { checkoutDeadlineLabel } from '../composables/auctionPresentation'
@@ -117,9 +117,10 @@ async function submit() {
       payment?.status === 'PENDING' &&
       payment.order_url &&
       !order.reconciliation_required
-    )
-      redirectToGateway(payment.order_url)
-    else await router.push(`/orders/${order.id}`)
+    ) {
+      if (redirectToGateway(payment.order_url) === 'tab')
+        await router.push(paymentResultPath(order.id))
+    } else await router.push(`/orders/${order.id}`)
   } catch (e) {
     if (g !== generation) return
     if (e.response?.status && e.response.status < 500) persist(null)
@@ -213,7 +214,9 @@ onUnmounted(() => {
             :disabled="busy || !!attempt || expired"
           >
             <option v-for="payment in data.payment_methods" :key="payment" :value="payment">
-              {{ payment === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán trực tuyến qua ZaloPay' }}
+              {{
+                payment === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán trực tuyến qua ZaloPay'
+              }}
             </option>
           </select>
           <p v-if="method === 'ZALOPAY'" class="small">

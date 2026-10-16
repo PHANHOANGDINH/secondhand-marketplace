@@ -445,3 +445,57 @@ it('payment API uses CSRF, strict server actions and retry key, never client PAI
   })
   expect(axios.get).toHaveBeenCalledWith('/sanctum/csrf-cookie')
 })
+it('opens ZaloPay in a new tab and keeps this tab on the verified result page', async () => {
+  paymentApi.redirectToGateway.mockReturnValue('tab')
+  const { wrapper, router } = await setup(CheckoutView, {}, '/checkout')
+  await wrapper.get('#checkout-payment').setValue('ZALOPAY')
+  await wrapper.get('form').trigger('submit')
+  await flushPromises()
+  expect(paymentApi.redirectToGateway).toHaveBeenCalledWith(pending.order_url)
+  expect(router.currentRoute.value.fullPath).toBe('/payment/result?order=7')
+})
+it('redirectToGateway uses a new tab, cuts the opener, and falls back to this tab when blocked', () => {
+  vi.restoreAllMocks()
+  const tab = { opener: 'shop' }
+  const open = vi.spyOn(window, 'open').mockReturnValue(tab)
+  const assign = vi.fn()
+  const location = window.location
+  Object.defineProperty(window, 'location', { configurable: true, value: { ...location, assign } })
+  try {
+    expect(paymentApi.redirectToGateway(pending.order_url)).toBe('tab')
+    expect(open).toHaveBeenCalledWith(pending.order_url, '_blank')
+    expect(tab.opener).toBeNull()
+    expect(assign).not.toHaveBeenCalled()
+    open.mockReturnValue(null)
+    expect(paymentApi.redirectToGateway(pending.order_url)).toBe('same')
+    expect(assign).toHaveBeenCalledWith(pending.order_url)
+    expect(() => paymentApi.redirectToGateway('https://evil.test/pay')).toThrow('Invalid payment URL')
+    expect(paymentApi.paymentResultPath('57')).toBe('/payment/result?order=57')
+  } finally {
+    Object.defineProperty(window, 'location', { configurable: true, value: location })
+  }
+})
+it('result reads the order id even when ZaloPay appends its own parameters, and re-checks on return', async () => {
+  vi.useFakeTimers()
+  try {
+    const { wrapper } = await setup(
+      PaymentResultView,
+      {},
+      '/payment/result?order=7?amount=250000&apptransid=261016_x&status=1',
+    )
+    expect(orderApi.getOrder).toHaveBeenCalledWith('7')
+    await vi.advanceTimersByTimeAsync(31000)
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đang chờ kết quả thanh toán')
+    // The buyer finished in the ZaloPay tab and comes back here.
+    paymentApi.queryPayment.mockResolvedValue({
+      ...order,
+      payment_status: 'PAID',
+      payments: [{ ...pending, status: 'PAID', order_url: null }],
+    })
+    window.dispatchEvent(new Event('focus'))
+    await flushPromises()
+    expect(wrapper.get('[data-verified-result] h2').text()).toBe('Đã thanh toán')
+  } finally {
+    vi.useRealTimers()
+  }
+})

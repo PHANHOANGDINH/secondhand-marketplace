@@ -1,6 +1,7 @@
 <script setup>
 import { getStatusLabel } from '../utils/labels'
 import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import * as api from '../api/payment.api'
 import { useFeedback } from '../composables/useFeedback'
 import { formatPrice } from '../composables/productPresentation'
@@ -9,6 +10,8 @@ const props = defineProps({ order: { type: Object, required: true } })
 const emit = defineEmits(['changed'])
 const { busy, error, run } = useFeedback()
 const retryKey = ref(null)
+const route = useRoute(),
+  router = useRouter()
 const latest = computed(() => props.order.payments?.at(-1))
 const url = computed(
   () =>
@@ -24,8 +27,11 @@ async function retry() {
     retryKey.value = null
     emit('changed', order)
     const payment = order.payments?.at(-1)
-    if (payment?.status === 'PENDING' && payment.order_url && !order.reconciliation_required)
-      api.redirectToGateway(payment.order_url)
+    if (payment?.status === 'PENDING' && payment.order_url && !order.reconciliation_required) {
+      // ZaloPay opened in a new tab: wait for the verified result here.
+      if (api.redirectToGateway(payment.order_url) === 'tab' && route?.path !== '/payment/result')
+        await router?.push(api.paymentResultPath(props.order.id))
+    }
   })
 }
 </script>
@@ -45,7 +51,13 @@ async function retry() {
         Chỉ trạng thái đã được máy chủ xác minh mới xác nhận thanh toán. Nếu chưa rõ kết quả, kiểm
         tra trước khi thử lại.
       </p>
-      <a v-if="url" :href="url" class="btn btn-primary me-2" rel="noreferrer" data-resume-payment
+      <a
+        v-if="url"
+        :href="url"
+        target="_blank"
+        class="btn btn-primary me-2"
+        rel="noopener noreferrer"
+        data-resume-payment
         >Tiếp tục tại ZaloPay</a
       >
       <button

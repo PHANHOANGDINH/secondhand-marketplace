@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOrder } from '../api/order.api'
 import { queryPayment } from '../api/payment.api'
@@ -24,9 +24,12 @@ const settled = (value) =>
   ['PAID', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(value.payment_status)
 const pause = (ms, current) =>
   new Promise((resolve) => setTimeout(() => resolve(current === revision), ms))
+// ZaloPay may append its own parameters to the redirect ("?order=57?amount=…"): only the leading id counts.
 const orderId = () => {
-  const id = route.query.order
-  return typeof id === 'string' && /^[1-9][0-9]*$/.test(id) ? id : null
+  const match = /^([1-9][0-9]{0,18})(?![0-9])/.exec(
+    typeof route.query.order === 'string' ? route.query.order : '',
+  )
+  return match ? match[1] : null
 }
 async function poll(id, current) {
   const started = Date.now()
@@ -39,7 +42,11 @@ async function poll(id, current) {
       phase.value = 'settled'
       return
     }
-    if (Date.now() - started + POLL_EVERY_MS > POLL_FOR_MS || !(await pause(POLL_EVERY_MS, current))) break
+    if (
+      Date.now() - started + POLL_EVERY_MS > POLL_FOR_MS ||
+      !(await pause(POLL_EVERY_MS, current))
+    )
+      break
   }
   if (current === revision) phase.value = 'waiting'
 }
@@ -90,8 +97,21 @@ const checking = computed(() => phase.value === 'checking' && order.value && !se
 function updated(verified) {
   if (verified.id === order.value?.id) order.value = verified
 }
+// Back from the ZaloPay tab (or the phone woke up): ask again at once if the result is still open.
+function returned() {
+  if (document.visibilityState === 'hidden' || busy.value || phase.value === 'checking') return
+  if (order.value && !settled(order.value)) checkAgain()
+}
 watch(() => route.query.order, load, { immediate: true })
-onBeforeUnmount(() => revision++)
+onMounted(() => {
+  document.addEventListener('visibilitychange', returned)
+  window.addEventListener('focus', returned)
+})
+onBeforeUnmount(() => {
+  revision++
+  document.removeEventListener('visibilitychange', returned)
+  window.removeEventListener('focus', returned)
+})
 </script>
 <template>
   <section class="buyer-flow buyer-payment-result">
@@ -136,9 +156,15 @@ onBeforeUnmount(() => revision++)
         <p v-if="checking" class="small mb-0">Đang hỏi ZaloPay, vui lòng đợi trong giây lát.</p>
         <template v-if="phase === 'waiting' && !settled(order)">
           <p class="small">
-            ZaloPay chưa trả kết quả. Nếu bạn đã thanh toán, trạng thái sẽ cập nhật sau ít phút.
+            ZaloPay chưa trả kết quả. Nếu bạn đang thanh toán ở thẻ ZaloPay, hoàn tất rồi quay lại
+            đây: trang sẽ tự kiểm tra lại.
           </p>
-          <button type="button" class="btn btn-outline-primary" data-check-again @click="checkAgain">
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            data-check-again
+            @click="checkAgain"
+          >
             Kiểm tra lại
           </button>
         </template>

@@ -27,9 +27,9 @@ Dùng thẻ và mã OTP do ZaloPay công bố cho **sandbox** (tài liệu ZaloP
 ## 4. Kịch bản demo (~3 phút)
 
 1. Người mua thêm món vào giỏ → Đặt hàng → chọn **ZaloPay** (có thể áp mã giảm giá: số tiền gửi sang ZaloPay là tổng **sau** voucher, do máy chủ tính).
-2. Bấm Xác nhận → chuyển sang cổng sandbox → chọn thẻ test → nhập OTP.
+2. Bấm Xác nhận → cổng sandbox mở ở **thẻ mới**, thẻ của shop chuyển sang `/payment/result` và chờ → ở thẻ ZaloPay chọn thẻ test → nhập OTP. (Trình duyệt chặn thẻ mới thì đi thẳng sang cổng trong cùng thẻ như trước.)
 3. ZaloPay gọi callback qua tunnel (cửa sổ backend/`storage/logs/laravel.log` có dòng `zalopay.callback` với `result: 1`, chỉ 8 ký tự đầu của MAC).
-4. Cổng chuyển về `/payment/result?order=…`: trang hiện "Đang xác nhận thanh toán…", hỏi máy chủ mỗi 3 giây (máy chủ tự query ZaloPay khi còn PENDING) và ra **Đã thanh toán**. Tham số trên URL không được tin.
+4. Quay lại thẻ của shop (cổng sandbox nhiều khi đứng ở trang "thành công" và không tự chuyển về): trang kết quả hỏi máy chủ mỗi 3 giây trong 30 giây, sau đó tự hỏi lại mỗi khi thẻ được mở lại, và ra **Đã thanh toán** (máy chủ tự query ZaloPay khi còn PENDING). Nếu cổng có chuyển về `/payment/result?order=…` thì kết quả cũng vậy; tham số ZaloPay nối thêm vào URL bị bỏ qua, không được tin.
 5. Mở Đơn mua: trạng thái Đã thanh toán, không còn nút thanh toán lại. Người bán thấy đơn ở Đơn bán.
 6. Thử thêm: huỷ ở cổng → trang kết quả ra **Thanh toán không thành công** (sau khi ZaloPay báo hết hạn) hoặc **Đang chờ** với nút **Kiểm tra lại**.
 

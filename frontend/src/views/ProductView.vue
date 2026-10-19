@@ -90,6 +90,8 @@ const joined = computed(() => {
         </section>
       </div>
       <aside class="product-detail-side buyer-product-info">
+        <!-- Name, price and the buy form stay in view while the description is read. -->
+        <div class="product-purchase">
         <h1 class="h3">{{ product.name }}</h1>
         <p class="buyer-product-price">
           {{ formatPrice(product.auction?.current_price || product.price) }}
@@ -113,9 +115,14 @@ const joined = computed(() => {
           }}</RouterLink>
         </p>
         <div class="product-buy-bar">
+          <p class="product-buy-summary" aria-hidden="true">
+            <span>{{ product.name }}</span
+            ><strong>{{ formatPrice(product.auction?.current_price || product.price) }}</strong>
+          </p>
           <AddToCart :key="product.id" :product="product" />
         </div>
         <FavoriteButton :product="product" class="product-favorite" />
+        </div>
         <div class="product-seller">
           <p v-if="product.shop" class="buyer-shop-panel">
             <span class="product-seller-avatar" aria-hidden="true">{{
@@ -174,9 +181,10 @@ const joined = computed(() => {
   min-width: 0;
 }
 .product-detail-side {
-  position: sticky;
-  top: 5.5rem;
-  display: grid;
+  /* As tall as the gallery + description column, so the purchase block inside can stick. */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
   padding: var(--space-6);
@@ -186,6 +194,24 @@ const joined = computed(() => {
 }
 .product-detail-side > * {
   margin: 0;
+}
+.product-purchase {
+  position: sticky;
+  top: 5.25rem;
+  z-index: 2;
+  display: grid;
+  gap: var(--space-4);
+  /* Covers the seller box and safety note as they scroll up beneath it. */
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.product-purchase > * {
+  margin: 0;
+}
+.product-buy-summary {
+  display: none;
 }
 .product-detail-side h1 {
   font-size: clamp(1.35rem, 2.2vw, 1.75rem);
@@ -362,8 +388,13 @@ const joined = computed(() => {
     gap: var(--space-6);
   }
   .product-detail-side {
-    position: static;
+    align-self: auto;
     order: -1;
+  }
+  .product-purchase {
+    position: static;
+    margin: 0;
+    padding: 0;
   }
   .product-detail-main {
     display: contents;
@@ -372,13 +403,10 @@ const joined = computed(() => {
     order: -2;
   }
 }
-/* Phones: the buy form stays reachable as a bar fixed to the bottom edge. */
-@media (max-width: 767px) {
+/* Tablets and phones: the buy form stays reachable as a bar fixed to the bottom edge. */
+@media (max-width: 991px) {
   .product-detail {
-    padding-bottom: 7.5rem;
-  }
-  .product-detail-side {
-    padding: var(--space-4);
+    padding-bottom: 9rem;
   }
   .product-buy-bar {
     position: fixed;
@@ -389,6 +417,27 @@ const joined = computed(() => {
     padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
     background: var(--surface);
+    box-shadow: 0 -8px 24px rgb(var(--shadow-rgb) / 10%);
+  }
+  .product-buy-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2) !important;
+    font-size: 0.85rem !important;
+  }
+  .product-buy-summary span {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .product-buy-summary strong {
+    flex: none;
+    color: var(--price);
+    font-size: 1.05rem;
   }
   .product-buy-bar :deep(.form-label) {
     position: absolute;
@@ -397,6 +446,26 @@ const joined = computed(() => {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+  .product-buy-bar :deep(form > .d-flex) {
+    flex-wrap: nowrap !important;
+  }
+  .product-buy-bar :deep(form > .d-flex .btn) {
+    flex: 1;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767px) {
+  .product-detail {
+    padding-bottom: calc(9rem + 60px);
+  }
+  .product-detail-side {
+    padding: var(--space-4);
+  }
+  /* Above the phone tab bar. */
+  .product-buy-bar {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--space-3);
   }
   .product-buy-bar :deep(.alert),
   .product-buy-bar :deep(p) {

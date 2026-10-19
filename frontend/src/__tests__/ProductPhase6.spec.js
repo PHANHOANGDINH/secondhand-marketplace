@@ -284,7 +284,7 @@ it('image editor previews and uploads selected files then releases object URLs',
   const file = new File(['png'], 'image.png', { type: 'image/png' })
   await choose(wrapper, [file])
   expect(URL.createObjectURL).toHaveBeenCalledWith(file)
-  await button(wrapper, 'Tải ảnh lên').trigger('click')
+  await button(wrapper, 'Tải lên 1 ảnh').trigger('click')
   await flushPromises()
   expect(productApi.uploadProductImages).toHaveBeenCalledWith('10', [file])
   expect(wrapper.emitted('changed')).toHaveLength(1)
@@ -305,6 +305,39 @@ it('image editor blocks invalid files and excessive count before request', async
   )
   expect(wrapper.get('[role=alert]').text()).toContain('8 ảnh')
   expect(productApi.uploadProductImages).not.toHaveBeenCalled()
+})
+it('image editor takes several photos at once, adds later picks and drops, and removes one before upload', async () => {
+  vi.spyOn(productApi, 'uploadProductImages').mockResolvedValue(product.images)
+  const empty = { ...product, images: [] }
+  const { wrapper } = await setup(ProductImagesEditor, '/seller/products/10/edit', { product: empty })
+  const png = (name) => new File(['png'], name, { type: 'image/png' })
+  const [a, b, c, d] = ['a.png', 'b.png', 'c.png', 'd.png'].map(png)
+  await choose(wrapper, [a, b])
+  expect(wrapper.findAll('[data-staged]')).toHaveLength(2)
+  // A second pick adds to the first instead of replacing it.
+  await choose(wrapper, [c, new File(['svg'], 'bad.svg', { type: 'image/svg+xml' })])
+  expect(wrapper.findAll('[data-staged]')).toHaveLength(3)
+  expect(wrapper.get('[role=alert]').text()).toContain('bỏ qua 1 ảnh')
+  // Drag and drop onto the zone.
+  await wrapper.get('[data-upload-zone]').trigger('drop', { dataTransfer: { files: [d] } })
+  expect(wrapper.findAll('[data-staged]')).toHaveLength(4)
+  expect(wrapper.text()).toContain('Đã chọn 4 ảnh · còn chọn được 4 ảnh')
+  await wrapper.findAll('[data-staged] button')[1].trigger('click')
+  expect(wrapper.get('[data-upload]').text()).toBe('Tải lên 3 ảnh')
+  await wrapper.get('[data-upload]').trigger('click')
+  await flushPromises()
+  expect(productApi.uploadProductImages).toHaveBeenCalledWith('10', [a, c, d])
+})
+it('image editor keeps only as many new photos as the 8-photo limit allows', async () => {
+  const { wrapper } = await setup(ProductImagesEditor, '/seller/products/10/edit', { product })
+  await choose(
+    wrapper,
+    Array.from({ length: 9 }, (_, i) => new File(['png'], `p${i}.png`, { type: 'image/png' })),
+  )
+  // Two photos already exist, so six of the nine are kept.
+  expect(wrapper.findAll('[data-staged]')).toHaveLength(6)
+  expect(wrapper.get('[role=alert]').text()).toContain('đã bỏ bớt 3 ảnh')
+  expect(wrapper.findAll('button').find((node) => node.text().includes('Chọn')).attributes('disabled')).toBeDefined()
 })
 it('image editor sets primary, deletes and sends the complete reordered ID set', async () => {
   vi.spyOn(productApi, 'setPrimaryImage').mockResolvedValue(product.images[1])

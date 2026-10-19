@@ -150,20 +150,13 @@ it('images chosen before a draft retain previews and upload through the existing
   Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
   await input.trigger('change')
   expect(products.uploadProductImages).not.toHaveBeenCalled()
-  expect(
-    wrapper
-      .findAll('button')
-      .find((node) => node.text() === 'Tải ảnh lên')
-      .attributes('disabled'),
-  ).toBeDefined()
+  expect(wrapper.get('[data-upload]').text()).toBe('Tải lên 1 ảnh')
+  expect(wrapper.get('[data-upload]').attributes('disabled')).toBeDefined()
   await fill(wrapper)
   await wrapper.get('form').trigger('submit')
   await flushPromises()
   expect(wrapper.find('img[src="blob:quick-preview"]').exists()).toBe(true)
-  await wrapper
-    .findAll('button')
-    .find((node) => node.text() === 'Tải ảnh lên')
-    .trigger('click')
+  await wrapper.get('[data-upload]').trigger('click')
   await flushPromises()
   expect(products.uploadProductImages).toHaveBeenCalledWith('10', [file])
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:quick-preview')

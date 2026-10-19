@@ -13,7 +13,10 @@ const props = defineProps({
 const emit = defineEmits(['changed', 'previews-change', 'busy-change'])
 const files = ref([]),
   previews = ref([]),
-  input = ref(null)
+  input = ref(null),
+  dragging = ref(false)
+const LIMIT = 8
+const room = computed(() => LIMIT - props.product.images.length - files.value.length)
 const { busy, error, errors, success, clear, run } = useFeedback()
 const blocked = computed(() => busy.value || props.disabled || !props.product.can_edit)
 function resetFiles() {
@@ -23,31 +26,49 @@ function resetFiles() {
   if (input.value) input.value.value = ''
   emit('previews-change', [])
 }
-function choose(event) {
-  const selected = Array.from(event.target.files || [])
-  clear()
-  resetFiles()
-  if (selected.length + props.product.images.length > 8) {
-    error.value = 'Mỗi sản phẩm tối đa 8 ảnh.'
-    return
-  }
-  if (
-    selected.some(
-      (file) =>
-        !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-        !/\.(jpe?g|png|webp)$/i.test(file.name) ||
-        file.size > 5 * 1024 * 1024,
-    )
-  ) {
-    error.value = 'Chọn ảnh JPEG/PNG/WebP, tối đa 5 MiB mỗi ảnh.'
-    return
-  }
-  files.value = selected
-  previews.value = selected.map((file) => ({ name: file.name, url: URL.createObjectURL(file) }))
+const valid = (file) =>
+  ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) &&
+  /\.(jpe?g|png|webp)$/i.test(file.name) &&
+  file.size <= 5 * 1024 * 1024
+const announce = () =>
   emit(
     'previews-change',
     previews.value.map((preview) => ({ ...preview })),
   )
+// Several photos at once (multi-select or drag & drop); each pick adds to the ones already chosen.
+// Invalid files are skipped one by one instead of cancelling the whole pick.
+function addFiles(list) {
+  clear()
+  const picked = Array.from(list || [])
+  const accepted = picked.filter(valid)
+  const notes = []
+  if (accepted.length < picked.length)
+    notes.push(
+      `Đã bỏ qua ${picked.length - accepted.length} ảnh không hợp lệ (chỉ nhận JPEG/PNG/WebP, tối đa 5 MiB mỗi ảnh).`,
+    )
+  const kept = accepted.slice(0, Math.max(0, room.value))
+  if (kept.length < accepted.length)
+    notes.push(`Mỗi sản phẩm tối đa ${LIMIT} ảnh: đã bỏ bớt ${accepted.length - kept.length} ảnh.`)
+  if (notes.length) error.value = notes.join(' ')
+  if (input.value) input.value.value = ''
+  if (!kept.length) return
+  files.value = [...files.value, ...kept]
+  previews.value = [
+    ...previews.value,
+    ...kept.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
+  ]
+  announce()
+}
+const choose = (event) => addFiles(event.target.files)
+function drop(event) {
+  dragging.value = false
+  if (!blocked.value && room.value > 0) addFiles(event.dataTransfer?.files)
+}
+function unstage(index) {
+  URL.revokeObjectURL(previews.value[index].url)
+  files.value = files.value.filter((_, position) => position !== index)
+  previews.value = previews.value.filter((_, position) => position !== index)
+  announce()
 }
 const upload = () =>
   run(async () => {
@@ -91,12 +112,18 @@ onBeforeUnmount(resetFiles)
     </div>
     <div
       class="listing-upload-zone"
-      :class="{ 'is-disabled': blocked || product.images.length >= 8 }"
+      :class="{ 'is-disabled': blocked || room <= 0, 'is-dragging': dragging }"
+      data-upload-zone
+      @dragenter.prevent="dragging = !blocked && room > 0"
+      @dragover.prevent
+      @dragleave.self="dragging = false"
+      @drop.prevent="drop"
     >
       <span class="listing-upload-icon" aria-hidden="true">＋</span>
       <label :for="inputId" class="form-label">Chọn ảnh sản phẩm</label>
       <p :id="`${inputId}-help`" class="text-muted">
-        Nhấn để chọn JPEG, PNG hoặc WebP · tối đa 8 ảnh. Ảnh vuông hiển thị đẹp nhất.
+        Chọn <strong>nhiều ảnh cùng lúc</strong> (giữ Ctrl hoặc Shift khi chọn) hoặc kéo thả ảnh vào
+        đây · JPEG, PNG, WebP · tối đa {{ LIMIT }} ảnh. Ảnh vuông hiển thị đẹp nhất.
       </p>
       <input
         :id="inputId"
@@ -108,41 +135,51 @@ onBeforeUnmount(resetFiles)
         class="visually-hidden"
         tabindex="-1"
         :aria-describedby="`${inputId}-help`"
-        :disabled="blocked || product.images.length >= 8"
+        :disabled="blocked || room <= 0"
         @change="choose"
       />
       <button
         type="button"
         class="btn btn-outline-primary"
-        :disabled="blocked || product.images.length >= 8"
+        :disabled="blocked || room <= 0"
         :aria-controls="inputId"
         :aria-describedby="`${inputId}-help`"
         @click="input?.click()"
       >
-        Chọn ảnh
+        {{ files.length ? 'Chọn thêm ảnh' : 'Chọn ảnh' }}
       </button>
       <p class="small text-muted mb-0 mt-2" aria-live="polite">
-        {{ files.length ? `Đã chọn ${files.length} ảnh` : 'Chưa chọn ảnh' }}
+        {{
+          files.length
+            ? `Đã chọn ${files.length} ảnh · còn chọn được ${Math.max(0, room)} ảnh`
+            : 'Chưa chọn ảnh'
+        }}
       </p>
     </div>
     <p v-if="!product.id" class="form-text">
       Bạn có thể xem trước ảnh đã chọn. Lưu bản nháp trước khi tải ảnh lên.
     </p>
-    <div class="d-flex gap-2 flex-wrap my-3">
-      <img
-        v-for="preview in previews"
-        :key="preview.url"
-        :src="preview.url"
-        :alt="preview.name"
-        style="width: 90px; height: 80px; object-fit: contain"
-      />
-    </div>
+    <ul v-if="previews.length" class="listing-staged" aria-label="Ảnh đã chọn, chưa tải lên">
+      <li v-for="(preview, index) in previews" :key="preview.url" data-staged>
+        <img :src="preview.url" :alt="preview.name" />
+        <button
+          type="button"
+          class="listing-staged-remove"
+          :aria-label="`Bỏ ảnh ${preview.name}`"
+          :disabled="busy"
+          @click="unstage(index)"
+        >
+          ✕
+        </button>
+      </li>
+    </ul>
     <button
       class="btn btn-primary mb-3"
       :disabled="blocked || !files.length || !product.id"
+      data-upload
       @click="upload"
     >
-      Tải ảnh lên
+      {{ files.length ? `Tải lên ${files.length} ảnh` : 'Tải ảnh lên' }}
     </button>
     <div class="row g-3">
       <article
@@ -215,6 +252,49 @@ onBeforeUnmount(resetFiles)
 }
 .listing-upload-zone.is-disabled {
   opacity: 0.65;
+}
+.listing-upload-zone.is-dragging {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.listing-staged {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+  padding: 0;
+  list-style: none;
+}
+.listing-staged li {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.listing-staged img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.listing-staged-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scrim);
+  color: #fff;
+  font-size: 0.8rem;
+}
+.listing-staged-remove:focus-visible {
+  outline: var(--focus-ring);
 }
 .listing-upload-zone p {
   font-size: var(--font-size-small);

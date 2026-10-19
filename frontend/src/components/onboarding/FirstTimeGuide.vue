@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useFirstTime } from '../../composables/useFirstTime'
 import AccessibleDialog from '../ui/AccessibleDialog.vue'
+import AppIcon from '../ui/AppIcon.vue'
 // A short guide shown once per signed-in user.
 //  - default: a note inside the page, so the main action stays usable;
 //  - `tour`: a dialog (focus trap + ESC come from AccessibleDialog) that opens only when `active`.
@@ -76,9 +77,17 @@ onBeforeUnmount(() => {
     @dismiss="finish"
   >
     <div ref="body" class="first-time-step" aria-live="polite">
+      <!-- Decoration only: a large icon for the step on a soft brand panel. -->
+      <div class="first-time-hero" aria-hidden="true">
+        <span class="first-time-blob is-a"></span><span class="first-time-blob is-b"></span>
+        <span class="first-time-icon"><AppIcon :name="step.icon || 'star'" :size="36" /></span>
+      </div>
       <p class="first-time-count">Bước {{ index + 1 }} / {{ steps.length }}</p>
       <h3>{{ step.title }}</h3>
-      <p>{{ step.text }}</p>
+      <p class="first-time-text">{{ step.text }}</p>
+      <div class="first-time-progress" aria-hidden="true">
+        <span v-for="(item, position) in steps" :key="item.title" :class="{ 'is-done': position <= index }"></span>
+      </div>
     </div>
     <template #footer>
       <div class="first-time-actions">
@@ -111,12 +120,72 @@ onBeforeUnmount(() => {
 <style scoped>
 .first-time-step h3 {
   margin-bottom: var(--space-2);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
 }
 .first-time-step p {
   margin: 0;
   line-height: 1.7;
+}
+.first-time-text {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.first-time-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 150px;
+  margin-bottom: var(--space-5);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--brand-soft), var(--surface-2));
+}
+.first-time-blob {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.14;
+}
+.first-time-blob.is-a {
+  width: 140px;
+  height: 140px;
+  top: -50px;
+  right: -30px;
+}
+.first-time-blob.is-b {
+  width: 90px;
+  height: 90px;
+  bottom: -35px;
+  left: 18px;
+}
+.first-time-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--brand-text);
+  box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 12%);
+  transform: rotate(-6deg);
+}
+.first-time-progress {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: var(--space-5);
+}
+.first-time-progress span {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  transition: background-color var(--transition-fast);
+}
+.first-time-progress span.is-done {
+  background: var(--primary);
 }
 .first-time-count {
   display: inline-block;
@@ -132,6 +201,13 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
+}
+.first-time-actions .btn {
+  min-height: 46px;
+  padding-inline: 1.25rem;
+}
+.first-time-actions .btn-primary {
+  min-width: 9rem;
 }
 .first-time-note {
   display: flex;
@@ -165,7 +241,7 @@ onBeforeUnmount(() => {
 </style>
 <style>
 .ui-dialog-backdrop.first-time-tour .ui-dialog {
-  width: min(30rem, 100%);
+  width: min(36rem, 100%);
 }
 @media (max-width: 767px) {
   .ui-dialog-backdrop.first-time-tour {

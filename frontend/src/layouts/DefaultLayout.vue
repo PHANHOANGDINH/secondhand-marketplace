@@ -57,9 +57,9 @@ async function confirmArea(next) {
 // (FirstTimeGuide keeps the per-user flag); "Xem lại hướng dẫn" clears the flags and reopens it.
 const guideRun = ref(0)
 const welcomeSteps = [
-  { title: 'Tìm kiếm', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm để xem gợi ý, và chọn khu vực gần bạn.' },
-  { title: 'Đăng tin', text: 'Nút "Đăng tin" mở biểu mẫu đăng bán nhanh ngay tại trang bạn đang xem.' },
-  { title: 'Đấu giá', text: 'Vào "Đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
+  { title: 'Tìm kiếm', icon: 'search', text: 'Gõ tên món đồ, danh mục hoặc gian hàng vào ô tìm kiếm để xem gợi ý, và chọn khu vực gần bạn.' },
+  { title: 'Đăng tin', icon: 'plus', text: 'Nút "Đăng tin" mở biểu mẫu đăng bán nhanh ngay tại trang bạn đang xem.' },
+  { title: 'Đấu giá', icon: 'gavel', text: 'Vào "Đấu giá" để theo dõi các phiên đang diễn ra và ra giá trực tiếp.' },
 ]
 function replayGuides() {
   accountMenu.value?.removeAttribute('open')

@@ -200,6 +200,12 @@ onUnmounted(() => {
 .report-trigger {
   text-align: left;
 }
+/* Centred on screen whatever the page around it sets on its children (e.g. "> * { margin: 0 }"). */
+dialog.report-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto !important;
+}
 .report-dialog {
   width: min(34rem, calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);

@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\V1\SellerInventoryController;
 use App\Http\Controllers\Api\V1\SellerOrderController;
 use App\Http\Controllers\Api\V1\SellerProductController;
 use App\Http\Controllers\Api\V1\SellerShopController;
+use App\Http\Controllers\Api\V1\ShopReviewController;
 use App\Http\Controllers\Api\V1\VideoCommentController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\V1\WishlistController;
@@ -151,7 +152,10 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession:
 });
 
 Route::get('/products/{slug}/reviews', [ReviewController::class, 'index'])->middleware('throttle:public-read');
+Route::get('/shops/{slug}/reviews', [ShopReviewController::class, 'index'])->middleware('throttle:public-read');
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
+    Route::get('/shops/{slug}/reviews/mine', [ShopReviewController::class, 'mine']);
+    Route::put('/shops/{slug}/reviews', [ShopReviewController::class, 'save']);
     Route::get('/products/{slug}/review-eligibility', [ReviewController::class, 'eligibility']);
     Route::post('/order-items/{orderItem}/review', [ReviewController::class, 'store']);
     Route::patch('/reviews/{review}', [ReviewController::class, 'update']);

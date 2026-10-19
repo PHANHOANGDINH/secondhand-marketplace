@@ -6,8 +6,8 @@ use App\Enums\ProductStatus;
 use App\Enums\ProductVideoStatus;
 use App\Enums\ReviewStatus;
 use App\Models\Product;
-use App\Models\Review;
 use App\Models\Shop;
+use App\Models\ShopReview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,14 +41,13 @@ class ProductQuery
         return $query->whereIn('shop_id', Shop::query()->where('province_code', $code)->select('id'));
     }
 
-    /** Seller-card figures for the eager-loaded shop: published reviews across all of its products, as two subselects. */
+    /** Seller-card figures for the eager-loaded shop: its published shop ratings, as two subselects. */
     private function sellerStats(BelongsTo $shops): BelongsTo
     {
-        $reviews = fn (string $aggregate) => Review::query()->selectRaw($aggregate)
-            ->join('products as rated', 'rated.id', '=', 'reviews.product_id')
-            ->whereColumn('rated.shop_id', 'shops.id')->where('reviews.status', ReviewStatus::PUBLISHED);
+        $reviews = fn (string $aggregate) => ShopReview::query()->selectRaw($aggregate)
+            ->whereColumn('shop_reviews.shop_id', 'shops.id')->where('shop_reviews.status', ReviewStatus::PUBLISHED);
 
-        return $shops->addSelect(['rating_count' => $reviews('COUNT(*)'), 'rating_avg' => $reviews('AVG(reviews.rating)')]);
+        return $shops->addSelect(['rating_count' => $reviews('COUNT(*)'), 'rating_avg' => $reviews('AVG(shop_reviews.rating)')]);
     }
 
     /** One definition of "has a video": shared by the has_video filter and the has_video flag. */

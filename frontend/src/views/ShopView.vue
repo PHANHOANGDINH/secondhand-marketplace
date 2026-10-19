@@ -7,14 +7,19 @@ import DomainFeedback from '../components/DomainFeedback.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import ReportDialog from '../components/ReportDialog.vue'
 import ShopProducts from '../components/ShopProducts.vue'
+import ShopReviews from '../components/ShopReviews.vue'
+import StarRating from '../components/ui/StarRating.vue'
 const route = useRoute(),
   shop = ref(null),
   busy = ref(false),
-  error = ref('')
+  error = ref(''),
+  // Filled by the reviews section below; shown next to the shop name.
+  rating = ref(null)
 let requestId = 0
 async function load(slug) {
   const current = ++requestId
   shop.value = null
+  rating.value = null
   error.value = ''
   busy.value = true
   try {
@@ -42,11 +47,17 @@ watch(() => route.params.slug, load, { immediate: true })
         }}</span>
         <div class="shop-hero-body">
           <PageHeader :title="shop.name" eyebrow="Gian hàng trên sàn mua bán" />
+          <a v-if="rating" href="#shop-reviews" class="shop-hero-rating" data-shop-rating>
+            <StarRating :value="rating.average || 0" :size="18" />
+            <strong>{{ rating.count ? rating.average.toFixed(1) : 'Chưa có' }}</strong>
+            <span>{{ rating.count ? `${rating.count} đánh giá` : 'đánh giá' }}</span>
+          </a>
           <p class="public-shop-description">{{ shop.description }}</p>
           <ReportDialog target-type="SHOP" :target-id="shop.id" label="Báo cáo gian hàng" />
         </div>
       </div>
-      <ShopProducts :shop-id="shop.id"
+      <ShopProducts :shop-id="shop.id" />
+      <ShopReviews :shop="shop" @summary="rating = $event"
     /></template>
   </section>
 </template>
@@ -83,6 +94,18 @@ watch(() => route.params.slug, load, { immediate: true })
 }
 .shop-hero :deep(.buyer-page-header h1) {
   font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+.shop-hero-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: var(--space-3);
+  color: var(--text);
+  text-decoration: none;
+}
+.shop-hero-rating span {
+  color: var(--muted);
+  text-decoration: underline;
 }
 .shop-hero .public-shop-description {
   margin-bottom: var(--space-4);

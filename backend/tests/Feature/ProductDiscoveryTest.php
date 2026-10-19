@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVideo;
 use App\Models\Review;
 use App\Models\ShopOrder;
+use App\Models\ShopReview;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -170,7 +171,7 @@ class ProductDiscoveryTest extends TestCase
         $this->assertSame($few, array_map($count, $paths));
     }
 
-    public function test_seller_card_stats_cover_published_reviews_of_the_whole_shop_without_extra_queries(): void
+    public function test_seller_card_stats_come_from_published_shop_ratings_without_extra_queries(): void
     {
         $this->travelTo('2026-10-01 08:00:00');
         $first = Product::factory()->active()->create();
@@ -179,6 +180,8 @@ class ProductDiscoveryTest extends TestCase
         $review = function (Product $product, int $rating, string $status = 'PUBLISHED'): void {
             $item = OrderItem::factory()->create(['shop_order_id' => ShopOrder::factory()->completed()->create(['shop_id' => $product->shop_id])->id, 'product_id' => $product->id]);
             Review::factory()->create(['order_item_id' => $item->id, 'rating' => $rating, 'status' => $status]);
+            // The seller card shows the shop's own ratings (one per buyer), not the product reviews.
+            ShopReview::factory()->create(['shop_id' => $product->shop_id, 'rating' => $rating, 'status' => $status]);
         };
         $review($first, 5);
         $review($second, 4);

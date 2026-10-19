@@ -9,3 +9,9 @@ export const listAdminShops = (params) => read('admin/shops', params)
 export const getAdminShop = async (id) => (await read(`admin/shops/${id}`)).data
 export const moderateShop = async (id, data) =>
   (await mutate('patch', `admin/shops/${id}/status`, data)).data
+// Shop star ratings: the public list carries a `summary` (average, count, 1–5 distribution).
+export const listShopReviews = (slug, params) => read(`shops/${encodeURIComponent(slug)}/reviews`, params)
+export const getMyShopReview = async (slug) =>
+  (await read(`shops/${encodeURIComponent(slug)}/reviews/mine`)).data
+export const saveShopReview = (slug, data) =>
+  mutate('put', `shops/${encodeURIComponent(slug)}/reviews`, data)

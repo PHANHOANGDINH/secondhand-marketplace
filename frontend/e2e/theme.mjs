@@ -177,7 +177,7 @@ await journey('T3 my ads and seller dashboard (seller)', async () => {
   await one.shot('R-quick-listing')
   // The pages take their colours from the tokens (the last capture above was light).
   const bar = await one.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()")
-  check(bar === '#c2410c', 'light primary token is ' + bar)
+  check(bar === '#1f6f5c', 'light primary token is ' + bar)
   // What sticks out at phone width, if anything.
   await one.size(390)
   await sleep(600)

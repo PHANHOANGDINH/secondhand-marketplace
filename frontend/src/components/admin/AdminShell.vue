@@ -74,7 +74,7 @@ function close() {
     </header>
     <div class="admin-workspace">
       <aside id="admin-navigation" class="admin-sidebar" :class="{ 'is-open': open }">
-        <p class="admin-sidebar-caption">QUẢN TRỊ SÀN MUA BÁN</p>
+        <p class="admin-sidebar-caption">Quản trị sàn mua bán</p>
         <nav aria-label="Điều hướng quản trị">
           <RouterLink
             v-for="[path, label, icon] in links"

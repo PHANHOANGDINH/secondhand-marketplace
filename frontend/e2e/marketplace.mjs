@@ -12,7 +12,7 @@ await journey('M1 home and area picker (guest)', async () => {
   await one.evaluate('(localStorage.clear(), true)')
   await one.goto('/', 2500)
   await one.wait("document.querySelectorAll('[data-product]').length > 0", 'home feed has cards')
-  check((await one.text('.home-hero h2')) === 'Đồ cũ giá tốt, gần bạn, chốt nhanh!', 'slogan')
+  check((await one.text('.home-hero h2')) === 'Mỗi món đồ cũ là một đời mới cho ai đó.', 'slogan')
   check((await one.evaluate("[...document.querySelectorAll('[data-home-tab]')].map(e=>e.innerText.trim()).join('|')")) === 'Dành cho bạn|Mới nhất|Video|Đấu giá', 'four tabs')
   check(await one.exists('.home-category'), 'category row')
   check(!(await one.exists('#area-dialog')), 'a guest is not interrupted by the area picker')

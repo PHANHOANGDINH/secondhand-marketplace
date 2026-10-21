@@ -515,8 +515,8 @@ nav[aria-label='Phân trang'] > span {
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   white-space: nowrap;
 }
 .table-hover > tbody > tr:hover > * {
@@ -612,4 +612,71 @@ nav[aria-label='Phân trang'] > span {
   .account-details dd {
     margin-bottom: 0.5rem;
   }
+}
+
+/*
+ * Direction B "Đời thứ hai" (2026-10): Fraunces titles over Lexend, round buttons, tone steps instead of
+ * lines, no eyebrows. Comes last on purpose.
+ */
+.buyer-page-header h1,
+.buyer-flow > h1,
+.shop-hero h1,
+.product-detail-side h1,
+.ui-dialog-title,
+.ui-dialog-header h2,
+.detail-sheet-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+.buyer-page-header .buyer-eyebrow {
+  display: none;
+}
+.btn {
+  --bs-btn-border-radius: var(--radius-pill);
+  --bs-btn-font-weight: 500;
+}
+.btn-sm {
+  --bs-btn-border-radius: var(--radius-pill);
+}
+:is(.form-control, .form-select) {
+  border-radius: var(--radius-sm);
+}
+/* Quiet tables: header in the secondary ink, rows separated by a tone step. */
+.table thead th {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+/* Sidebar and record captions: sentence case at a readable size, no tracking. */
+:is(.admin-sidebar-caption, .admin-caption, .seller-sidebar-caption) {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.auth-showcase-slogan {
+  font-family: var(--font-display);
+  font-weight: 500 !important;
+  letter-spacing: -0.012em !important;
+}
+/* Browser surfaces in the palette: selection, caret, scrollbars, link underlines, figures. */
+::selection {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+:is(input, textarea) {
+  caret-color: var(--primary);
+}
+html {
+  scrollbar-color: var(--border) var(--bg);
+}
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+:is(.buyer-product-price, .product-card-price, .money-value, [data-checkout-total], .buyer-summary-total, td) {
+  font-variant-numeric: tabular-nums;
+}
+/* Headings wrap evenly instead of leaving one word on the last line. */
+:is(h1, h2, h3, .home-banner h2, .auth-showcase-slogan) {
+  text-wrap: balance;
 }

@@ -78,8 +78,8 @@ onMounted(async () => {
   border-top: 1px solid var(--border);
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--muted);
 }
 </style>

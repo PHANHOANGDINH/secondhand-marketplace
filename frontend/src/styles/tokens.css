@@ -5,41 +5,41 @@
  * to --surface; the page itself is painted with --bg.
  */
 :root {
-  /* Passdi palette, light theme: neutral surfaces, the logo orange for actions and prices.
+  /* Passdi palette "Đời thứ hai", light theme: forest ink and mint on a cool off-white; the logo keeps its orange.
      Contrast is checked by scripts/contrast.mjs. */
-  --bg: #f8f8f7;
+  --bg: #f3f6f4;
   --surface: #fff;
-  --surface-2: #f1f1ef;
-  --border: #e4e4e1;
-  --text: #18181b;
-  --muted: #63636b;
+  --surface-2: #e8efeb;
+  --border: #d5e0db;
+  --text: #12302a;
+  --muted: #4a615b;
   /* The logo orange: large areas and icons only. Small text on it is never white. */
   --brand: #f26b3a;
-  --brand-soft: #fff1e8;
+  --brand-soft: #d7efe6;
   /* Orange text in the logo ("ss"): a shade that keeps 3:1 on the page. */
   --brand-text: #e25a26;
   /* Buttons and links. */
-  --primary: #c2410c;
-  --primary-rgb: 194, 65, 12;
-  --primary-hover: #9a3412;
-  --primary-ink: #9a3412;
-  --primary-soft: #fff1e8;
+  --primary: #1f6f5c;
+  --primary-rgb: 31, 111, 92;
+  --primary-hover: #175a4a;
+  --primary-ink: #155446;
+  --primary-soft: #d7efe6;
   --on-primary: #fff;
-  --price: #c2410c;
-  --accent: #fff1e8;
-  --accent-ink: #9a3412;
+  --price: #12302a;
+  --accent: #d7efe6;
+  --accent-ink: #155446;
   /* The marketplace band (header, home banner) is a plain surface now; text on it is --band-ink. */
-  --band: var(--surface);
+  --band: var(--bg);
   --band-hover: var(--surface-2);
   --band-soft: var(--brand-soft);
-  --band-ink: #18181b;
-  --band-ink-muted: #63636b;
+  --band-ink: #12302a;
+  --band-ink-muted: #4a615b;
   /* Chips on the band (hover, tiles). */
   --band-glass: var(--surface-2);
   --band-glass-strong: var(--surface-2);
   /* Dark pills ("Đăng tin", banner buttons) and the text on them. */
-  --inverse: #18181b;
-  --inverse-hover: #000;
+  --inverse: #12302a;
+  --inverse-hover: #0b201c;
   --on-inverse: #fff;
   --danger: #dc2626;
   --danger-rgb: 220, 38, 38;
@@ -51,19 +51,27 @@
   --success-ink: #166534;
   --warning: var(--bs-warning, #ffc107);
   --rating: #b45309;
+  /* Forest field: the one large block of colour (home hero, sign-in panel); text on it uses --on-field. */
+  --field: #12302a;
+  --on-field: #eaf5f0;
+  --on-field-muted: #b7d3c9;
+  /* Edge of a control placed on the field (white on white in light, a light outline in dark). */
+  --field-edge: #fff;
   /* Shadows and scrims are tinted by this triplet. */
-  --shadow-rgb: 24 24 27;
-  --scrim: rgb(15 16 18 / 48%);
+  --shadow-rgb: 18 48 42;
+  --scrim: rgb(9 24 20 / 52%);
 
   /* Names kept from the previous token set so existing rules keep working. */
   --surface-muted: var(--surface-2);
-  --surface-skeleton: #ebebe8;
+  --surface-skeleton: #e1eae5;
   --text-muted: var(--muted);
   --auction-accent: #ff5a36;
   --auction-accent-soft: #fff0eb;
   --auction-accent-ink: #7a210d;
 
-  --font-ui: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  /* Titles, the hero and big figures: a soft serif. Everything else is Lexend. */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-money: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-size-small: 0.8rem;
   --font-size-body: 0.9rem;
@@ -80,10 +88,10 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  --radius-sm: 10px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-pill: 999px;
 
   /* Every transition in the redesigned parts uses this; nothing is animated with JavaScript. */
@@ -103,14 +111,14 @@
   --bs-body-bg: var(--surface);
   --bs-body-bg-rgb: 255, 255, 255;
   --bs-body-color: var(--text);
-  --bs-body-color-rgb: 24, 24, 27;
+  --bs-body-color-rgb: 18, 48, 42;
   --bs-emphasis-color: var(--text);
-  --bs-emphasis-color-rgb: 24, 24, 27;
+  --bs-emphasis-color-rgb: 18, 48, 42;
   --bs-heading-color: var(--text);
   --bs-secondary-color: var(--muted);
-  --bs-secondary-color-rgb: 99, 99, 107;
+  --bs-secondary-color-rgb: 74, 97, 91;
   /* .text-secondary and its siblings read --bs-secondary-rgb, not the colour above. */
-  --bs-secondary-rgb: 99, 99, 107;
+  --bs-secondary-rgb: 74, 97, 91;
   --bs-secondary-bg: var(--surface-2);
   --bs-tertiary-bg: var(--surface-2);
   --bs-tertiary-color: var(--muted);
@@ -120,7 +128,7 @@
   --bs-primary-rgb: var(--primary-rgb);
   --bs-primary-text-emphasis: var(--primary-ink);
   --bs-primary-bg-subtle: var(--primary-soft);
-  --bs-primary-border-subtle: #fbd2b8;
+  --bs-primary-border-subtle: #a9d6c6;
   --bs-danger: var(--danger);
   --bs-danger-rgb: var(--danger-rgb);
   --bs-danger-text-emphasis: var(--danger-ink);
@@ -131,7 +139,7 @@
   --bs-link-color: var(--primary);
   --bs-link-color-rgb: var(--primary-rgb);
   --bs-link-hover-color: var(--primary-hover);
-  --bs-link-hover-color-rgb: 154, 52, 18;
+  --bs-link-hover-color-rgb: 23, 90, 74;
   --bs-success: var(--success);
   --bs-success-rgb: var(--success-rgb);
   --bs-success-text-emphasis: var(--success-ink);
@@ -153,34 +161,34 @@
  */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f1012;
-  --surface: #17181b;
-  --surface-2: #1f2024;
-  --border: #2c2d33;
-  --text: #f4f4f5;
-  --muted: #a1a1aa;
-  --brand-soft: #2a1a10;
+  --bg: #0b1714;
+  --surface: #11211d;
+  --surface-2: #172c27;
+  --border: #234039;
+  --text: #e3f1ec;
+  --muted: #9cb9af;
+  --brand-soft: #17362e;
   --brand-text: #f26b3a;
-  --primary: #fb923c;
-  --primary-rgb: 251, 146, 60;
-  --primary-hover: #fdba74;
-  --primary-ink: #fdba74;
-  --primary-soft: #2a1a10;
-  --on-primary: #18181b;
-  --price: #fdba74;
-  --accent: #2a1a10;
-  --accent-ink: #fdba74;
-  --band: #17181b;
-  --band-hover: #1f2024;
-  --band-soft: #2a1a10;
-  --band-ink: #f4f4f5;
-  --band-ink-muted: #a1a1aa;
-  --band-glass: #1f2024;
-  --band-glass-strong: #1f2024;
+  --primary: #5cc4a5;
+  --primary-rgb: 92, 196, 165;
+  --primary-hover: #7dd3b9;
+  --primary-ink: #8ee0c5;
+  --primary-soft: #17362e;
+  --on-primary: #0b1714;
+  --price: #e3f1ec;
+  --accent: #17362e;
+  --accent-ink: #8ee0c5;
+  --band: var(--bg);
+  --band-hover: #172c27;
+  --band-soft: #17362e;
+  --band-ink: #e3f1ec;
+  --band-ink-muted: #9cb9af;
+  --band-glass: #172c27;
+  --band-glass-strong: #172c27;
   /* Dark pills take the brand orange, so no light box is left on a dark page. */
-  --inverse: #fb923c;
-  --inverse-hover: #fdba74;
-  --on-inverse: #18181b;
+  --inverse: #5cc4a5;
+  --inverse-hover: #7dd3b9;
+  --on-inverse: #0b1714;
   --danger: #f87171;
   --danger-rgb: 248, 113, 113;
   --danger-ink: #fca5a5;
@@ -190,23 +198,27 @@
   --success-ink: #86efac;
   --on-success: #18181b;
   --rating: #f5b544;
+  --field: #163a31;
+  --on-field: #e3f1ec;
+  --on-field-muted: #a9c9be;
+  --field-edge: #6f9a8d;
   --shadow-rgb: 0 0 0;
   --scrim: rgb(0 0 0 / 62%);
-  --surface-skeleton: #26272c;
-  --auction-accent-soft: #2a1a10;
-  --auction-accent-ink: #fdba74;
+  --surface-skeleton: #1b332d;
+  --auction-accent-soft: #17362e;
+  --auction-accent-ink: #8ee0c5;
   --shadow-dialog: 0 24px 64px rgb(0 0 0 / 55%);
-  --bs-body-bg-rgb: 23, 24, 27;
-  --bs-body-color-rgb: 244, 244, 245;
-  --bs-emphasis-color-rgb: 244, 244, 245;
-  --bs-secondary-color-rgb: 161, 161, 170;
-  --bs-secondary-rgb: 161, 161, 170;
-  --bs-primary-border-subtle: #5c3416;
+  --bs-body-bg-rgb: 17, 33, 29;
+  --bs-body-color-rgb: 227, 241, 236;
+  --bs-emphasis-color-rgb: 227, 241, 236;
+  --bs-secondary-color-rgb: 156, 185, 175;
+  --bs-secondary-rgb: 156, 185, 175;
+  --bs-primary-border-subtle: #2c5a4d;
   --bs-danger-bg-subtle: #3b1d1d;
   --bs-danger-border-subtle: #7f2d2d;
   --bs-success-bg-subtle: #16301f;
   --bs-success-border-subtle: #276b3f;
-  --bs-link-hover-color-rgb: 253, 186, 116;
+  --bs-link-hover-color-rgb: 125, 211, 185;
   --bs-form-valid-color: var(--success-ink);
   --bs-form-invalid-color: var(--danger-ink);
 }

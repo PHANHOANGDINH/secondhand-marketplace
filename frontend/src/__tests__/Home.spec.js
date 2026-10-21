@@ -54,7 +54,9 @@ afterEach(() => {
 
 it('hero has the slogan, a search that carries the chosen area, and a category row', async () => {
   const { wrapper, router } = await setup(HomeHero)
-  expect(wrapper.get('h2').text()).toBe('Đồ cũ giá tốt, gần bạn, chốt nhanh!')
+  expect(wrapper.get('h2').text()).toBe('Mỗi món đồ cũ là một đời mới cho ai đó.')
+  // The figure comes from the catalogue total and is hidden when it is unknown.
+  expect(wrapper.find('[data-waiting]').exists()).toBe(false)
   expect(wrapper.get('[data-area-open]').text()).toBe('Chọn khu vực')
   expect(wrapper.findAll('.home-category').map((link) => [link.text(), link.attributes('href')])).toEqual([
     ['Điện tử', '/products?category=3'],

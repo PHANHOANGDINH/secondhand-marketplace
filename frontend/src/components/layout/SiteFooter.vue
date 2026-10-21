@@ -65,8 +65,8 @@ const auth = useAuthStore()
   margin-bottom: var(--space-2);
   font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .site-footer a {
   display: inline-flex;

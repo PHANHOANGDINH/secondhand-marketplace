@@ -325,7 +325,7 @@ onMounted(() => {
   color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   white-space: nowrap;
   transition:
     color var(--transition-fast),

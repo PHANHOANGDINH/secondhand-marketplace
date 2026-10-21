@@ -40,8 +40,8 @@ const choices = [
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .theme-choices-row {
   display: grid;

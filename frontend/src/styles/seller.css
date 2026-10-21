@@ -24,8 +24,8 @@
   font-size: 0.65rem;
   font-weight: 500;
   color: var(--bs-secondary-color);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   margin-top: 0.15rem;
 }
 .seller-topbar-actions {
@@ -656,8 +656,8 @@
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   white-space: nowrap;
 }
 .seller-table :is(td, th) {

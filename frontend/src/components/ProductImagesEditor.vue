@@ -4,6 +4,7 @@ import * as productsApi from '../api/product.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainFeedback from './DomainFeedback.vue'
 import ProductPhoto from './ProductPhoto.vue'
+import AppIcon from './ui/AppIcon.vue'
 const props = defineProps({
   product: { type: Object, required: true },
   disabled: Boolean,
@@ -119,7 +120,7 @@ onBeforeUnmount(resetFiles)
       @dragleave.self="dragging = false"
       @drop.prevent="drop"
     >
-      <span class="listing-upload-icon" aria-hidden="true">＋</span>
+      <span class="listing-upload-icon" aria-hidden="true"><AppIcon name="upload" :size="28" /></span>
       <label :for="inputId" class="form-label">Chọn ảnh sản phẩm</label>
       <p :id="`${inputId}-help`" class="text-muted">
         Chọn <strong>nhiều ảnh cùng lúc</strong> (giữ Ctrl hoặc Shift khi chọn) hoặc kéo thả ảnh vào
@@ -161,7 +162,7 @@ onBeforeUnmount(resetFiles)
     </p>
     <ul v-if="previews.length" class="listing-staged" aria-label="Ảnh đã chọn, chưa tải lên">
       <li v-for="(preview, index) in previews" :key="preview.url" data-staged>
-        <img :src="preview.url" :alt="preview.name" />
+        <img :src="preview.url" :alt="preview.name" width="88" height="88" decoding="async" />
         <button
           type="button"
           class="listing-staged-remove"
@@ -169,7 +170,7 @@ onBeforeUnmount(resetFiles)
           :disabled="busy"
           @click="unstage(index)"
         >
-          ✕
+          <AppIcon name="close" :size="14" />
         </button>
       </li>
     </ul>

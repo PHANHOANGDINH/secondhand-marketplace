@@ -147,7 +147,6 @@ onUnmounted(() => {
       :aria-label="`${index + 1} / ${slides.length}`"
       :data-slide="current.key"
     >
-      <p class="promo-eyebrow">{{ current.eyebrow }}</p>
       <p class="promo-title">{{ current.title }}</p>
       <p class="promo-text">{{ current.text }}</p>
     </div>
@@ -239,8 +238,8 @@ onUnmounted(() => {
 .promo-eyebrow {
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   opacity: 0.8;
 }
 .promo-title {

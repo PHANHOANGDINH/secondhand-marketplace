@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passdi – 3 hướng thiết kế</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Lexend:wght@400;500;600&family=Archivo:wght@500;700;900&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Be Vietnam Pro', system-ui, sans-serif; background: #e9e9e6; color: #18181b; }
+  .intro { max-width: 1180px; margin: 0 auto; padding: 32px 20px 8px; }
+  .intro h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  .intro p { margin: 0; color: #55555c; max-width: 70ch; line-height: 1.6; }
+  .direction { max-width: 1180px; margin: 28px auto; padding: 0 20px; }
+  .direction > header { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; margin-bottom: 10px; }
+  .direction > header h2 { margin: 0; font-size: 1.25rem; }
+  .direction > header p { margin: 0; color: #55555c; }
+  .frame { overflow: hidden; border-radius: 18px; box-shadow: 0 18px 50px rgb(0 0 0 / 14%); }
+  .spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; font-size: .88rem; line-height: 1.55; }
+  .spec div { background: #fff; border-radius: 12px; padding: 12px 14px; }
+  .spec strong { display: block; margin-bottom: 4px; }
+  .swatches { display: flex; gap: 6px; margin-top: 6px; }
+  .swatches span { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgb(0 0 0 / 12%); }
+  .mark { width: 34px; height: 34px; flex: none; }
+  svg.icon { width: 52%; height: 52%; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------------- A. Tem giá chợ (price-tag market) ---------------- */
+  .a { --paper: #fafaf7; --ink: #1d2433; --muted: #5b6272; --line: #dcdcd4; --orange: #f26b3a; --act: #c2410c; --tag: #ffd84d; background: var(--paper); color: var(--ink); font-family: 'Be Vietnam Pro', sans-serif; }
+  .a-nav { display: flex; align-items: center; gap: 14px; padding: 14px 28px; border-bottom: 1.5px solid var(--ink); }
+  .a-word { font-family: 'Baloo 2'; font-size: 1.5rem; line-height: 1; }
+  .a-word b { color: var(--orange); }
+  .a-search { flex: 1; display: flex; align-items: center; height: 44px; border: 1.5px solid var(--ink); border-radius: 10px; padding: 0 6px 0 14px; color: var(--muted); }
+  .a-search span { flex: 1; }
+  .a-btn { height: 34px; padding: 0 14px; border: 0; border-radius: 7px; background: var(--ink); color: #fff; font: 600 .9rem 'Be Vietnam Pro'; }
+  .a-post { height: 44px; padding: 0 18px; border-radius: 10px; background: var(--act); color: #fff; font-weight: 700; display: grid; place-items: center; }
+  .a-hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; padding: 44px 28px 30px; align-items: center; }
+  .a-hero h3 { margin: 0; font-family: 'Bricolage Grotesque'; font-weight: 800; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.02; letter-spacing: -.02em; }
+  .a-hero p { margin: 16px 0 0; color: var(--muted); max-width: 46ch; line-height: 1.6; }
+  .a-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .a-cats span { padding: 8px 14px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 600; font-size: .9rem; }
+  .a-stack { position: relative; height: 230px; }
+  .a-stack .tag { position: absolute; width: 220px; white-space: nowrap; padding: 18px 18px 18px 30px; background: var(--tag); border-radius: 8px 22px 22px 8px; font-family: 'Bricolage Grotesque'; box-shadow: 0 2px 0 var(--ink); border: 1.5px solid var(--ink); }
+  .a-stack .tag::before { content: ''; position: absolute; left: 11px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--paper); border: 1.5px solid var(--ink); }
+  .a-stack .tag small { display: block; font: 500 .8rem 'Be Vietnam Pro'; }
+  .a-stack .tag strong { font-size: 1.6rem; }
+  .a-stack .t1 { top: 6px; left: 10%; transform: rotate(-6deg); }
+  .a-stack .t2 { top: 92px; left: 40%; transform: rotate(5deg); background: #fff; }
+  .a-stack .t3 { top: 150px; left: 4%; transform: rotate(-2deg); background: #ffb59a; }
+  .a-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 0 28px 34px; }
+  .a-card .img { position: relative; aspect-ratio: 4 / 3.4; display: grid; place-items: center; border-radius: 12px; background: #eef0f5; color: var(--ink); border: 1.5px solid var(--ink); }
+  .a-card .price { position: absolute; left: -6px; bottom: 12px; padding: 5px 12px 5px 16px; background: var(--tag); border: 1.5px solid var(--ink); border-radius: 4px 14px 14px 4px; font: 800 1rem 'Bricolage Grotesque'; }
+  .a-card h4 { margin: 12px 0 2px; font-size: .98rem; font-weight: 600; }
+  .a-card p { margin: 0; color: var(--muted); font-size: .85rem; }
+
+  /* ---------------- B. Đời thứ hai (calm, second life) ---------------- */
+  .b { --bg: #f3f6f4; --surface: #fff; --ink: #12302a; --muted: #4f6660; --line: #d5e0db; --green: #1f6f5c; --mint: #d7efe6; --orange: #f26b3a; background: var(--bg); color: var(--ink); font-family: 'Lexend', sans-serif; }
+  .b-nav { display: flex; align-items: center; gap: 16px; padding: 16px 32px; }
+  .b-word { font-family: 'Baloo 2'; font-size: 1.5rem; }
+  .b-word b { color: var(--orange); }
+  .b-links { display: flex; gap: 22px; margin-left: 24px; color: var(--muted); font-size: .95rem; }
+  .b-links span:first-child { color: var(--ink); font-weight: 600; }
+  .b-post { margin-left: auto; height: 44px; padding: 0 20px; border-radius: 999px; background: var(--green); color: #fff; font-weight: 500; display: grid; place-items: center; }
+  .b-hero { margin: 4px 32px 0; padding: 48px 48px 40px; border-radius: 32px; background: var(--ink); color: #eaf5f0; display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; align-items: end; }
+  .b-hero h3 { margin: 0; font-family: 'Fraunces'; font-weight: 500; font-size: clamp(2.2rem, 4.6vw, 3.4rem); line-height: 1.08; letter-spacing: -.01em; }
+  .b-hero p { margin: 14px 0 22px; color: #b7d3c9; max-width: 44ch; line-height: 1.65; }
+  .b-search { display: flex; height: 52px; border-radius: 999px; background: #fff; color: var(--muted); align-items: center; padding: 0 6px 0 20px; }
+  .b-search span { flex: 1; }
+  .b-search i { font-style: normal; height: 42px; padding: 0 20px; border-radius: 999px; background: var(--orange); color: #1a0f0a; font-weight: 600; display: grid; place-items: center; }
+  .b-count { display: grid; gap: 6px; justify-items: start; }
+  .b-count strong { font-family: 'Fraunces'; font-size: 3.4rem; line-height: 1; color: #fff; }
+  .b-count span { color: #b7d3c9; }
+  .b-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; grid-template-rows: auto auto; gap: 18px; padding: 28px 32px 36px; }
+  .b-card { background: var(--surface); border-radius: 22px; padding: 12px; }
+  .b-card .img { aspect-ratio: 1; display: grid; place-items: center; border-radius: 16px; background: var(--mint); color: var(--green); }
+  .b-card.big { grid-row: span 2; }
+  .b-card.big .img { aspect-ratio: auto; height: calc(100% - 64px); min-height: 260px; }
+  .b-card h4 { margin: 10px 6px 0; font-weight: 500; font-size: .98rem; }
+  .b-card p { margin: 2px 6px 4px; display: flex; justify-content: space-between; color: var(--muted); font-size: .85rem; }
+  .b-card p b { color: var(--ink); font-weight: 600; }
+
+  /* ---------------- C. Chợ đêm (lively night market) ---------------- */
+  .c { --bg: #fff; --ink: #141026; --muted: #5a5670; --violet: #3b2db8; --orange: #f26b3a; --pink: #ff6fb1; --sun: #ffcf3f; background: var(--bg); color: var(--ink); font-family: 'Be Vietnam Pro', sans-serif; }
+  .c-nav { display: flex; align-items: center; gap: 14px; padding: 14px 26px; background: var(--violet); color: #fff; }
+  .c-word { font-family: 'Baloo 2'; font-size: 1.5rem; }
+  .c-word b { color: var(--sun); }
+  .c-search { flex: 1; height: 44px; border-radius: 12px; background: #fff; color: var(--muted); display: flex; align-items: center; padding: 0 14px; }
+  .c-post { height: 44px; padding: 0 18px; border-radius: 12px; background: var(--sun); color: var(--ink); font-weight: 800; display: grid; place-items: center; }
+  .c-hero { position: relative; overflow: hidden; padding: 40px 26px 36px; background: var(--violet); color: #fff; }
+  .c-hero h3 { position: relative; margin: 0; font-family: 'Archivo'; font-weight: 900; font-size: clamp(2.6rem, 6vw, 4.4rem); line-height: .95; letter-spacing: -.03em; max-width: 12ch; }
+  .c-hero p { position: relative; margin: 14px 0 0; color: #d9d4ff; max-width: 44ch; }
+  .c-blob { position: absolute; border-radius: 50%; }
+  .c-blob.o { width: 260px; height: 260px; right: 8%; top: -40px; background: var(--orange); }
+  .c-blob.p { width: 160px; height: 160px; right: 2%; bottom: -50px; background: var(--pink); }
+  .c-blob.y { width: 90px; height: 90px; right: 26%; bottom: 30px; background: var(--sun); }
+  .c-chips { display: flex; gap: 10px; padding: 18px 26px 6px; overflow: hidden; }
+  .c-chips span { flex: none; padding: 10px 16px; border-radius: 12px; background: #f2f0ff; font-weight: 600; }
+  .c-chips span:first-child { background: var(--ink); color: #fff; }
+  .c-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 26px 34px; }
+  .c-card .img { aspect-ratio: 1; display: grid; place-items: center; border-radius: 20px; color: var(--ink); }
+  .c-card:nth-child(1) .img { background: #ffe3d6; } .c-card:nth-child(2) .img { background: #ffe0f0; } .c-card:nth-child(3) .img { background: #fff3c7; } .c-card:nth-child(4) .img { background: #e3e0ff; }
+  .c-card h4 { margin: 10px 0 2px; font-size: .98rem; font-weight: 600; }
+  .c-card p { margin: 0; font: 900 1.15rem 'Archivo'; color: var(--orange); }
+
+  @media (max-width: 760px) {
+    .a-hero, .b-hero { grid-template-columns: 1fr; }
+    .a-grid, .c-grid { grid-template-columns: repeat(2, 1fr); }
+    .b-grid { grid-template-columns: 1fr 1fr; }
+    .b-card.big { grid-column: span 2; grid-row: auto; }
+    .a-search, .b-links, .c-search { display: none; }
+    .b-hero { margin: 0 14px; padding: 28px 22px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="cam" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></symbol>
+  <symbol id="head" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v5H4zM17 15h3v5h-3z"/></symbol>
+  <symbol id="lamp" viewBox="0 0 24 24"><path d="M8 4h8l3 7H5zM12 11v8M8 20h8"/></symbol>
+  <symbol id="bike" viewBox="0 0 24 24"><path d="M6 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15l4-7h4l4 7M10 8 8 5H6"/></symbol>
+  <symbol id="logo" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#F26B3A"/><g transform="translate(8 20)"><path d="M24 12 C20 3 5 3 5 12 C5 21 20 21 24 12 C28 3 43 3 43 12 C43 21 28 21 24 12 Z" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M31 .5 39 4.8 31.5 9.5Z" fill="#2B2B2E"/><path d="M17 14.5 9 19.2 16.5 23.5Z" fill="#2B2B2E"/></g></symbol>
+</svg>
+
+<div class="intro">
+  <h1>Passdi — 3 hướng thiết kế mới</h1>
+  <p>Cả ba giữ logo và chữ "passdi", chỉ đổi màu, chữ, bố cục và "điểm nhấn". Mỗi hướng có một thứ để người dùng nhớ; phần còn lại giữ yên. Chọn một hướng (hoặc ghép: ví dụ màu của A, bố cục của B).</p>
+</div>
+
+<!-- A -->
+<section class="direction">
+  <header><h2>A · Tem giá chợ</h2><p>Như sạp đồ cũ: giấy trắng, mực xanh đen, tem giá vàng đục lỗ. Gần gũi, rõ giá, hơi “thủ công”.</p></header>
+  <div class="frame a">
+    <div class="a-nav"><svg class="mark"><use href="#logo"/></svg><span class="a-word">pa<b>ss</b>di</span>
+      <div class="a-search"><span>Tìm máy ảnh, xe đạp, sách…</span><button class="a-btn">Tìm</button></div>
+      <span class="a-post">+ Đăng tin</span></div>
+    <div class="a-hero">
+      <div><h3>Không dùng nữa? Treo tem, chờ người cần.</h3>
+        <p>Hơn 150 món đồ đang tìm chủ mới quanh bạn. Chụp ảnh, đặt giá, đăng là hiện ngay.</p>
+        <div class="a-cats"><span>Điện tử</span><span>Thời trang</span><span>Gia dụng</span><span>Xe cộ</span><span>Sách</span></div></div>
+      <div class="a-stack" aria-hidden="true">
+        <div class="tag t1"><small>Máy ảnh phim Canon</small><strong>1.850.000 ₫</strong></div>
+        <div class="tag t2"><small>Tai nghe Sony</small><strong>3.500.000 ₫</strong></div>
+        <div class="tag t3"><small>Xe đạp mini</small><strong>900.000 ₫</strong></div>
+      </div>
+    </div>
+    <div class="a-grid">
+      <article class="a-card"><div class="img"><svg class="icon"><use href="#cam"/></svg><span class="price">1.850.000 ₫</span></div><h4>Máy ảnh phim Canon AE-1</h4><p>Như mới · TP. Hồ Chí Minh</p></article>
+      <article class="a-card"><div class="img"><svg class="icon"><use href="#head"/></svg><span class="price">3.500.000 ₫</span></div><h4>Sony WH-1000XM4</h4><p>Tốt · Hà Nội</p></article>
+      <article class="a-card"><div class="img"><svg class="icon"><use href="#lamp"/></svg><span class="price">480.000 ₫</span></div><h4>Đèn cây đọc sách</h4><p>Như mới · Đồng Nai</p></article>
+      <article class="a-card"><div class="img"><svg class="icon"><use href="#bike"/></svg><span class="price">900.000 ₫</span></div><h4>Xe đạp mini Nhật</h4><p>Đã dùng · Đà Nẵng</p></article>
+    </div>
+  </div>
+  <div class="spec">
+    <div><strong>Màu</strong>Giấy #FAFAF7 · mực #1D2433 · cam logo #F26B3A · nút #C2410C · tem vàng #FFD84D<div class="swatches"><span style="background:#fafaf7"></span><span style="background:#1d2433"></span><span style="background:#f26b3a"></span><span style="background:#c2410c"></span><span style="background:#ffd84d"></span></div></div>
+    <div><strong>Chữ</strong>Bricolage Grotesque (tiêu đề, giá — đậm, hơi “lệch” vui mắt) + Be Vietnam Pro (nội dung).</div>
+    <div><strong>Điểm nhấn</strong>Giá luôn nằm trên một tem vàng đục lỗ; viền mực 1,5 px như nét bút; ảnh có khung.</div>
+    <div><strong>Hợp với</strong>Chợ đồ cũ thân thiện, dễ đọc giá, khác hẳn các sàn “thẻ trắng bo tròn”.</div>
+  </div>
+</section>
+
+<!-- B -->
+<section class="direction">
+  <header><h2>B · Đời thứ hai</h2><p>Bình tĩnh, tử tế: xanh rừng sâu và bạc hà, tiêu đề serif mềm. Nhấn vào ý “cho đồ một đời mới”.</p></header>
+  <div class="frame b">
+    <div class="b-nav"><svg class="mark"><use href="#logo"/></svg><span class="b-word">pa<b>ss</b>di</span>
+      <div class="b-links"><span>Khám phá</span><span>Đấu giá</span><span>Gian hàng</span></div>
+      <span class="b-post">Đăng tin</span></div>
+    <div class="b-hero">
+      <div><h3>Mỗi món đồ cũ là một đời mới cho ai đó.</h3>
+        <p>Mua bán đồ đã qua sử dụng gần bạn, thanh toán an toàn trên sàn.</p>
+        <div class="b-search"><span>Bạn đang tìm gì?</span><i>Tìm</i></div></div>
+      <div class="b-count"><strong>1.284</strong><span>món đã có chủ mới tháng này</span></div>
+    </div>
+    <div class="b-grid">
+      <article class="b-card big"><div class="img"><svg class="icon" style="width:30%"><use href="#cam"/></svg></div><h4>Máy ảnh phim Canon AE-1</h4><p><span>TP. Hồ Chí Minh</span><b>1.850.000 ₫</b></p></article>
+      <article class="b-card"><div class="img"><svg class="icon"><use href="#head"/></svg></div><h4>Sony WH-1000XM4</h4><p><span>Hà Nội</span><b>3.500.000 ₫</b></p></article>
+      <article class="b-card"><div class="img"><svg class="icon"><use href="#lamp"/></svg></div><h4>Đèn cây đọc sách</h4><p><span>Đồng Nai</span><b>480.000 ₫</b></p></article>
+      <article class="b-card"><div class="img"><svg class="icon"><use href="#bike"/></svg></div><h4>Xe đạp mini Nhật</h4><p><span>Đà Nẵng</span><b>900.000 ₫</b></p></article>
+      <article class="b-card"><div class="img"><svg class="icon"><use href="#head"/></svg></div><h4>Loa Marshall Emberton</h4><p><span>Huế</span><b>2.100.000 ₫</b></p></article>
+    </div>
+  </div>
+  <div class="spec">
+    <div><strong>Màu</strong>Nền #F3F6F4 · rừng #12302A · nút #1F6F5C · bạc hà #D7EFE6 · cam logo #F26B3A<div class="swatches"><span style="background:#f3f6f4"></span><span style="background:#12302a"></span><span style="background:#1f6f5c"></span><span style="background:#d7efe6"></span><span style="background:#f26b3a"></span></div></div>
+    <div><strong>Chữ</strong>Fraunces (tiêu đề, số lớn — serif mềm) + Lexend (nội dung, rất dễ đọc).</div>
+    <div><strong>Điểm nhấn</strong>Khối hero xanh rừng bo 32 px với con số “món đã có chủ mới”; lưới tin có 1 món nổi bật lớn.</div>
+    <div><strong>Hợp với</strong>Cảm giác đáng tin, bền vững; cam chỉ còn ở logo và nút tìm. Đổi màu chủ đạo sang xanh.</div>
+  </div>
+</section>
+
+<!-- C -->
+<section class="direction">
+  <header><h2>C · Chợ đêm</h2><p>Sôi động, trẻ: tím than đậm, cam, hồng, vàng nắng; chữ tiêu đề rất đậm. Như phiên chợ đêm.</p></header>
+  <div class="frame c">
+    <div class="c-nav"><svg class="mark"><use href="#logo"/></svg><span class="c-word">pa<b>ss</b>di</span>
+      <div class="c-search">Tìm trong 150+ món đồ…</div><span class="c-post">+ Đăng tin</span></div>
+    <div class="c-hero"><span class="c-blob o"></span><span class="c-blob p"></span><span class="c-blob y"></span>
+      <h3>Không dùng nữa? Passdi!</h3><p>Đồ bạn không cần là món ai đó đang săn. Đăng trong 1 phút, chốt ngay trong ngày.</p></div>
+    <div class="c-chips"><span>Tất cả</span><span>Điện tử</span><span>Thời trang</span><span>Gia dụng</span><span>Xe cộ</span><span>Đấu giá</span></div>
+    <div class="c-grid">
+      <article class="c-card"><div class="img"><svg class="icon"><use href="#cam"/></svg></div><h4>Máy ảnh phim Canon AE-1</h4><p>1.850.000 ₫</p></article>
+      <article class="c-card"><div class="img"><svg class="icon"><use href="#head"/></svg></div><h4>Sony WH-1000XM4</h4><p>3.500.000 ₫</p></article>
+      <article class="c-card"><div class="img"><svg class="icon"><use href="#lamp"/></svg></div><h4>Đèn cây đọc sách</h4><p>480.000 ₫</p></article>
+      <article class="c-card"><div class="img"><svg class="icon"><use href="#bike"/></svg></div><h4>Xe đạp mini Nhật</h4><p>900.000 ₫</p></article>
+    </div>
+  </div>
+  <div class="spec">
+    <div><strong>Màu</strong>Tím than #3B2DB8 · mực #141026 · cam #F26B3A · hồng #FF6FB1 · vàng #FFCF3F<div class="swatches"><span style="background:#3b2db8"></span><span style="background:#141026"></span><span style="background:#f26b3a"></span><span style="background:#ff6fb1"></span><span style="background:#ffcf3f"></span></div></div>
+    <div><strong>Chữ</strong>Archivo Black/900 (tiêu đề, giá — rất đậm, chặt) + Be Vietnam Pro (nội dung).</div>
+    <div><strong>Điểm nhấn</strong>Header + hero tím than với các khối tròn màu; mỗi thẻ sản phẩm một nền pastel.</div>
+    <div><strong>Hợp với</strong>Người dùng trẻ, nhiều tương tác, đấu giá; nổi bật nhất nhưng ồn hơn.</div>
+  </div>
+</section>
+</body>
+</html>

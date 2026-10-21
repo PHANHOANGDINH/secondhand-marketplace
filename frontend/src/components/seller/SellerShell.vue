@@ -70,7 +70,7 @@ function close() {
     </header>
     <div class="seller-workspace">
       <aside id="seller-navigation" class="seller-sidebar" :class="{ 'is-open': open }">
-        <p class="seller-sidebar-caption">QUẢN LÝ BÁN HÀNG</p>
+        <p class="seller-sidebar-caption">Quản lý bán hàng</p>
         <nav aria-label="Điều hướng người bán">
           <RouterLink
             v-for="[path, label, icon] in links"

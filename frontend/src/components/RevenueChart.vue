@@ -81,7 +81,8 @@ onBeforeUnmount(() => {
 })
 </script>
 <template>
-  <div class="position-relative" style="height: 300px">
+  <!-- Clipped: the canvas keeps its old width for a frame after the window narrows. -->
+  <div class="position-relative revenue-chart" style="height: 300px">
     <canvas
       ref="canvas"
       role="img"
@@ -110,3 +111,13 @@ onBeforeUnmount(() => {
     </div>
   </details>
 </template>
+<style scoped>
+.revenue-chart {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.revenue-chart canvas {
+  max-width: 100%;
+}
+</style>

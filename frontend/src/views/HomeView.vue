@@ -72,8 +72,8 @@ onMounted(() => {
 }
 .marketplace-entry-eyebrow {
   font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   font-weight: 700;
   color: var(--bs-primary);
   margin-bottom: 1rem;

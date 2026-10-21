@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
   margin-bottom: var(--space-5);
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--brand-soft), var(--surface-2));
+  background: var(--brand-soft);
 }
 .first-time-blob {
   position: absolute;

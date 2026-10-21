@@ -1,8 +1,8 @@
 # Passdi — design system
 
-Passdi ("Không dùng nữa? Passdi!") is a Vietnamese second-hand marketplace for buyers, sellers and admins. The UI should feel **calm, trustworthy and quick**: neutral surfaces, one warm orange for what you can do and what it costs, short pages where the main action is always in reach. Every new screen follows this file; do not pull palettes or fonts from outside it.
+Passdi ("Không dùng nữa? Passdi!") is a Vietnamese second-hand marketplace for buyers, sellers and admins. Direction **"Đời thứ hai"** (second life, chosen 2026-10-20): calm and trustworthy, forest green and mint on a cool off-white, a soft serif for titles, and the idea that every listing is an object starting a new life with someone. The logo keeps its orange; everything you can do is forest green. Short pages, the main action always in reach. Every new screen follows this file; do not pull palettes or fonts from outside it.
 
-Source of truth for values: `frontend/src/styles/tokens.css` (token names never change; only values per theme). Contrast of every text/background pair is checked by `node frontend/scripts/contrast.mjs` (must stay all "ok").
+Source of truth for values: `frontend/src/styles/tokens.css` (token names never change; only values per theme). Contrast of every text/background pair is checked by `node frontend/scripts/contrast.mjs` (must stay all "ok"). The three directions compared before choosing are in `docs/design-directions/index.html`.
 
 ## 1. Colour
 
@@ -10,37 +10,41 @@ Use tokens, never hex in components. Light and dark are set on `<html data-theme
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--bg` | #F8F8F7 | #0F1012 | page |
-| `--surface` / `--surface-2` | #FFF / #F1F1EF | #17181B / #1F2024 | cards / quiet panels, inputs at rest |
-| `--border` | #E4E4E1 | #2C2D33 | 1 px structure (borders carry structure, not shadows) |
-| `--text` / `--muted` | #18181B / #63636B | #F4F4F5 / #A1A1AA | body / secondary |
-| `--brand` | #F26B3A | #F26B3A | logo orange: large areas and icons only, never small white text on it |
-| `--brand-soft` | #FFF1E8 | #2A1A10 | home hero tint, onboarding art, soft highlights |
-| `--primary` (+ `--on-primary`) | #C2410C (white) | #FB923C (#18181B) | buttons, links, active nav, focus ring |
-| `--price` | #C2410C | #FDBA74 | every amount of money |
+| `--bg` | #F3F6F4 | #0B1714 | page, header band |
+| `--surface` / `--surface-2` | #FFF / #E8EFEB | #11211D / #172C27 | cards / quiet panels, inputs at rest |
+| `--border` | #D5E0DB | #234039 | 1 px structure where a tone step is not enough |
+| `--text` / `--muted` | #12302A / #4A615B | #E3F1EC / #9CB9AF | forest ink / secondary |
+| `--primary` (+ `--on-primary`) | #1F6F5C (white) | #5CC4A5 (#0B1714) | buttons, links, active nav, focus ring |
+| `--primary-soft` / `--accent` | #D7EFE6 | #17362E | mint: soft highlights, chips, tags, selection |
+| `--field` (+ `--on-field`, `--on-field-muted`, `--field-edge`) | #12302A | #163A31 | the one large block of colour: home hero, sign-in showcase |
+| `--brand` / `--brand-text` | #F26B3A / #E25A26 | #F26B3A | the logo tile and the "ss" of the wordmark only |
+| `--price` | #12302A | #E3F1EC | amounts: forest ink, semibold, tabular figures |
 | `--danger` / `--success` (+ `--on-*`) | #DC2626 / #15803D | #F87171 / #4ADE80 | errors, discounts / paid, success |
-| `--inverse` (+ `--on-inverse`) | #18181B | #FB923C | strong pills (e.g. banner CTA); orange in dark so no light box appears |
+| `--inverse` (+ `--on-inverse`) | #12302A | #5CC4A5 | strong pills (banner CTA) |
 | `--rating` | #B45309 | #F5B544 | stars |
-| `--scrim`, `--shadow-rgb` | — | — | dialog backdrops, shadows of floating layers |
+| `--scrim`, `--shadow-rgb` | — | — | dialog backdrops, shadows of floating layers only |
 
 **Auction area** (`.theme-auction`) is always dark (navy #0E0B1F, neon #C6FF3D, live #FF3D7F) whatever the site theme; it pins every shared token itself.
 
 ## 2. Type
 
-- UI: **Be Vietnam Pro** 400–800 (`--font-ui`); body 0.9 rem, line-height 1.5–1.7.
-- Money and codes: **JetBrains Mono** (`--font-money`) where figures must align.
+- UI and body: **Lexend** 400–700 (`--font-ui`), very legible with Vietnamese marks; body 0.9–1.05 rem, line-height 1.5–1.65.
+- Titles, the home headline and big figures: **Fraunces** 500–600 (`--font-display`), tracking about -0.012em, line-height 1.05–1.2. One serif voice, never mixed into body text.
+- Money and voucher codes: tabular figures; **JetBrains Mono** only for codes.
 - Wordmark only: **Baloo 2 800**, "pa**ss**di" with "ss" in `--brand-text`.
-- Page title 1.35–1.75 rem/800, section 1.15 rem; uppercase eyebrows only outside the seller/admin shells.
+- No eyebrows above headings and no tracked capitals for labels: captions are sentence case at 0.8 rem.
 
 ## 3. Space, shape, motion
 
 - 4 px scale `--space-1…12`; cards pad `--space-5`/`--space-6`, phones `--space-4`.
-- Radius: 10 (controls) · 12 · 16 (cards) · 24 (big panels, dialogs) · pill (chips, header search, primary pills).
+- Radius: 12 (inputs) · 14 · 20 (cards) · 28 (big panels, dialogs) · 32 (the forest field) · pill for **every button**, chips and the search.
 - Controls and tap targets **≥ 44 px** (`--control-height`).
-- Focus: `--focus-ring` (3 px orange) on every interactive element, visible on keyboard focus.
+- Focus: `--focus-ring` (3 px green) on every interactive element, visible on keyboard focus. Selection, caret, scrollbars and link underlines are themed from the palette.
 - Motion: `--transition-fast` (150 ms) for hover/press; GSAP only for small entrances (home banner, auth, onboarding), always behind `prefers-reduced-motion: no-preference`.
 
 ## 4. Layout
+
+- **Home hero**: one rounded forest field holding the Fraunces headline, one plain sentence, the search pill (area inside it) and the live count of listings waiting for a new owner (catalogue total, hidden when unknown). No decorative tiles.
 
 - Breakpoints: **≤ 767** phone (bottom tab bar, one column), **≤ 991** tablet (search on its own row, side panels full-screen), **≥ 1200** shows wishlist and "Quản trị", **≥ 1500** shows "Quản lý tin" in the header. No horizontal scroll from 360 px.
 - **Header: one row** — menu, logo, search pill with the area button inside it, icons, "Đăng tin", account menu. Modes (Mua / Bán / Quản trị), personal links and theme live in the account menu; guests get the sun/moon button.

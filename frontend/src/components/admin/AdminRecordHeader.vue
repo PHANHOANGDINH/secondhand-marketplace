@@ -14,7 +14,7 @@ watch(
 </script>
 <template>
   <header ref="header" tabindex="-1" class="admin-record-header">
-    <p class="admin-caption">CHI TIẾT BẢN GHI</p>
+    <p class="admin-caption">Chi tiết bản ghi</p>
     <h2>{{ title }}</h2>
     <p v-if="subtitle" class="text-secondary">{{ subtitle }}</p>
     <StatusBadge v-if="status" :status="status" />

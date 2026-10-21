@@ -141,7 +141,7 @@ defineExpose({ shake })
       </div>
       <div class="auth-showcase-title">
         <p class="auth-showcase-brand">{{ brand.name }}</p>
-        <p class="auth-showcase-slogan">Đồ cũ giá tốt, gần bạn, chốt nhanh!</p>
+        <p class="auth-showcase-slogan">Mỗi món đồ cũ là một đời mới cho ai đó.</p>
       </div>
       <ul class="auth-perks">
         <li v-for="[icon, text] in perks" :key="icon" class="auth-perk">

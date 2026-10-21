@@ -72,7 +72,7 @@
   padding: var(--space-8);
   overflow: hidden;
   border-radius: var(--radius-xl);
-  background: linear-gradient(150deg, var(--brand-soft) 0%, var(--surface-2) 100%);
+  background: var(--brand-soft);
   color: var(--band-ink);
 }
 .auth-glow {
@@ -82,7 +82,7 @@
   left: -80px;
   top: -90px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--band-glass-strong), transparent 70%);
+  background: transparent;
   pointer-events: none;
 }
 /* The tiles fill the free space above the slogan, so they never cover it however tall the panel is. */
@@ -145,8 +145,8 @@
 .auth-showcase-brand {
   font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .auth-showcase-slogan {
   font-size: clamp(1.6rem, 3vw, 2.3rem);
@@ -240,8 +240,8 @@
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .auth-divider::before,
 .auth-divider::after {

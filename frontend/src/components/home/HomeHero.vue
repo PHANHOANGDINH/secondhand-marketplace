@@ -2,26 +2,20 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { listCategories } from '../../api/category.api'
+import { listProducts } from '../../api/product.api'
 import { areaPickerOpen, useArea } from '../../composables/useArea'
 import ProductSearch from '../ProductSearch.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import HomePromoBanner from './HomePromoBanner.vue'
-// Primary band with the slogan and the large search box, then the category row.
-// Categories are optional: the row hides if they cannot be loaded.
+// The forest field: the headline, what Passdi is, the search and how many listings wait for a new owner
+// right now (read from the catalogue, never invented). Then the category row, which hides if categories fail.
 const router = useRouter()
 const { code, label } = useArea()
 const keyword = ref(''),
   categories = ref([]),
-  track = ref(null)
-// Decorative tiles on the banner (our own icon set), hidden on small screens.
-const art = [
-  ['box', 'a'],
-  ['shirt', 'b'],
-  ['tag', 'c'],
-  ['book', 'd'],
-  ['device', 'e'],
-  ['home', 'f'],
-]
+  track = ref(null),
+  waiting = ref(null)
+const count = (value) => new Intl.NumberFormat('vi-VN').format(value)
 const iconFor = (name) => {
   const text = String(name || '').toLocaleLowerCase('vi-VN')
   if (/điện lạnh|tủ lạnh|máy giặt|điều hòa/.test(text)) return 'fridge'
@@ -48,6 +42,12 @@ const search = () =>
   })
 const next = () => track.value?.scrollBy({ left: track.value.clientWidth * 0.8, behavior: 'smooth' })
 onMounted(async () => {
+  listProducts({ per_page: 1 })
+    .then((result) => {
+      const total = Number(result?.meta?.total)
+      waiting.value = Number.isFinite(total) && total > 0 ? total : null
+    })
+    .catch(() => {})
   try {
     const result = await listCategories()
     categories.value = Array.isArray(result?.data) ? result.data : []
@@ -59,11 +59,11 @@ onMounted(async () => {
 <template>
   <section class="home-hero" aria-labelledby="home-hero-title">
     <div class="home-banner">
-      <span v-for="[icon, place] in art" :key="place" class="home-banner-art" :class="`is-${place}`" aria-hidden="true"
-        ><AppIcon :name="icon" :size="30"
-      /></span>
-      <h2 id="home-hero-title">Đồ cũ giá tốt, gần bạn, chốt nhanh!</h2>
-    </div>
+      <div class="home-banner-copy">
+      <h2 id="home-hero-title">Mỗi món đồ cũ là một đời mới cho ai đó.</h2>
+      <p class="home-banner-lead">
+        Mua bán đồ đã qua sử dụng gần bạn, thanh toán an toàn ngay trên sàn.
+      </p>
     <form class="home-search" role="search" aria-label="Tìm tin đăng" @submit.prevent="search">
         <ProductSearch id="home-product-search" v-model="keyword" class="home-search-input" @submit="search" />
         <button
@@ -80,6 +80,12 @@ onMounted(async () => {
           <AppIcon name="search" :size="18" /> Tìm kiếm
         </button>
       </form>
+      </div>
+      <p v-if="waiting" class="home-banner-count" data-waiting>
+        <strong>{{ count(waiting) }}</strong>
+        <span>món đồ đang chờ chủ mới</span>
+      </p>
+    </div>
     <HomePromoBanner />
     <div v-if="categories.length" class="home-categories">
       <nav ref="track" class="home-categories-track" aria-label="Danh mục nổi bật">
@@ -106,80 +112,61 @@ onMounted(async () => {
   grid-template-columns: minmax(0, 1fr);
   margin-bottom: var(--space-6);
 }
-/* The banner continues the header band edge to edge: the colour is painted with a clipped spread shadow,
-   so nothing is wider than the page. */
+/* One field of forest green, the page's single large block of colour. */
 .home-banner {
-  position: relative;
-  margin-top: -3rem;
-  padding: clamp(1.25rem, 3vw, 2.25rem) var(--space-4) 5.25rem;
-  background: var(--brand-soft);
-  box-shadow: 0 0 0 100vmax var(--brand-soft);
-  clip-path: inset(0 -100vmax);
-  text-align: center;
-}
-.home-banner-art {
-  position: absolute;
   display: grid;
-  place-items: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  background: var(--surface);
-  color: var(--brand-text);
-  box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 8%);
-}
-.home-banner-art.is-a {
-  top: 14%;
-  left: 2%;
-  transform: rotate(-14deg);
-}
-.home-banner-art.is-b {
-  top: 46%;
-  left: 11%;
-  transform: rotate(10deg) scale(0.8);
-}
-.home-banner-art.is-c {
-  top: 6%;
-  left: 15%;
-  transform: rotate(18deg) scale(0.7);
-}
-.home-banner-art.is-d {
-  top: 6%;
-  right: 15%;
-  transform: rotate(-16deg) scale(0.7);
-}
-.home-banner-art.is-e {
-  top: 44%;
-  right: 10%;
-  transform: rotate(-8deg) scale(0.8);
-}
-.home-banner-art.is-f {
-  top: 14%;
-  right: 2%;
-  transform: rotate(12deg);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-8);
+  margin-top: var(--space-2);
+  padding: clamp(1.75rem, 4vw, 3.25rem);
+  border-radius: 32px;
+  background: var(--field);
+  color: var(--on-field);
 }
 .home-banner h2 {
-  position: relative;
+  max-width: 17ch;
   margin: 0;
-  font-size: clamp(1.4rem, 3.2vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  color: var(--band-ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  color: var(--on-field);
+}
+.home-banner-lead {
+  max-width: 46ch;
+  margin: var(--space-4) 0 var(--space-6);
+  color: var(--on-field-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+.home-banner-count {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+  margin: 0;
+}
+.home-banner-count strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--on-field);
+  font-variant-numeric: tabular-nums;
+}
+.home-banner-count span {
+  color: var(--on-field-muted);
 }
 .home-search {
   display: flex;
-  position: relative;
-  z-index: 1;
   align-items: center;
-  gap: var(--space-3);
-  justify-self: center;
-  width: min(100%, 60rem);
-  margin: -3.25rem 0 var(--space-6);
-  padding: 0.9rem 1.1rem;
-  border-radius: 20px;
+  gap: var(--space-2);
+  padding: 0.4rem 0.4rem 0.4rem 1rem;
+  border: 1px solid var(--field-edge);
+  border-radius: var(--radius-pill);
   background: var(--surface);
-  box-shadow: 0 6px 20px rgb(var(--shadow-rgb) / 9%);
+  color: var(--text);
 }
 .home-search-input {
   flex: 1;
@@ -203,12 +190,13 @@ onMounted(async () => {
   max-width: 14rem;
   min-height: 48px;
   padding: 0 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
   background: transparent;
   color: var(--text);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .home-search-area span {
   overflow: hidden;
@@ -228,11 +216,11 @@ onMounted(async () => {
   --bs-btn-active-color: var(--on-primary);
   --bs-btn-active-bg: var(--primary-hover);
   --bs-btn-active-border-color: var(--primary-hover);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   flex: none;
   min-height: 48px;
-  padding-inline: 1.25rem;
-  font-weight: 700;
+  padding-inline: 1.4rem;
+  font-weight: 600;
 }
 .home-search :is(button):focus-visible {
   outline: var(--focus-ring);
@@ -326,8 +314,17 @@ onMounted(async () => {
     flex: 1;
     max-width: none;
   }
-  .home-banner-art {
-    display: none;
+  .home-banner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    border-radius: var(--radius-xl);
+  }
+  .home-search {
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+  }
+  .home-search-area {
+    border-left: 0;
   }
   .home-categories-next {
     right: 0.25rem;

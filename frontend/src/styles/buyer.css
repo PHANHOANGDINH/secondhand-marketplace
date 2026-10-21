@@ -18,8 +18,8 @@
 }
 .buyer-eyebrow {
   font-size: 0.67rem;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
+  text-transform: none;
+  letter-spacing: 0;
   font-weight: 700;
   color: var(--bs-primary);
   margin-bottom: 0.8rem;

@@ -261,8 +261,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .mode-switcher.is-inline .mode-switcher-modes {
   display: grid;

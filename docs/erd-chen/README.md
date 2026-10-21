@@ -71,6 +71,10 @@ Ba bảng trỏ tới đối tượng qua cặp cột loại/mã thay vì khóa 
 | `notifications` | `notifiable_type`, `notifiable_id` | hiện chỉ `User` (vẽ thành mối kết hợp "Nhận") |
 | `audit_logs` | `entity_type`, `entity_id` | đơn, thanh toán, sản phẩm, gian hàng, voucher, người dùng |
 
+## Đặc tả bằng văn bản
+
+Mô tả đầy đủ thực thể, kiểu dữ liệu, giá trị enum và 51 mối kết hợp (kèm bản số và khóa ngoại) nằm ở `erd-spec.md`, dùng để vẽ lại bằng công cụ khác.
+
 ## Vẽ lại
 
 Sửa toạ độ hoặc thuộc tính trong `generate.py`, rồi chạy `python generate.py .` trong thư mục này để sinh lại file SVG. Để xuất PNG, chụp file SVG bằng Edge headless:

@@ -1,0 +1,243 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1840" height="1200" viewBox="0 0 1840 1200" font-family="Segoe UI, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="24" y="34" font-size="20" font-weight="700" fill="#12302A">Sơ đồ 2 · Giỏ hàng, đơn hàng, thanh toán và voucher</text>
+<path d="M615.0,160.0 L1272.4,160.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1671.5,275.0 L1325.2,167.8" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1720.0,340.0 L1720.0,438.5" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1720.0,594.0 L1720.0,501.5" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M560.0,226.0 L560.0,321.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M560.0,422.0 L560.0,359.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M505.0,184.8 L282.3,285.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M217.8,446.0 L245.8,318.9" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M466.6,610.1 L402.3,617.1" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M278.7,629.6 L347.7,622.7" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M653.4,600.0 L712.0,600.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M880.5,600.0 L828.0,600.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M960.0,318.0 L960.0,351.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M960.0,446.0 L960.0,389.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1039.5,600.0 L1133.6,600.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1296.8,600.0 L1196.4,600.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1673.2,697.4 L1566.5,782.8" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1423.2,668.3 L1528.4,782.1" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1010.9,260.0 L1225.0,260.0 L1225.0,801.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1062.3,957.4 L1204.2,837.5" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M937.7,1021.3 L828.1,1041.3" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M643.7,1050.0 L725.8,1050.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M560.0,778.0 L560.0,866.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M560.0,992.0 L560.0,904.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M880.5,731.0 L801.2,861.5" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M638.5,992.0 L767.1,896.9" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M505.0,160.0 L30.0,160.0 L30.0,1120.0 L284.8,1120.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M476.3,1074.4 L351.0,1111.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M505.6,226.0 L490.0,245.0 L14.0,245.0 L14.0,1178.0 L828.6,1178.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M937.7,1084.8 L874.1,1161.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<ellipse cx="1300" cy="160" rx="27.6" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1300" y="164.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có</text>
+<ellipse cx="1720" cy="470" rx="53.6" ry="31.5" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1720" y="460.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Chứa</text>
+<line x1="1676.0" y1="468.5" x2="1764.0" y2="468.5" stroke="#B45309" stroke-width="1"/>
+<text x="1720" y="484.5" font-size="12" fill="#12302A" text-anchor="middle">quantity</text>
+<ellipse cx="560" cy="340" rx="31.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="560" y="344.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Đặt</text>
+<ellipse cx="250" cy="300" rx="50.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="250" y="304.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Đối soát</text>
+<ellipse cx="375" cy="620" rx="27.6" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="375" y="624.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có</text>
+<ellipse cx="770" cy="600" rx="58.0" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="770" y="604.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Tách thành</text>
+<ellipse cx="960" cy="370" rx="35.2" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="960" y="374.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Nhận</text>
+<ellipse cx="1165" cy="600" rx="31.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1165" y="604.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Gồm</text>
+<ellipse cx="1545" cy="800" rx="50.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1545" y="804.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Được mua</text>
+<ellipse cx="1225" cy="820" rx="54.2" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1225" y="824.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Phát hành</text>
+<ellipse cx="780" cy="1050" rx="54.2" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="780" y="1054.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Được dùng</text>
+<ellipse cx="560" cy="885" rx="61.8" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="560" y="889.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Áp dụng cho</text>
+<ellipse cx="790" cy="880" rx="50.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="790" y="884.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Giảm cho</text>
+<ellipse cx="320" cy="1120" rx="35.2" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="320" y="1124.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Dùng</text>
+<ellipse cx="860" cy="1178" rx="31.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="860" y="1182.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Tạo</text>
+<rect x="505.0" y="94.0" width="110.0" height="132.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M505.0,136.0 V100.0 Q505.0,94.0 511.0,94.0 H609.0 Q615.0,94.0 615.0,100.0 V136.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="505.0" y1="136.0" x2="615.0" y2="136.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="560" y="113.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">NGUOI_DUNG</text>
+<text x="560" y="129.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">users</text>
+<text x="517.0" y="153.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="517.0" y="169.0" font-size="12.5" fill="#12302A">name</text>
+<text x="517.0" y="185.0" font-size="12.5" fill="#12302A">email</text>
+<text x="517.0" y="201.0" font-size="12.5" fill="#12302A">role</text>
+<text x="517.0" y="217.0" font-size="12.5" fill="#4A615B">…</text>
+<rect x="909.1" y="202.0" width="101.8" height="116.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M909.1,244.0 V208.0 Q909.1,202.0 915.1,202.0 H1004.9 Q1010.9,202.0 1010.9,208.0 V244.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="909.1" y1="244.0" x2="1010.9" y2="244.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="960" y="221.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">GIAN_HANG</text>
+<text x="960" y="237.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">shops</text>
+<text x="921.1" y="261.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="921.1" y="277.0" font-size="12.5" fill="#12302A">name</text>
+<text x="921.1" y="293.0" font-size="12.5" fill="#12302A">status</text>
+<text x="921.1" y="309.0" font-size="12.5" fill="#4A615B">…</text>
+<rect x="1671.5" y="240.0" width="97.0" height="100.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1671.5,282.0 V246.0 Q1671.5,240.0 1677.5,240.0 H1762.5 Q1768.5,240.0 1768.5,246.0 V282.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1671.5" y1="282.0" x2="1768.5" y2="282.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1720" y="259.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">GIO_HANG</text>
+<text x="1720" y="275.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">carts</text>
+<text x="1683.5" y="299.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1683.5" y="315.0" font-size="12.5" fill="#12302A">created_at</text>
+<text x="1683.5" y="331.0" font-size="12.5" fill="#12302A">updated_at</text>
+<rect x="1673.2" y="594.0" width="93.6" height="132.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1673.2,636.0 V600.0 Q1673.2,594.0 1679.2,594.0 H1760.8 Q1766.8,594.0 1766.8,600.0 V636.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1673.2" y1="636.0" x2="1766.8" y2="636.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1720" y="613.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">SAN_PHAM</text>
+<text x="1720" y="629.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">products</text>
+<text x="1685.2" y="653.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1685.2" y="669.0" font-size="12.5" fill="#12302A">name</text>
+<text x="1685.2" y="685.0" font-size="12.5" fill="#12302A">price</text>
+<text x="1685.2" y="701.0" font-size="12.5" fill="#12302A">status</text>
+<text x="1685.2" y="717.0" font-size="12.5" fill="#4A615B">…</text>
+<rect x="466.6" y="422.0" width="186.7" height="356.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M466.6,464.0 V428.0 Q466.6,422.0 472.6,422.0 H647.4 Q653.4,422.0 653.4,428.0 V464.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="466.6" y1="464.0" x2="653.4" y2="464.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="560" y="441.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">DON_HANG</text>
+<text x="560" y="457.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">orders</text>
+<text x="478.6" y="481.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="478.6" y="497.0" font-size="12.5" fill="#12302A">order_code</text>
+<text x="478.6" y="513.0" font-size="12.5" fill="#12302A">checkout_key</text>
+<text x="478.6" y="529.0" font-size="12.5" fill="#12302A">request_hash</text>
+<text x="478.6" y="545.0" font-size="12.5" fill="#12302A">shipping_recipient_name</text>
+<text x="478.6" y="561.0" font-size="12.5" fill="#12302A">shipping_phone</text>
+<text x="478.6" y="577.0" font-size="12.5" fill="#12302A">shipping_address_line</text>
+<text x="478.6" y="593.0" font-size="12.5" fill="#12302A">shipping_ward</text>
+<text x="478.6" y="609.0" font-size="12.5" fill="#12302A">shipping_district</text>
+<text x="478.6" y="625.0" font-size="12.5" fill="#12302A">shipping_province</text>
+<text x="478.6" y="641.0" font-size="12.5" fill="#12302A">shipping_country_code</text>
+<text x="478.6" y="657.0" font-size="12.5" fill="#12302A">subtotal</text>
+<text x="478.6" y="673.0" font-size="12.5" fill="#12302A">shipping_fee</text>
+<text x="478.6" y="689.0" font-size="12.5" fill="#12302A">discount_amount</text>
+<text x="478.6" y="705.0" font-size="12.5" fill="#12302A">platform_voucher_code</text>
+<text x="478.6" y="721.0" font-size="12.5" fill="#12302A">total_amount</text>
+<text x="478.6" y="737.0" font-size="12.5" fill="#12302A">currency</text>
+<text x="478.6" y="753.0" font-size="12.5" fill="#12302A">payment_method</text>
+<text x="478.6" y="769.0" font-size="12.5" fill="#12302A">created_at</text>
+<rect x="71.3" y="446.0" width="207.4" height="388.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M71.3,488.0 V452.0 Q71.3,446.0 77.3,446.0 H272.7 Q278.7,446.0 278.7,452.0 V488.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="71.3" y1="488.0" x2="278.7" y2="488.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="175" y="465.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">THANH_TOAN</text>
+<text x="175" y="481.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">payments</text>
+<text x="83.3" y="505.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="83.3" y="521.0" font-size="12.5" fill="#12302A">attempt_number</text>
+<text x="83.3" y="537.0" font-size="12.5" fill="#12302A">method</text>
+<text x="83.3" y="553.0" font-size="12.5" fill="#12302A">amount</text>
+<text x="83.3" y="569.0" font-size="12.5" fill="#12302A">currency</text>
+<text x="83.3" y="585.0" font-size="12.5" fill="#12302A">status</text>
+<text x="83.3" y="601.0" font-size="12.5" fill="#12302A">transaction_reference</text>
+<text x="83.3" y="617.0" font-size="12.5" fill="#12302A">gateway_transaction_id</text>
+<text x="83.3" y="633.0" font-size="12.5" fill="#12302A">paid_at</text>
+<text x="83.3" y="649.0" font-size="12.5" fill="#12302A">failed_at</text>
+<text x="83.3" y="665.0" font-size="12.5" fill="#12302A">failure_code</text>
+<text x="83.3" y="681.0" font-size="12.5" fill="#12302A">request_key</text>
+<text x="83.3" y="697.0" font-size="12.5" fill="#12302A">order_url</text>
+<text x="83.3" y="713.0" font-size="12.5" fill="#12302A">preferred_payment_method</text>
+<text x="83.3" y="729.0" font-size="12.5" fill="#12302A">gateway_app_id</text>
+<text x="83.3" y="745.0" font-size="12.5" fill="#12302A">gateway_app_time</text>
+<text x="83.3" y="761.0" font-size="12.5" fill="#12302A">gateway_requested_at</text>
+<text x="83.3" y="777.0" font-size="12.5" fill="#12302A">expires_at</text>
+<text x="83.3" y="793.0" font-size="12.5" fill="#12302A">reconciliation_required</text>
+<text x="83.3" y="809.0" font-size="12.5" fill="#12302A">reconciliation_resolved_at</text>
+<text x="83.3" y="825.0" font-size="12.5" fill="#12302A">reconciliation_note</text>
+<rect x="880.5" y="446.0" width="159.1" height="308.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M880.5,488.0 V452.0 Q880.5,446.0 886.5,446.0 H1033.5 Q1039.5,446.0 1039.5,452.0 V488.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="880.5" y1="488.0" x2="1039.5" y2="488.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="960" y="465.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">DON_SHOP</text>
+<text x="960" y="481.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">shop_orders</text>
+<text x="892.5" y="505.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="892.5" y="521.0" font-size="12.5" fill="#12302A">status</text>
+<text x="892.5" y="537.0" font-size="12.5" fill="#12302A">subtotal</text>
+<text x="892.5" y="553.0" font-size="12.5" fill="#12302A">shipping_fee</text>
+<text x="892.5" y="569.0" font-size="12.5" fill="#12302A">discount_amount</text>
+<text x="892.5" y="585.0" font-size="12.5" fill="#12302A">discount_shop</text>
+<text x="892.5" y="601.0" font-size="12.5" fill="#12302A">discount_platform</text>
+<text x="892.5" y="617.0" font-size="12.5" fill="#12302A">voucher_code</text>
+<text x="892.5" y="633.0" font-size="12.5" fill="#12302A">total_amount</text>
+<text x="892.5" y="649.0" font-size="12.5" fill="#12302A">confirmed_at</text>
+<text x="892.5" y="665.0" font-size="12.5" fill="#12302A">processing_at</text>
+<text x="892.5" y="681.0" font-size="12.5" fill="#12302A">shipping_at</text>
+<text x="892.5" y="697.0" font-size="12.5" fill="#12302A">completed_at</text>
+<text x="892.5" y="713.0" font-size="12.5" fill="#12302A">cancelled_at</text>
+<text x="892.5" y="729.0" font-size="12.5" fill="#12302A">cancellation_reason</text>
+<text x="892.5" y="745.0" font-size="12.5" fill="#12302A">stock_restored_at</text>
+<rect x="1296.8" y="526.0" width="126.4" height="148.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1296.8,568.0 V532.0 Q1296.8,526.0 1302.8,526.0 H1417.2 Q1423.2,526.0 1423.2,532.0 V568.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1296.8" y1="568.0" x2="1423.2" y2="568.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1360" y="545.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">CHI_TIET_DON</text>
+<text x="1360" y="561.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">order_items</text>
+<text x="1308.8" y="585.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1308.8" y="601.0" font-size="12.5" fill="#12302A">product_name</text>
+<text x="1308.8" y="617.0" font-size="12.5" fill="#12302A">product_image</text>
+<text x="1308.8" y="633.0" font-size="12.5" fill="#12302A">product_price</text>
+<text x="1308.8" y="649.0" font-size="12.5" fill="#12302A">quantity</text>
+<text x="1308.8" y="665.0" font-size="12.5" fill="#12302A">subtotal</text>
+<rect x="937.7" y="880.0" width="124.6" height="260.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M937.7,922.0 V886.0 Q937.7,880.0 943.7,880.0 H1056.3 Q1062.3,880.0 1062.3,886.0 V922.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="937.7" y1="922.0" x2="1062.3" y2="922.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1000" y="899.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">VOUCHER</text>
+<text x="1000" y="915.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">vouchers</text>
+<text x="949.7" y="939.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="949.7" y="955.0" font-size="12.5" fill="#12302A">code</text>
+<text x="949.7" y="971.0" font-size="12.5" fill="#12302A">scope</text>
+<text x="949.7" y="987.0" font-size="12.5" fill="#12302A">type</text>
+<text x="949.7" y="1003.0" font-size="12.5" fill="#12302A">value</text>
+<text x="949.7" y="1019.0" font-size="12.5" fill="#12302A">min_order</text>
+<text x="949.7" y="1035.0" font-size="12.5" fill="#12302A">max_discount</text>
+<text x="949.7" y="1051.0" font-size="12.5" fill="#12302A">usage_limit</text>
+<text x="949.7" y="1067.0" font-size="12.5" fill="#12302A">per_user_limit</text>
+<text x="949.7" y="1083.0" font-size="12.5" fill="#12302A">used_count</text>
+<text x="949.7" y="1099.0" font-size="12.5" fill="#12302A">starts_at</text>
+<text x="949.7" y="1115.0" font-size="12.5" fill="#12302A">ends_at</text>
+<text x="949.7" y="1131.0" font-size="12.5" fill="#12302A">status</text>
+<rect x="476.3" y="992.0" width="167.4" height="116.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M476.3,1034.0 V998.0 Q476.3,992.0 482.3,992.0 H637.7 Q643.7,992.0 643.7,998.0 V1034.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="476.3" y1="1034.0" x2="643.7" y2="1034.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="560" y="1011.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">LUOT_DUNG_VOUCHER</text>
+<text x="560" y="1027.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">voucher_redemptions</text>
+<text x="488.3" y="1051.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="488.3" y="1067.0" font-size="12.5" fill="#12302A">discount_amount</text>
+<text x="488.3" y="1083.0" font-size="12.5" fill="#12302A">released_at</text>
+<text x="488.3" y="1099.0" font-size="12.5" fill="#12302A">created_at</text>
+<text x="639.0" y="176.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,1</text>
+<text x="1645.0" y="283.4" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1708.0" y="368.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1708.0" y="574.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="548.0" y="254.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="572.0" y="402.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="473.5" y="216.2" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">admin 0,n</text>
+<text x="234.7" y="429.1" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,1</text>
+<text x="444.1" y="628.6" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="303.8" y="643.2" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="677.4" y="616.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,n</text>
+<text x="856.5" y="616.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="948.0" y="338.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="972.0" y="426.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1063.5" y="616.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,n</text>
+<text x="1272.8" y="616.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1647.0" y="707.1" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1448.3" y="681.8" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1034.9" y="276.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1072.9" y="936.7" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,1</text>
+<text x="911.9" y="1017.8" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="667.7" y="1042.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="548.0" y="806.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="572.0" y="972.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="878.3" y="761.8" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="650.6" y="972.1" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,1</text>
+<text x="481.0" y="152.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="456.6" y="1096.7" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="507.1" y="247.1" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="913.1" y="1099.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="24" y="64" font-size="12" font-weight="400" fill="#4A615B" text-anchor="start">DON_HANG gom các DON_SHOP (mỗi gian hàng một đơn con). Tiền lưu DECIMAL; CHI_TIET_DON chụp lại tên, ảnh, giá tại thời điểm đặt.</text>
+</svg>

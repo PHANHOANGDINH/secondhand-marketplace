@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1090" viewBox="0 0 1560 1090" font-family="Segoe UI, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="24" y="34" font-size="20" font-weight="700" fill="#12302A">Sơ đồ 1 · Tài khoản, gian hàng, danh mục và sản phẩm</text>
+<path d="M200.0,350.0 L200.0,319.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M200.0,248.0 L200.0,281.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M314.1,365.9 L412.6,267.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M577.4,183.0 L459.9,236.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M314.1,461.0 L358.1,453.7" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M579.0,248.0 L475.5,391.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M705.3,248.0 L749.5,326.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M810.4,448.0 L769.1,363.7" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1056.2,216.0 L999.5,326.6" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M935.1,448.0 L980.2,363.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1142.0,135.4 L1250.0,105.0 L1308.2,134.1" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1142.0,164.6 L1250.0,195.0 L1308.2,165.9" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M942.6,537.9 L1099.7,468.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1296.8,422.4 L1169.2,447.3" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M942.6,595.1 L1092.9,647.1" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1288.6,701.4 L1171.4,670.8" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M314.1,571.2 L678.8,863.1" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1288.6,737.3 L740.1,870.3" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1360.0,834.0 L1360.0,861.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1360.0,947.0 L1360.0,899.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M299.0,610.0 L586.6,987.4" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<path d="M1284.5,1005.0 L635.2,1005.0" fill="none" stroke="#1F6F5C" stroke-width="1.4"/>
+<ellipse cx="200" cy="300" rx="27.6" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="200" y="304.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có</text>
+<ellipse cx="430" cy="250" rx="42.8" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="430" y="254.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Sở hữu</text>
+<ellipse cx="440" cy="440" rx="84.7" ry="54.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="440" y="408.0" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Đánh giá</text>
+<line x1="370.6" y1="416.0" x2="509.4" y2="416.0" stroke="#B45309" stroke-width="1"/>
+<text x="440" y="432.0" font-size="12" fill="#12302A" text-anchor="middle">rating</text>
+<text x="440" y="447.0" font-size="12" fill="#12302A" text-anchor="middle">comment</text>
+<text x="440" y="462.0" font-size="12" fill="#12302A" text-anchor="middle">status</text>
+<text x="440" y="477.0" font-size="12" fill="#12302A" text-anchor="middle">moderation_reason</text>
+<ellipse cx="760" cy="345" rx="50.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="760" y="349.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Đăng bán</text>
+<ellipse cx="990" cy="345" rx="39.0" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="990" y="349.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Thuộc</text>
+<ellipse cx="1340" cy="150" rx="58.0" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1340" y="154.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Là con của</text>
+<ellipse cx="1130" cy="455" rx="42.8" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1130" y="459.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có ảnh</text>
+<ellipse cx="1130" cy="660" rx="50.4" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1130" y="664.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có video</text>
+<ellipse cx="700" cy="880" rx="46.6" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="700" y="884.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Tải lên</text>
+<ellipse cx="1360" cy="880" rx="27.6" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="1360" y="884.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Có</text>
+<ellipse cx="600" cy="1005" rx="35.2" ry="19.0" fill="#FFF7E8" stroke="#B45309" stroke-width="1.5"/>
+<text x="600" y="1009.5" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">Viết</text>
+<rect x="85.9" y="350.0" width="228.1" height="260.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M85.9,392.0 V356.0 Q85.9,350.0 91.9,350.0 H308.1 Q314.1,350.0 314.1,356.0 V392.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="85.9" y1="392.0" x2="314.1" y2="392.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="200" y="369.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">NGUOI_DUNG</text>
+<text x="200" y="385.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">users</text>
+<text x="97.9" y="409.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="97.9" y="425.0" font-size="12.5" fill="#12302A">name</text>
+<text x="97.9" y="441.0" font-size="12.5" fill="#12302A">email</text>
+<text x="97.9" y="457.0" font-size="12.5" fill="#12302A">email_verified_at</text>
+<text x="97.9" y="473.0" font-size="12.5" fill="#12302A">password</text>
+<text x="97.9" y="489.0" font-size="12.5" fill="#12302A">temporary_password</text>
+<text x="97.9" y="505.0" font-size="12.5" fill="#12302A">temporary_password_expires_at</text>
+<text x="97.9" y="521.0" font-size="12.5" fill="#12302A">must_change_password</text>
+<text x="97.9" y="537.0" font-size="12.5" fill="#12302A">phone</text>
+<text x="97.9" y="553.0" font-size="12.5" fill="#12302A">avatar_path</text>
+<text x="97.9" y="569.0" font-size="12.5" fill="#12302A">role</text>
+<text x="97.9" y="585.0" font-size="12.5" fill="#12302A">status</text>
+<text x="97.9" y="601.0" font-size="12.5" fill="#12302A">deleted_at</text>
+<rect x="137.7" y="52.0" width="124.6" height="196.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M137.7,94.0 V58.0 Q137.7,52.0 143.7,52.0 H256.3 Q262.3,52.0 262.3,58.0 V94.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="137.7" y1="94.0" x2="262.3" y2="94.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="200" y="71.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">DIA_CHI</text>
+<text x="200" y="87.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">addresses</text>
+<text x="149.7" y="111.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="149.7" y="127.0" font-size="12.5" fill="#12302A">recipient_name</text>
+<text x="149.7" y="143.0" font-size="12.5" fill="#12302A">phone</text>
+<text x="149.7" y="159.0" font-size="12.5" fill="#12302A">address_line</text>
+<text x="149.7" y="175.0" font-size="12.5" fill="#12302A">ward</text>
+<text x="149.7" y="191.0" font-size="12.5" fill="#12302A">district</text>
+<text x="149.7" y="207.0" font-size="12.5" fill="#12302A">province</text>
+<text x="149.7" y="223.0" font-size="12.5" fill="#12302A">country_code</text>
+<text x="149.7" y="239.0" font-size="12.5" fill="#12302A">is_default</text>
+<rect x="17.8" y="786.0" width="214.3" height="68.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M17.8,828.0 V792.0 Q17.8,786.0 23.8,786.0 H226.2 Q232.2,786.0 232.2,792.0 V828.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="17.8" y1="828.0" x2="232.2" y2="828.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="125" y="805.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">THANH_VIEN</text>
+<text x="125" y="821.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">users · role = USER</text>
+<text x="29.8" y="845.0" font-size="12.5" fill="#12302A">mua, bán, nhắn tin, đấu giá</text>
+<rect x="245.1" y="786.0" width="179.8" height="68.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M245.1,828.0 V792.0 Q245.1,786.0 251.1,786.0 H418.9 Q424.9,786.0 424.9,792.0 V828.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="245.1" y1="828.0" x2="424.9" y2="828.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="335" y="805.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">QUAN_TRI_VIEN</text>
+<text x="335" y="821.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">users · role = ADMIN</text>
+<text x="257.1" y="845.0" font-size="12.5" fill="#12302A">duyệt, xử lý, đối soát</text>
+<rect x="577.4" y="52.0" width="145.3" height="196.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M577.4,94.0 V58.0 Q577.4,52.0 583.4,52.0 H716.7 Q722.7,52.0 722.7,58.0 V94.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="577.4" y1="94.0" x2="722.7" y2="94.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="650" y="71.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">GIAN_HANG</text>
+<text x="650" y="87.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">shops</text>
+<text x="589.4" y="111.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="589.4" y="127.0" font-size="12.5" fill="#12302A">name</text>
+<text x="589.4" y="143.0" font-size="12.5" fill="#12302A">slug</text>
+<text x="589.4" y="159.0" font-size="12.5" fill="#12302A">description</text>
+<text x="589.4" y="175.0" font-size="12.5" fill="#12302A">province_code</text>
+<text x="589.4" y="191.0" font-size="12.5" fill="#12302A">logo_path</text>
+<text x="589.4" y="207.0" font-size="12.5" fill="#12302A">status</text>
+<text x="589.4" y="223.0" font-size="12.5" fill="#12302A">moderation_reason</text>
+<text x="589.4" y="239.0" font-size="12.5" fill="#12302A">deleted_at</text>
+<rect x="1038.0" y="84.0" width="103.9" height="132.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1038.0,126.0 V90.0 Q1038.0,84.0 1044.0,84.0 H1136.0 Q1142.0,84.0 1142.0,90.0 V126.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1038.0" y1="126.0" x2="1142.0" y2="126.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1090" y="103.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">DANH_MUC</text>
+<text x="1090" y="119.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">categories</text>
+<text x="1050.0" y="143.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1050.0" y="159.0" font-size="12.5" fill="#12302A">name</text>
+<text x="1050.0" y="175.0" font-size="12.5" fill="#12302A">slug</text>
+<text x="1050.0" y="191.0" font-size="12.5" fill="#12302A">description</text>
+<text x="1050.0" y="207.0" font-size="12.5" fill="#12302A">status</text>
+<rect x="797.4" y="448.0" width="145.3" height="244.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M797.4,490.0 V454.0 Q797.4,448.0 803.4,448.0 H936.7 Q942.7,448.0 942.7,454.0 V490.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="797.4" y1="490.0" x2="942.7" y2="490.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="870" y="467.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">SAN_PHAM</text>
+<text x="870" y="483.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">products</text>
+<text x="809.4" y="507.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="809.4" y="523.0" font-size="12.5" fill="#12302A">name</text>
+<text x="809.4" y="539.0" font-size="12.5" fill="#12302A">slug</text>
+<text x="809.4" y="555.0" font-size="12.5" fill="#12302A">description</text>
+<text x="809.4" y="571.0" font-size="12.5" fill="#12302A">price</text>
+<text x="809.4" y="587.0" font-size="12.5" fill="#12302A">compare_at_price</text>
+<text x="809.4" y="603.0" font-size="12.5" fill="#12302A">stock_quantity</text>
+<text x="809.4" y="619.0" font-size="12.5" fill="#12302A">condition</text>
+<text x="809.4" y="635.0" font-size="12.5" fill="#12302A">status</text>
+<text x="809.4" y="651.0" font-size="12.5" fill="#12302A">moderation_reason</text>
+<text x="809.4" y="667.0" font-size="12.5" fill="#12302A">published_at</text>
+<text x="809.4" y="683.0" font-size="12.5" fill="#12302A">deleted_at</text>
+<rect x="1296.8" y="344.0" width="126.4" height="132.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1296.8,386.0 V350.0 Q1296.8,344.0 1302.8,344.0 H1417.2 Q1423.2,344.0 1423.2,350.0 V386.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1296.8" y1="386.0" x2="1423.2" y2="386.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1360" y="363.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">ANH_SAN_PHAM</text>
+<text x="1360" y="379.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">product_images</text>
+<text x="1308.8" y="403.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1308.8" y="419.0" font-size="12.5" fill="#12302A">image_path</text>
+<text x="1308.8" y="435.0" font-size="12.5" fill="#12302A">alt_text</text>
+<text x="1308.8" y="451.0" font-size="12.5" fill="#12302A">is_primary</text>
+<text x="1308.8" y="467.0" font-size="12.5" fill="#12302A">sort_order</text>
+<rect x="1288.6" y="606.0" width="142.8" height="228.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1288.6,648.0 V612.0 Q1288.6,606.0 1294.6,606.0 H1425.4 Q1431.4,606.0 1431.4,612.0 V648.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1288.6" y1="648.0" x2="1431.4" y2="648.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1360" y="625.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">VIDEO_SAN_PHAM</text>
+<text x="1360" y="641.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">product_videos</text>
+<text x="1300.6" y="665.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1300.6" y="681.0" font-size="12.5" fill="#12302A">title</text>
+<text x="1300.6" y="697.0" font-size="12.5" fill="#12302A">description</text>
+<text x="1300.6" y="713.0" font-size="12.5" fill="#12302A">path</text>
+<text x="1300.6" y="729.0" font-size="12.5" fill="#12302A">mime_type</text>
+<text x="1300.6" y="745.0" font-size="12.5" fill="#12302A">file_size</text>
+<text x="1300.6" y="761.0" font-size="12.5" fill="#12302A">duration_seconds</text>
+<text x="1300.6" y="777.0" font-size="12.5" fill="#12302A">poster_path</text>
+<text x="1300.6" y="793.0" font-size="12.5" fill="#12302A">sort_order</text>
+<text x="1300.6" y="809.0" font-size="12.5" fill="#12302A">is_primary</text>
+<text x="1300.6" y="825.0" font-size="12.5" fill="#12302A">status</text>
+<rect x="1284.5" y="947.0" width="151.0" height="116.0" rx="6" fill="#FFFFFF" stroke="#12302A" stroke-width="1.6"/>
+<path d="M1284.5,989.0 V953.0 Q1284.5,947.0 1290.5,947.0 H1429.5 Q1435.5,947.0 1435.5,953.0 V989.0 Z" fill="#D7EFE6" stroke="none"/>
+<line x1="1284.5" y1="989.0" x2="1435.5" y2="989.0" stroke="#12302A" stroke-width="1.2"/>
+<text x="1360" y="966.0" font-size="14" font-weight="700" fill="#12302A" text-anchor="middle">BINH_LUAN_VIDEO</text>
+<text x="1360" y="982.0" font-size="11.5" font-style="italic" fill="#4A615B" text-anchor="middle">video_comments</text>
+<text x="1296.5" y="1006.0" font-size="12.5" fill="#12302A" text-decoration="underline" font-weight="700">id</text>
+<text x="1296.5" y="1022.0" font-size="12.5" fill="#12302A">body</text>
+<text x="1296.5" y="1038.0" font-size="12.5" fill="#12302A">status</text>
+<text x="1296.5" y="1054.0" font-size="12.5" fill="#12302A">created_at</text>
+<text x="212.0" y="338.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="188.0" y="268.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="339.5" y="361.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,1</text>
+<text x="560.5" y="207.9" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="334.1" y="449.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="555.2" y="264.4" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="727.5" y="267.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="810.6" y="425.2" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1034.5" y="235.9" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="935.8" y="425.2" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1168.3" y="144.4" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">con 0,1</text>
+<text x="1168.3" y="163.6" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">cha 0,n</text>
+<text x="969.5" y="543.1" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1275.6" y="442.8" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="969.3" y="595.7" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1268.4" y="687.7" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="352.8" y="590.9" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1268.1" y="758.6" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="1348.0" y="851.5" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1372.0" y="927.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<text x="304.0" y="640.4" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">0,n</text>
+<text x="1260.5" y="997.0" font-size="12.5" font-weight="600" fill="#12302A" text-anchor="middle" stroke="#fff" stroke-width="4" paint-order="stroke">1,1</text>
+<path d="M200,605 L200,690" stroke="#12302A" stroke-width="1.6"/>
+<circle cx="200" cy="705" r="15" fill="#fff" stroke="#12302A" stroke-width="1.6"/>
+<text x="200" y="710" font-size="13" font-weight="700" fill="#12302A" text-anchor="middle">d</text>
+<path d="M190,716 L125,793 M210,716 L335,793" stroke="#12302A" stroke-width="1.6" fill="none"/>
+<text x="222" y="690" font-size="12" font-weight="600" fill="#12302A" text-anchor="start">Phân loại theo role</text>
+<text x="24" y="1070" font-size="12" font-weight="400" fill="#4A615B" text-anchor="start">Thuộc tính gạch chân là khóa chính. Khóa ngoại không ghi trong thực thể: chúng được biểu diễn bằng mối kết hợp. &quot;d&quot; = chuyên biệt hóa rời nhau (một người dùng là THANH_VIEN hoặc QUAN_TRI_VIEN).</text>
+</svg>

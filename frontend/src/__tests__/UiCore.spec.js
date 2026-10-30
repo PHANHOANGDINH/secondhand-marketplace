@@ -125,7 +125,8 @@ it('listing card labels an auction on the image corner and keeps the link to the
 
 it('logo, line icons and empty state use SVG with text labels and no emoji glyphs', () => {
   const logo = mount(BrandLogo)
-  expect(logo.text()).toBe('passdi')
+  expect(logo.text()).toBe('')
+  expect(logo.attributes('aria-label')).toBe('Passdi')
   expect(logo.get('.brand-logo-mark').attributes('aria-hidden')).toBe('true')
   for (const name of ['search', 'menu', 'plus', 'chevronDown', 'heart', 'star', 'box', 'play', 'gavel', 'tag']) {
     const icon = mount(AppIcon, { props: { name } })
@@ -140,7 +141,7 @@ it('logo, line icons and empty state use SVG with text labels and no emoji glyph
 
 it('header shows the logo, the post button and no emoji glyphs', async () => {
   const { wrapper } = await setup(DefaultLayout, { path: '/products' })
-  expect(wrapper.get('.marketplace-brand').text()).toBe('passdi')
+  expect(wrapper.get('.marketplace-brand [data-brand-logo]').attributes('aria-label')).toBe('Passdi')
   expect(wrapper.get('.marketplace-brand').attributes('href')).toBe('/')
   expect(wrapper.get('.marketplace-sell').text()).toBe('Đăng tin')
   expect(wrapper.get('[role="search"] button[type="submit"]').attributes('aria-label')).toBe('Tìm sản phẩm')

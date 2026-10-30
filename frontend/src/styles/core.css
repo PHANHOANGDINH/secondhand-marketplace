@@ -373,33 +373,6 @@ nav[aria-label='Phân trang'] > span {
     justify-content: flex-start;
   }
 }
-/* The logo inside a workspace brand link keeps its own type, not the brand link's caption style. */
-:is(.seller-brand, .admin-brand) .brand-logo,
-:is(.seller-brand, .admin-brand) .brand-logo-mark {
-  display: inline-flex;
-  margin: 0;
-}
-:is(.seller-brand, .admin-brand) .brand-logo-mark {
-  display: block;
-}
-:is(.seller-brand, .admin-brand) .brand-logo-word {
-  display: inline;
-  margin: 0;
-  color: var(--text);
-  font-size: calc(var(--brand-logo-size) * 0.72);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-transform: none;
-}
-:is(.seller-brand, .admin-brand) .brand-logo-ss {
-  display: inline;
-  margin: 0;
-  color: var(--brand-text);
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: none;
-}
-
 /* Signed-in review fixes: nothing in a workspace top bar or an order row may wrap mid-label. */
 :is(.seller-topbar-actions, .admin-topbar-actions) :is(a, .btn, button) {
   white-space: nowrap;

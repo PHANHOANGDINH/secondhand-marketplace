@@ -142,36 +142,46 @@ it('the header toggle is a labelled 44px button that flips the theme; the menu o
   expect(choices.get('[data-theme-choice="system"]').attributes('aria-pressed')).toBe('true')
 })
 
-it('BrandLogo shows the mark and the "pa·ss·di" wordmark, and simplifies the mark at 32px and below', () => {
+it('BrandLogo shows the round badge and the two-colour "pass·di" wordmark', () => {
   const full = mount(BrandLogo)
   expect(full.attributes()).toMatchObject({ role: 'img', 'aria-label': 'Passdi' })
-  expect(full.get('.brand-logo-word').text()).toBe('passdi')
-  expect(full.get('.brand-logo-ss').text()).toBe('ss')
-  expect(full.get('.brand-logo-mark').attributes()).toMatchObject({ width: '40', height: '40' })
-  // Full mark: the loop plus two arrowheads.
-  expect(full.findAll('.brand-logo-mark path')).toHaveLength(3)
-  expect(full.get('.brand-logo-mark path').attributes('stroke-width')).toBe('5')
+  expect(full.get('.brand-logo-mark').attributes()).toMatchObject({
+    width: '40',
+    height: '40',
+    alt: '',
+    'aria-hidden': 'true',
+  })
+  expect(full.get('.brand-logo-mark').attributes('src')).toContain('passdi-mark')
+  // "pass" and "di" are separate masks so each takes a theme colour.
+  const word = full.get('.brand-logo-word')
+  expect(word.attributes('aria-hidden')).toBe('true')
+  expect(word.attributes('style')).toContain('passdi-word-ink')
+  expect(word.attributes('style')).toContain('passdi-word-accent')
+  expect(word.find('.brand-logo-ink').exists()).toBe(true)
+  expect(word.find('.brand-logo-accent').exists()).toBe(true)
 
   const mark = mount(BrandLogo, { props: { variant: 'mark', size: 28 } })
   expect(mark.find('.brand-logo-word').exists()).toBe(false)
   expect(mark.attributes('aria-label')).toBe('Passdi')
-  expect(mark.findAll('.brand-logo-mark path')).toHaveLength(1)
-  expect(mark.get('.brand-logo-mark path').attributes('stroke-width')).toBe('6')
+  expect(mark.get('.brand-logo-mark').attributes('width')).toBe('28')
 
   expect(
     mount(BrandLogo, { props: { compact: true } })
       .get('.brand-logo-mark')
       .attributes('width'),
   ).toBe('34')
-  expect(mount(BrandLogo, { props: { size: 32 } }).findAll('.brand-logo-mark path')).toHaveLength(1)
 })
 
-it('favicon is the simplified mark and the page links the Apple touch icon', () => {
-  const favicon = readFileSync('public/favicon.svg', 'utf8')
-  expect(favicon).toContain('fill="#F26B3A"')
-  expect(favicon).toContain('stroke-width="6"')
-  expect(favicon.match(/<path/g)).toHaveLength(1)
+it('favicon is the badge and the page links the Apple touch icon', () => {
   const html = readFileSync('index.html', 'utf8')
-  expect(html).toContain('href="/favicon.svg"')
+  expect(html).toContain('rel="icon" href="/favicon.png" type="image/png"')
+  expect(html).toContain('rel="icon" href="/favicon.ico" sizes="any"')
+  expect(html).not.toContain('favicon.svg')
   expect(html).toContain('rel="apple-touch-icon" href="/apple-touch-icon.png"')
+  // PNG signature: the favicon is the raster badge, not the old drawn tile.
+  expect(
+    [...readFileSync('public/favicon.png').subarray(1, 4)]
+      .map((c) => String.fromCharCode(c))
+      .join(''),
+  ).toBe('PNG')
 })

@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Events\ConversationRead;
+use App\Events\MessageSent;
+use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -76,6 +79,7 @@ class MessagingService
             $message = $locked->messages()->make();
             $message->forceFill(['sender_id' => $user->id, 'body' => $body])->save();
             $locked->forceFill(['last_message_at' => $message->created_at])->save();
+            event(new MessageSent($locked->participants()->pluck('user_id')->all(), ['conversation_id' => (string) $locked->id, 'message' => (new MessageResource($message))->resolve()]));
 
             return $message;
         }, 3);
@@ -90,7 +94,11 @@ class MessagingService
                 throw ValidationException::withMessages(['last_message_id' => 'Tin nhắn không thuộc hội thoại này.']);
             }
             $participant = $locked->participants()->where('user_id', $user->id)->firstOrFail();
-            $participant->forceFill(['last_read_message_id' => max($participant->last_read_message_id, $lastMessageId)])->save();
+            $previous = $participant->last_read_message_id;
+            $participant->forceFill(['last_read_message_id' => max($previous, $lastMessageId)])->save();
+            if ($participant->last_read_message_id > $previous) {
+                event(new ConversationRead([$user->id], ['conversation_id' => (string) $locked->id, 'last_read_message_id' => (string) $participant->last_read_message_id]));
+            }
 
             return $participant->last_read_message_id;
         }, 3);

@@ -168,7 +168,7 @@ Documentation: `docs/messaging-verification.md`. Local logs/browser helper artif
 
 ## Remaining limitations
 
-- REST polling gives a short delivery delay and continues a lightweight unread-list refresh while the document is visible. No WebSockets/Reverb, push notifications or typing indicator.
+- Realtime via Reverb was added later (see `docs/realtime-websocket-verification.md`); REST polling remains only as the fallback while the private channel is not subscribed. No push notifications or typing indicator.
 - No attachments, images, voice/video, group chat, blocking or reporting, as scoped.
 - No offline send queue or idempotency key for message POST retries after an ambiguous network failure.
 - Browser checks used controlled API fixtures; a live two-account browser E2E run and physical-device keyboard/viewport testing remain unperformed.

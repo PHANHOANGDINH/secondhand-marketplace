@@ -10,6 +10,19 @@ import ChatSellerButton from '../components/chat/ChatSellerButton.vue'
 import * as api from '../api/messaging.api'
 import axios from '../api/axios'
 
+const realtime = await vi.hoisted(async () => {
+  const { shallowRef } = await import('vue')
+  return { subscriptions: [], connection: shallowRef('connecting') }
+})
+vi.mock('../composables/auctionEcho', () => ({
+  realtimeConnection: realtime.connection,
+  subscribeRealtime: (kind, id, handlers, ready) => {
+    const release = vi.fn()
+    realtime.subscriptions.push({ kind, id, handlers, ready, release })
+    return release
+  },
+}))
+
 const conversation = {
   id: '7',
   partner: { id: '2', name: 'Seller' },
@@ -28,6 +41,8 @@ const result = (data, next = null) => ({ data, links: { next }, unread_total: 2 
 const wrappers = []
 let hidden
 beforeEach(() => {
+  realtime.subscriptions.length = 0
+  realtime.connection.value = 'connecting'
   vi.restoreAllMocks()
   vi.useFakeTimers()
   hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
@@ -238,5 +253,107 @@ it('messaging writes use the existing cookie CSRF helper', async () => {
     method: 'post',
     url: '/api/v1/conversations/7/messages',
     data: { body: 'Hello' },
+  })
+})
+
+describe('realtime delivery', () => {
+  async function live() {
+    const context = await setup()
+    const subscription = realtime.subscriptions.at(-1)
+    realtime.connection.value = 'connected'
+    subscription.ready()
+    await flushPromises()
+    return { ...context, subscription }
+  }
+  it('subscribes to the own private channel and stops polling once the channel is ready', async () => {
+    const { subscription } = await live()
+    expect(subscription).toMatchObject({ kind: 'private', id: '1' })
+    expect(Object.keys(subscription.handlers)).toEqual(['MessageSent', 'ConversationRead'])
+    const calls = api.listConversations.mock.calls.length
+    await vi.advanceTimersByTimeAsync(12000)
+    expect(api.listConversations).toHaveBeenCalledTimes(calls)
+  })
+  it('fetches a pushed message for the open conversation by cursor and marks it read', async () => {
+    const { chat, subscription } = await live()
+    await chat.selectConversation(chat.conversations.value[0])
+    api.listMessages.mockResolvedValueOnce(result([message(3, 'Mới')]))
+    const lists = api.listConversations.mock.calls.length
+    subscription.handlers.MessageSent({ conversation_id: '7', message: message(3, 'Mới') })
+    await flushPromises()
+    expect(api.listMessages).toHaveBeenLastCalledWith('7', { per_page: 30, after_id: '2' })
+    expect(chat.messages.value.map((row) => row.id)).toEqual(['1', '2', '3'])
+    expect(api.markConversationRead).toHaveBeenLastCalledWith('7', '3')
+    expect(api.listConversations).toHaveBeenCalledTimes(lists + 1)
+  })
+  it('only refreshes the list for other conversations and ignores a message this tab already has', async () => {
+    const { chat, subscription } = await live()
+    await chat.selectConversation(chat.conversations.value[0])
+    const messages = api.listMessages.mock.calls.length,
+      lists = api.listConversations.mock.calls.length
+    subscription.handlers.MessageSent({ conversation_id: '8', message: message(9) })
+    await flushPromises()
+    expect(api.listMessages).toHaveBeenCalledTimes(messages)
+    expect(api.listConversations).toHaveBeenCalledTimes(lists + 1)
+    subscription.handlers.MessageSent({ conversation_id: '7', message: message(2) })
+    await flushPromises()
+    expect(api.listMessages).toHaveBeenCalledTimes(messages)
+    expect(api.listConversations).toHaveBeenCalledTimes(lists + 1)
+    subscription.handlers.ConversationRead({ conversation_id: '7', last_read_message_id: '2' })
+    await flushPromises()
+    expect(api.listConversations).toHaveBeenCalledTimes(lists + 2)
+  })
+  it('does not lose a push that arrives while messages are still loading', async () => {
+    const { chat, subscription } = await live()
+    await chat.selectConversation(chat.conversations.value[0])
+    let finish
+    api.listMessages.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    )
+    void chat.refreshMessages()
+    api.listMessages.mockResolvedValueOnce(result([message(4)]))
+    subscription.handlers.MessageSent({ conversation_id: '7', message: message(4) })
+    finish(result([message(3)]))
+    await flushPromises()
+    expect(api.listMessages).toHaveBeenLastCalledWith('7', { per_page: 30, after_id: '3' })
+    expect(chat.messages.value.map((row) => row.id)).toEqual(['1', '2', '3', '4'])
+  })
+  it('falls back to polling when the socket drops and catches up when it is ready again', async () => {
+    const { subscription } = await live()
+    realtime.connection.value = 'unavailable'
+    await flushPromises()
+    let calls = api.listConversations.mock.calls.length
+    await vi.advanceTimersByTimeAsync(4000)
+    expect(api.listConversations).toHaveBeenCalledTimes(calls + 1)
+    realtime.connection.value = 'connected'
+    subscription.ready()
+    await flushPromises()
+    calls = api.listConversations.mock.calls.length
+    await vi.advanceTimersByTimeAsync(8000)
+    expect(api.listConversations).toHaveBeenCalledTimes(calls)
+  })
+  it('keeps polling when realtime is not configured and releases the channel on logout and unmount', async () => {
+    const { auth, wrapper } = await setup()
+    realtime.connection.value = 'disabled'
+    const first = realtime.subscriptions.at(-1)
+    const calls = api.listConversations.mock.calls.length
+    await vi.advanceTimersByTimeAsync(4000)
+    expect(api.listConversations).toHaveBeenCalledTimes(calls + 1)
+    auth.user = { id: '5', role: 'USER', status: 'ACTIVE' }
+    await flushPromises()
+    expect(first.release).toHaveBeenCalled()
+    const second = realtime.subscriptions.at(-1)
+    expect(second.id).toBe('5')
+    auth.user = null
+    await flushPromises()
+    expect(second.release).toHaveBeenCalled()
+    expect(realtime.subscriptions.at(-1)).toBe(second)
+    wrapper.unmount()
+    wrappers.splice(wrappers.indexOf(wrapper), 1)
+    first.handlers.MessageSent({ conversation_id: '7', message: message(9) })
+    await flushPromises()
+    expect(api.listConversations).toHaveBeenCalledTimes(calls + 2)
   })
 })

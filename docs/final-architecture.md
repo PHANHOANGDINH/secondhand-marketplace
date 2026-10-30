@@ -31,7 +31,7 @@ flowchart TD
     Auth --> User["Active session + own user channel"]
 ```
 
-Public `auction.{id}` and `video.{id}` channels carry safe event data. Private `user.{id}` carries OUTBID/Notification events and requires own-user authorization. Notifications persist before broadcast. Public event guards recheck visibility. Events dispatch after commit and rescue broadcast failures; outage cannot invalidate a committed bid/comment/notification. Current broadcasts run synchronously after commit without a required queue worker. Messaging uses REST polling.
+Public `auction.{id}` and `video.{id}` channels carry safe event data. Private `user.{id}` carries OUTBID/Notification events and requires own-user authorization. Notifications persist before broadcast. Public event guards recheck visibility. Events dispatch after commit and rescue broadcast failures; outage cannot invalidate a committed bid/comment/notification. Current broadcasts run synchronously after commit without a required queue worker. Messaging signals `MessageSent`/`ConversationRead` on private `user.{id}`; clients refetch through REST and fall back to 4 s polling while the channel is not subscribed.
 
 ## External payment boundary
 

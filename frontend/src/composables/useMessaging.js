@@ -34,6 +34,10 @@ export function provideMessaging() {
     page = 1,
     readId = '0',
     updating = false,
+    again = false,
+    live = false,
+    release = () => {},
+    stopLive = () => {},
     historyRequest
   const available = () => mounted && auth.isAuthenticated && !document.hidden
   const current = (g, s) =>
@@ -86,7 +90,11 @@ export function provideMessaging() {
 
   async function refreshMessages(mode = 'poll') {
     if (!active.value) return
-    if (updating) return historyRequest
+    if (updating) {
+      // A realtime signal during a fetch must not be lost: fetch again once this one settles.
+      if (mode === 'poll') again = true
+      return historyRequest
+    }
     const g = generation,
       s = selection,
       id = active.value.id
@@ -112,6 +120,10 @@ export function provideMessaging() {
         if (current(g, s)) {
           historyBusy.value = false
           updating = false
+          if (again) {
+            again = false
+            void refreshMessages()
+          }
         }
       }
     })()
@@ -125,7 +137,7 @@ export function provideMessaging() {
     draft.value = ''
     error.value = ''
     readId = '0'
-    updating = false
+    updating = again = false
     sending.value = false
     hasOlder.value = false
     opened.value = true
@@ -175,9 +187,10 @@ export function provideMessaging() {
     clearTimeout(timer)
     timer = undefined
   }
+  // Polling is only the fallback while the private realtime channel is not subscribed.
   function schedule() {
     stop()
-    if (available()) timer = setTimeout(tick, 4000)
+    if (available() && !live) timer = setTimeout(tick, 4000)
   }
   async function tick() {
     if (!available()) return
@@ -196,14 +209,55 @@ export function provideMessaging() {
     draft.value = ''
     historyBusy.value = false
     sending.value = false
-    updating = false
+    updating = again = false
   }
   function close() {
     opened.value = false
     selection++
     historyBusy.value = false
     sending.value = false
-    updating = false
+    updating = again = false
+  }
+  function received(payload) {
+    if (!mounted || !auth.isAuthenticated) return
+    const id = String(payload?.conversation_id || ''),
+      messageId = String(payload?.message?.id || '')
+    // This tab already holds it (its own send); send() refreshes the list itself.
+    if (active.value?.id === id && messages.value.some((row) => row.id === messageId)) return
+    void refreshList()
+    if (opened.value && active.value?.id === id && available()) void refreshMessages()
+  }
+  async function subscribe(id, g) {
+    release()
+    stopLive()
+    live = false
+    if (!id) return
+    const { realtimeConnection, subscribeRealtime } = await import('./auctionEcho')
+    if (!current(g) || !mounted) return
+    release = subscribeRealtime(
+      'private',
+      id,
+      {
+        MessageSent: (payload) => {
+          if (current(g)) received(payload)
+        },
+        ConversationRead: () => {
+          if (current(g) && mounted) void refreshList()
+        },
+      },
+      () => {
+        if (!current(g) || !mounted) return
+        live = true
+        stop()
+        // Catch up on anything sent while the socket was down.
+        if (available()) void tick()
+      },
+    )
+    stopLive = watch(realtimeConnection, (state) => {
+      if (state === 'connected' || !live) return
+      live = false
+      schedule()
+    })
   }
   async function open() {
     opened.value = true
@@ -232,7 +286,9 @@ export function provideMessaging() {
       updating = false
       page = 1
       hasMore.value = false
+      again = false
       if (available()) void tick()
+      void subscribe(auth.user?.id, generation)
     },
   )
   watch(() => route.fullPath, close)
@@ -240,12 +296,17 @@ export function provideMessaging() {
     mounted = true
     document.addEventListener('visibilitychange', visibility)
     if (available()) void tick()
+    void subscribe(auth.user?.id, generation)
   })
   onUnmounted(() => {
     mounted = false
     generation++
     selection++
     stop()
+    release()
+    stopLive()
+    release = stopLive = () => {}
+    live = false
     document.removeEventListener('visibilitychange', visibility)
   })
   const state = {

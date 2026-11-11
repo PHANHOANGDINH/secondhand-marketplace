@@ -228,3 +228,29 @@ html {
 .btn-icon > svg {
   flex: none;
 }
+
+/* Product grid: 2 columns on phones, 3 from 768, 4 from 992; the gutter widens with the screen. */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+@media (min-width: 992px) {
+  .product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1200px) {
+  .product-grid {
+    gap: var(--space-6);
+  }
+}

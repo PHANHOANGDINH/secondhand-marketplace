@@ -33,6 +33,7 @@ export const pageNames = {
   login: 'Đăng nhập',
   register: 'Đăng ký',
   'forgot-password': 'Quên mật khẩu',
+  'verify-email': 'Xác minh thư điện tử',
   'reset-password': 'Đặt lại mật khẩu',
   account: 'Tài khoản',
   'account-password': 'Đổi mật khẩu',

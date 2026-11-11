@@ -529,6 +529,7 @@ nav[aria-label='Phân trang'] > span {
   }
   :is(.seller-topbar, .admin-topbar) .mode-switcher {
     flex: 0 1 auto;
+    min-width: 0;
   }
   :is(.seller-topbar-actions, .admin-topbar-actions) :is(.chat-launcher, .btn-icon) {
     width: 40px;
@@ -652,4 +653,16 @@ a {
 /* Headings wrap evenly instead of leaving one word on the last line. */
 :is(h1, h2, h3, .home-banner h2, .auth-showcase-slogan) {
   text-wrap: balance;
+}
+/* The long seller label would push the menu button off a small phone: the switcher gives way and truncates. */
+@media (max-width: 420px) {
+  :is(.seller-topbar, .admin-topbar) .mode-switcher-button {
+    display: block;
+    width: 100%;
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
+  }
+  :is(.seller-topbar, .admin-topbar) .mode-switcher-button svg {
+    display: none;
+  }
 }

@@ -13,15 +13,21 @@ async function pages(loader, params = {}) {
   return rows
 }
 export async function categoryOptions() {
+  // One request for the whole tree, then parents first with their children under them.
+  const { data } = await listCategories({ all: 1 })
+  const children = new Map()
+  for (const row of data) {
+    const parent = row.parent_id == null ? null : String(row.parent_id)
+    children.set(parent, [...(children.get(parent) || []), row])
+  }
   const result = []
-  async function level(parent, prefix, depth) {
-    const rows = await pages(listCategories, parent ? { parent_id: parent } : {})
-    for (const row of rows) {
+  const level = (parent, prefix, depth) => {
+    for (const row of children.get(parent) || []) {
       result.push({ value: row.id, label: prefix + row.name })
-      if (depth < 3) await level(row.id, prefix + '— ', depth + 1)
+      if (depth < 3) level(String(row.id), prefix + '— ', depth + 1)
     }
   }
-  await level(null, '', 1)
+  level(null, '', 1)
   return result
 }
 export async function shopOptions() {

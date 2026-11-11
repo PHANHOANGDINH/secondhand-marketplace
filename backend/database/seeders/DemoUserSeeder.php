@@ -26,7 +26,7 @@ class DemoUserSeeder extends Seeder
             $user = new User;
             $user->forceFill([
                 'name' => 'Demo '.($index + 1), 'email' => $email,
-                'password' => $password,
+                'password' => $password, 'email_verified_at' => now(),
                 'role' => $index === 0 ? UserRole::ADMIN : UserRole::USER,
                 'status' => UserStatus::ACTIVE,
             ])->save();

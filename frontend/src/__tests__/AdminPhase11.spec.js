@@ -12,6 +12,24 @@ import AdminReviewsView from '../views/AdminReviewsView.vue'
 import AdminOrdersView from '../views/AdminOrdersView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import { formatPrice } from '../composables/productPresentation'
+const charts = vi.hoisted(() => [])
+vi.mock('chart.js', () => ({
+  Chart: class {
+    static register = vi.fn()
+    constructor(canvas, config) {
+      this.config = config
+      this.data = config.data
+      this.update = vi.fn()
+      this.destroy = vi.fn()
+      charts.push(this)
+    }
+  },
+  BarController: {},
+  BarElement: {},
+  CategoryScale: {},
+  LinearScale: {},
+  Tooltip: {},
+}))
 const user = {
   id: '2',
   name: 'Buyer',
@@ -71,6 +89,10 @@ const metrics = {
 const dashboard = {
   ...metrics,
   total_revenue: '20000000000000.08',
+  revenue_by_month: [
+    { period: '2026-09', revenue: '1590000.50', completed_orders: 3 },
+    { period: '2026-10', revenue: '0.00', completed_orders: 0 },
+  ],
   recent_orders: [order],
   recent_users: [user],
 }
@@ -129,6 +151,21 @@ it('dashboard loads exact metrics, decimal merchandise revenue and recent record
   expect(wrapper.text()).toContain('không phải doanh thu hoa hồng')
   expect(wrapper.get('[data-recent-order] a').attributes('href')).toBe('/admin/orders?order=12')
   expect(wrapper.get('[data-recent-user]').text()).toContain('Buyer')
+})
+it('dashboard charts monthly revenue with Vietnamese labels and exact amounts in the table', async () => {
+  charts.length = 0
+  const { wrapper } = await setup(AdminDashboardView)
+  expect(charts[0].data.labels).toEqual(['T9/2026', 'T10/2026'])
+  expect(charts[0].data.datasets[0].data).toEqual([1590000.5, 0])
+  expect(wrapper.get('details').text()).toContain(formatPrice('1590000.50'))
+  expect(wrapper.find('[data-no-recent-revenue]').exists()).toBe(false)
+  api.getAdminDashboard.mockResolvedValue({
+    ...dashboard,
+    revenue_by_month: [{ period: '2026-10', revenue: '0.00', completed_orders: 0 }],
+  })
+  await button(wrapper, 'Tải lại').trigger('click')
+  await flushPromises()
+  expect(wrapper.get('[data-no-recent-revenue]').text()).toContain('Chưa có đơn hoàn tất')
 })
 it('dashboard empty state and API error support retry without stale totals', async () => {
   api.getAdminDashboard.mockRejectedValueOnce(new Error('Offline'))

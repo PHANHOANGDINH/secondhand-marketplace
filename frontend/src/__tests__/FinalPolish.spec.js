@@ -37,7 +37,7 @@ it.each([null, 'USER', 'ADMIN'])(
     const links = wrapper.findAll('a').map((link) => link.attributes('href'))
     expect(links).toContain('/products')
     expect(links).toContain('/shops')
-    expect(links.includes('/admin/dashboard')).toBe(role === 'ADMIN')
+    expect(wrapper.find('[data-mode-option="admin"]').exists()).toBe(role === 'ADMIN')
     expect(links.includes('/orders')).toBe(Boolean(role))
     expect(links.includes('/seller/shop')).toBe(Boolean(role))
     expect(links.includes('/login')).toBe(!role)

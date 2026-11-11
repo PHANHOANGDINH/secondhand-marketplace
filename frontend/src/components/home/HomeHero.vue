@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
 import { listCategories } from '../../api/category.api'
 import { listProducts } from '../../api/product.api'
 import { areaPickerOpen, useArea } from '../../composables/useArea'
@@ -10,6 +11,13 @@ import HomePromoBanner from './HomePromoBanner.vue'
 // The forest field: the headline, what Passdi is, the search and how many listings wait for a new owner
 // right now (read from the catalogue, never invented). Then the category row, which hides if categories fail.
 const router = useRouter()
+const auth = useAuthStore()
+// The same entrance as the quick-listing slide: signed-in users get the dialog, guests sign in first.
+const postTo = computed(() =>
+  auth.isAuthenticated
+    ? { path: '/', query: { 'quick-listing': '1' } }
+    : { path: '/login', query: { redirect: '/?quick-listing=1' } },
+)
 const { code, label } = useArea()
 const keyword = ref(''),
   categories = ref([]),
@@ -80,13 +88,19 @@ onMounted(async () => {
           <AppIcon name="search" :size="18" /> Tìm kiếm
         </button>
       </form>
+        <div class="home-cta">
+          <RouterLink :to="postTo" class="home-post-cta"
+            ><AppIcon name="upload" :size="20" />Đăng tin</RouterLink
+          >
+          <span class="home-cta-note">Miễn phí, hiện ngay, không chờ duyệt.</span>
+        </div>
       </div>
       <p v-if="waiting" class="home-banner-count" data-waiting>
         <strong>{{ count(waiting) }}</strong>
         <span>món đồ đang chờ chủ mới</span>
       </p>
     </div>
-    <HomePromoBanner />
+    <HomePromoBanner class="home-promo" />
     <div v-if="categories.length" class="home-categories">
       <nav ref="track" class="home-categories-track" aria-label="Danh mục nổi bật">
         <RouterLink
@@ -276,7 +290,7 @@ onMounted(async () => {
   color: var(--band-ink);
 }
 .home-category-name {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -303,7 +317,70 @@ onMounted(async () => {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
+/* The post-a-listing entrance: a light pill on the forest field, always in sight on the hero. */
+.home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-4);
+}
+.home-post-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 52px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  background: var(--on-field);
+  color: var(--field);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+.home-post-cta:hover {
+  background: var(--on-field-muted);
+  color: var(--field);
+}
+.home-post-cta:focus-visible {
+  outline: 3px solid var(--on-field);
+  outline-offset: 3px;
+}
+.home-cta-note {
+  color: var(--on-field-muted);
+  font-size: var(--font-size-body);
+}
 @media (max-width: 767px) {
+  /* The rotating banner repeats the hero on a phone and pushes the listings down. */
+  .home-promo {
+    display: none;
+  }
+  .home-hero {
+    margin-bottom: var(--space-4);
+  }
+  .home-banner {
+    padding: var(--space-5);
+  }
+  .home-banner h2 {
+    font-size: 1.9rem;
+  }
+  .home-banner-lead {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: 1rem;
+  }
+  .home-banner-count {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .home-banner-count strong {
+    font-size: 1.6rem;
+  }
+  .home-post-cta {
+    flex: 1 0 100%;
+  }
   .home-search {
     flex-wrap: wrap;
   }
@@ -313,6 +390,9 @@ onMounted(async () => {
   .home-search-area {
     flex: 1;
     max-width: none;
+  }
+  .home-search-submit {
+    flex: 1 0 100%;
   }
   .home-banner {
     grid-template-columns: minmax(0, 1fr);
@@ -326,8 +406,25 @@ onMounted(async () => {
   .home-search-area {
     border-left: 0;
   }
+  .home-categories {
+    margin-top: var(--space-3);
+    padding: var(--space-2) 0;
+  }
+  .home-categories-track {
+    padding-inline: var(--space-2);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  }
+  .home-category {
+    flex-basis: 5.25rem;
+    padding: var(--space-2) var(--space-1);
+  }
+  .home-category-icon {
+    width: 48px;
+    height: 48px;
+  }
   .home-categories-next {
-    right: 0.25rem;
+    display: none;
   }
 }
 </style>

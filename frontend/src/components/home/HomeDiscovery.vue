@@ -194,7 +194,10 @@ onBeforeUnmount(() => {
       :title="mode === 'video' ? 'Chưa có Video đánh giá' : 'Chưa có phiên đấu giá'"
       description="Nội dung công khai mới sẽ xuất hiện tại đây."
     />
-    <div v-else-if="!busy" :class="mode === 'video' ? 'video-review-grid' : 'auction-grid'">
+    <div
+      v-else-if="!busy"
+      :class="mode === 'video' ? 'video-review-grid' : 'auction-grid auction-rail'"
+    >
       <template v-if="mode === 'video'"
         ><VideoReviewCard
           v-for="video in rows"

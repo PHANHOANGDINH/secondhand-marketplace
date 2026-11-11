@@ -68,7 +68,7 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity, 'condition' => $this->condition->value,
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
             'primary_image' => $this->whenLoaded('images', fn () => ($primary = $this->images->firstWhere('is_primary', true)) ? new ProductImageResource($primary) : null),
-            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, ...$this->area(), ...$this->sellerStats(), ...$this->shopVoucher()] : null),
+            'shop' => $this->whenLoaded('shop', fn () => $this->shop ? ['id' => (string) $this->shop->id, 'name' => $this->shop->name, 'slug' => $this->shop->slug, 'logo_url' => $this->shop->logoUrl(), ...$this->area(), ...$this->sellerStats(), ...$this->shopVoucher()] : null),
             'category' => $this->whenLoaded('category', fn () => $this->category ? ['id' => (string) $this->category->id, 'name' => $this->category->name, 'slug' => $this->category->slug] : null),
             'auction' => $this->whenLoaded('auctionClaim', fn () => $this->auctionClaim ? ['id' => (string) $this->auctionClaim->id, 'status' => $this->auctionClaim->status->value, 'current_price' => $this->auctionClaim->current_price, 'starts_at' => $this->auctionClaim->starts_at?->toISOString(), 'ends_at' => $this->auctionClaim->ends_at?->toISOString()] : null),
             'created_at' => $this->created_at?->toISOString(), 'published_at' => $this->published_at?->toISOString(),

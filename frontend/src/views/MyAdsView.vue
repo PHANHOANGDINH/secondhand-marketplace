@@ -1,4 +1,5 @@
 <script setup>
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as productsApi from '../api/product.api'
@@ -50,7 +51,6 @@ const { busy, error, errors, success, run } = useFeedback()
 const tab = computed(() => tabs.find((item) => item.key === route.query.tab) || tabs[0])
 const page = computed(() => Math.max(1, Number.parseInt(route.query.page, 10) || 1))
 const term = computed(() => (typeof route.query.q === 'string' ? route.query.q.trim() : ''))
-const initials = computed(() => (auth.user?.name || '?').trim().charAt(0).toUpperCase())
 const canPost = computed(() => ['PENDING', 'ACTIVE'].includes(shop.value?.status))
 const go = (query) => router.replace({ query: { ...route.query, page: undefined, ...query } })
 
@@ -117,7 +117,7 @@ onMounted(() => {
       </ul>
     </div>
     <div class="my-ads-profile">
-      <span class="my-ads-avatar" aria-hidden="true">{{ initials }}</span>
+      <UserAvatar class="my-ads-avatar" :name="auth.user?.name" :url="auth.user?.avatar_url || ''" />
       <div class="my-ads-who">
         <strong>{{ auth.user?.name }}</strong>
         <span v-if="shop" class="my-ads-shop"

@@ -8,6 +8,21 @@ export async function register(details) {
   await getCsrfCookie()
   return (await api.post('/api/v1/auth/register', details)).data.data
 }
+/** Posts the signed link from the mail; the API checks its signature and expiry. */
+export async function verifyEmail({ id, hash, expires, signature }) {
+  await getCsrfCookie()
+  const path = `/api/v1/auth/email/verify/${encodeURIComponent(id)}/${encodeURIComponent(hash)}`
+  return (await api.post(path, null, { params: { expires, signature } })).data
+}
+/** Confirms the address with the six-digit code from the same mail. */
+export async function verifyEmailCode(details) {
+  await getCsrfCookie()
+  return (await api.post('/api/v1/auth/email/verify-code', details)).data
+}
+export async function resendVerification(details) {
+  await getCsrfCookie()
+  return (await api.post('/api/v1/auth/email/resend', details)).data
+}
 export async function logout() {
   await getCsrfCookie()
   await api.post('/api/v1/auth/logout')

@@ -129,7 +129,7 @@ class MarketplaceCatalogSeeder extends Seeder
         $owner = User::withTrashed()->where('email', $email)->first();
         if (! $owner) {
             $owner = new User;
-            $owner->forceFill(['name' => $row['owner'], 'email' => $email, 'password' => $password, 'role' => UserRole::USER, 'status' => UserStatus::ACTIVE])->save();
+            $owner->forceFill(['name' => $row['owner'], 'email' => $email, 'password' => $password, 'email_verified_at' => now(), 'role' => UserRole::USER, 'status' => UserStatus::ACTIVE])->save();
         }
         $shop = Shop::withTrashed()->where('owner_id', $owner->id)->first();
         if ($shop) {

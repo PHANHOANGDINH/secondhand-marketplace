@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\AuctionCheckoutController;
 use App\Http\Controllers\Api\V1\AuctionController;
 use App\Http\Controllers\Api\V1\Auth\AccountPasswordController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckoutController;
@@ -58,6 +59,9 @@ Route::prefix('auth')->name('auth.')->group(function (): void {
         Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:reset-password')->name('reset-password');
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register')->name('register');
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
+        Route::post('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->whereNumber('id')->middleware('throttle:email-verify')->name('email-verification.verify');
+        Route::post('/email/verify-code', [EmailVerificationController::class, 'verifyCode'])->middleware('throttle:email-code')->name('email-verification.verify-code');
+        Route::post('/email/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:email-verification')->name('email-verification.resend');
     });
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/me', [AuthController::class, 'me'])->middleware(EnsureActiveAccount::class)->name('me');
@@ -76,11 +80,15 @@ Route::middleware('throttle:public-read')->group(function (): void {
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->middleware('throttle:upload');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->middleware('throttle:upload');
     Route::apiResource('/addresses', AddressController::class);
     Route::patch('/addresses/{address}/default', [AddressController::class, 'setDefault']);
     Route::post('/shops', [SellerShopController::class, 'store']);
     Route::get('/seller/shop', [SellerShopController::class, 'show']);
     Route::patch('/seller/shop', [SellerShopController::class, 'update']);
+    Route::post('/seller/shop/logo', [SellerShopController::class, 'uploadLogo'])->middleware('throttle:upload');
+    Route::delete('/seller/shop/logo', [SellerShopController::class, 'removeLogo'])->middleware('throttle:upload');
     Route::post('/seller/shop/submit', [SellerShopController::class, 'submit']);
     Route::prefix('admin')->middleware(EnsureAdmin::class)->group(function (): void {
         Route::get('/shops', [AdminShopController::class, 'index']);

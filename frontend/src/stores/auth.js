@@ -56,7 +56,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   const login = (data) => authenticate(authApi.login, data)
-  const register = (data) => authenticate(authApi.register, data)
+  async function register(data) {
+    loading.value = true
+    try {
+      return await authApi.register(data)
+    } finally {
+      loading.value = false
+    }
+  }
   async function logout() {
     loading.value = true
     try {

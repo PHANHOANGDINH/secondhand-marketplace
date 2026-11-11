@@ -6,6 +6,7 @@ import { getProfile, updateProfile } from '../api/profile.api'
 import { useFeedback } from '../composables/useFeedback'
 import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import AvatarPicker from '../components/account/AvatarPicker.vue'
 const auth = useAuthStore()
 const profile = ref(null),
   // Shown as read-only details until "Sửa hồ sơ" is pressed.
@@ -45,6 +46,7 @@ onMounted(load)
     >
       Tải lại
     </button>
+    <AvatarPicker v-if="profile" class="mb-3" @changed="profile = $event" />
     <section v-if="profile && !editing" class="workspace-panel" data-profile-view>
       <div class="workspace-panel-heading">
         <h2>Thông tin cá nhân</h2>

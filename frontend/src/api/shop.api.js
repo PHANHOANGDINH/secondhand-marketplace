@@ -15,3 +15,9 @@ export const getMyShopReview = async (slug) =>
   (await read(`shops/${encodeURIComponent(slug)}/reviews/mine`)).data
 export const saveShopReview = (slug, data) =>
   mutate('put', `shops/${encodeURIComponent(slug)}/reviews`, data)
+export async function uploadShopLogo(picture) {
+  const data = new FormData()
+  data.append('avatar', picture, 'logo.jpg')
+  return (await mutate('post', 'seller/shop/logo', data)).data
+}
+export const removeShopLogo = async () => (await mutate('delete', 'seller/shop/logo')).data

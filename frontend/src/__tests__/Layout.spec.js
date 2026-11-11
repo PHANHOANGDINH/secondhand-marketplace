@@ -213,3 +213,18 @@ it('footer has four columns whose links all lead to real pages, and the static p
   expect(seller.wrapper.find('footer.site-footer').exists()).toBe(false)
   expect(seller.wrapper.find('.marketplace-header').exists()).toBe(false)
 })
+
+it('the name and email at the top of the account menu open the profile and close the menu', async () => {
+  const { wrapper, router } = await setup({ role: 'USER' })
+  const menu = wrapper.get('details.marketplace-account')
+  menu.element.open = true
+  const head = wrapper.get('[data-account-head]')
+
+  expect(head.attributes('href')).toBe('/account/profile')
+  expect(head.text()).toContain('Người dùng')
+
+  await head.trigger('click')
+  // The page is loaded lazily, so the navigation ends a little later.
+  await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/profile'))
+  expect(menu.element.open).toBe(false)
+})

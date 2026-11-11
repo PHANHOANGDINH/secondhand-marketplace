@@ -60,7 +60,11 @@ class TemporaryPasswordService
             if (! $user || ! $user->temporary_password || ! $user->temporary_password_expires_at?->isFuture() || ! Hash::check($password, $user->temporary_password)) {
                 return null;
             }
-            $user->forceFill(['temporary_password' => null, 'temporary_password_expires_at' => null, 'must_change_password' => true])->save();
+            // The temporary password only ever went to this mailbox, so using it also proves the address.
+            $user->forceFill([
+                'temporary_password' => null, 'temporary_password_expires_at' => null, 'must_change_password' => true,
+                'email_verified_at' => $user->email_verified_at ?? now(),
+            ])->save();
             $this->audit->record($user, 'users', $user->id, 'user.temporary_password_used', null, null, null);
 
             return $user;

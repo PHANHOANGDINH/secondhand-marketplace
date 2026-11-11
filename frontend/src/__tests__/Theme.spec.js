@@ -146,8 +146,8 @@ it('BrandLogo shows the round badge and the two-colour "pass·di" wordmark', () 
   const full = mount(BrandLogo)
   expect(full.attributes()).toMatchObject({ role: 'img', 'aria-label': 'Passdi' })
   expect(full.get('.brand-logo-mark').attributes()).toMatchObject({
-    width: '40',
-    height: '40',
+    width: '52',
+    height: '52',
     alt: '',
     'aria-hidden': 'true',
   })
@@ -169,7 +169,7 @@ it('BrandLogo shows the round badge and the two-colour "pass·di" wordmark', () 
     mount(BrandLogo, { props: { compact: true } })
       .get('.brand-logo-mark')
       .attributes('width'),
-  ).toBe('34')
+  ).toBe('44')
 })
 
 it('favicon is the badge and the page links the Apple touch icon', () => {

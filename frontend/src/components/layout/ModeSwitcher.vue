@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { getSellerShop } from '../../api/shop.api'
 import AppIcon from '../ui/AppIcon.vue'
@@ -9,7 +9,8 @@ import AppIcon from '../ui/AppIcon.vue'
 // inline: drawn open inside another menu (the account menu), as a segmented control plus its shortcuts.
 const props = defineProps({ inline: Boolean })
 const auth = useAuthStore(),
-  route = useRoute()
+  route = useRoute(),
+  router = useRouter()
 const open = ref(false),
   root = ref(null),
   stored = ref('buyer'),
@@ -74,7 +75,12 @@ async function choose(next) {
   } catch {
     /* the choice still applies to this page view */
   }
-  if (next === 'seller') checkShop()
+  const seller = next === 'seller'
+  if (seller) await checkShop()
+  // The buyer account menu only swaps its shortcuts; anywhere else the choice opens that area.
+  if (next === fromRoute.value || (props.inline && !fromRoute.value)) return
+  if (seller) router.push(hasShop.value === false ? '/seller/shop' : '/seller/dashboard')
+  else router.push(next === 'admin' ? '/admin' : '/')
 }
 // Asked once, only when the seller shortcuts are about to be shown.
 async function checkShop() {
@@ -138,7 +144,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
           class="mode-switcher-mode"
           :class="{ 'is-active': mode === item }"
           :aria-pressed="mode === item"
-          :disabled="Boolean(fromRoute) && fromRoute !== item"
           :data-mode-option="item"
           :aria-label="inline ? labels[item] : undefined"
           @click.stop="choose(item)"
@@ -215,16 +220,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
   font-weight: 600;
   text-align: left;
 }
-.mode-switcher-mode:hover:not(:disabled) {
+.mode-switcher-mode:hover {
   background: var(--surface-2);
 }
 .mode-switcher-mode.is-active {
   border-color: var(--primary);
   background: var(--primary-soft);
   color: var(--primary-ink);
-}
-.mode-switcher-mode:disabled {
-  color: var(--muted);
 }
 .mode-switcher-links {
   display: grid;

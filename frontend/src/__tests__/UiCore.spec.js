@@ -83,28 +83,35 @@ it('formats how long ago a listing was published, in Vietnamese', () => {
   for (const missing of [null, undefined, '', 'not-a-date']) expect(timeAgo(missing, NOW)).toBe('')
 })
 
-it('listing card: time and photo count over the image, then price and a muted line with condition, shop and area', async () => {
+it('listing card: photo count on the image, then price, title, condition chip, "area · time" and the seller line', async () => {
   const { wrapper } = await setup(ProductCard, {
     props: { product: product({ images: [{ id: '1' }, { id: '2' }, { id: '3' }], shop: { id: '2', name: 'Tiệm Cũ', slug: 'tiem-cu', province_code: '79', province_name: 'TP. Hồ Chí Minh' } }) },
   })
+  expect(wrapper.get('.product-card-condition').text()).toBe('Tốt')
+  expect(wrapper.get('.product-card-condition').classes()).toContain('is-good')
   const meta = wrapper.get('.product-card-meta')
-  expect(meta.findAll(':scope > *').map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', 'TP. Hồ Chí Minh'])
-  expect(meta.get('a').attributes('href')).toBe('/shops/tiem-cu')
+  expect(meta.findAll(':scope > *').map((node) => node.text())).toEqual(['TP. Hồ Chí Minh', '3 giờ trước'])
+  expect(meta.get('time').attributes('datetime')).toBe('2026-10-13T09:00:00Z')
+  const seller = wrapper.get('.product-card-seller')
+  expect(seller.text()).toBe('Tiệm Cũ')
+  expect(seller.get('a').attributes('href')).toBe('/shops/tiem-cu')
   const overlay = wrapper.get('.product-card-media .product-card-overlay')
-  expect(overlay.get('time').text()).toBe('3 giờ trước')
-  expect(overlay.get('time').attributes('datetime')).toBe('2026-10-13T09:00:00Z')
   expect(overlay.get('.product-card-photos').text()).toBe('3')
   expect(overlay.get('.product-card-photos').attributes('aria-label')).toBe('3 ảnh')
   expect(wrapper.get('.product-card-price').text()).toContain('1.500.000')
   expect(wrapper.get('h2 a').attributes('href')).toBe('/products/may-anh-phim')
+  expect(wrapper.get('.product-card-image img').attributes('alt')).toBe('Máy ảnh phim')
   expect(wrapper.find('.product-card-badge').exists()).toBe(false)
   expect(wrapper.find('.product-card-rating').exists()).toBe(false)
+  expect(wrapper.find('.product-card-sold').exists()).toBe(false)
   expect(wrapper.find('.product-card-reason').exists()).toBe(false)
   expect(wrapper.get('.product-card-favorite button').attributes('aria-label')).toBe('Thêm vào yêu thích: Máy ảnh phim')
   expect(wrapper.get('.product-card-favorite svg').attributes('aria-hidden')).toBe('true')
 
   const bare = await setup(ProductCard, { props: { product: product({ shop: null, published_at: null }) } })
-  expect(bare.wrapper.get('.product-card-meta').text()).toBe('Tốt')
+  expect(bare.wrapper.get('.product-card-condition').text()).toBe('Tốt')
+  expect(bare.wrapper.find('.product-card-meta').exists()).toBe(false)
+  expect(bare.wrapper.find('.product-card-seller').exists()).toBe(false)
   expect(bare.wrapper.find('.product-card-overlay').exists()).toBe(false)
   // A shop without an area simply has no area segment.
   const noArea = await setup(ProductCard, { props: { product: product() } })
@@ -148,15 +155,15 @@ it('header shows the logo, the post button and no emoji glyphs', async () => {
   expect(wrapper.get('header').text()).not.toMatch(/[↗＋⌄♥♡★☰▾]/)
 })
 
-it('listing card marks a video on the image and ends the meta line with a compact rating', async () => {
+it('listing card marks a video on the image and puts a compact rating before the shop name', async () => {
   const { wrapper } = await setup(ProductCard, {
     props: { product: product({ has_video: true, review_count: 12, average_rating: 4.75 }) },
   })
   expect(wrapper.get('.product-card-media .product-card-badge-video').text()).toBe('Có video')
-  const parts = wrapper.get('.product-card-meta').findAll(':scope > *')
-  expect(parts.map((node) => node.text())).toEqual(['Tốt', 'Tiệm Cũ', '4.8 (12)'])
-  expect(parts.at(-1).attributes('aria-label')).toBe('4.8 trên 5, 12 đánh giá')
-  expect(parts.at(-1).get('svg').attributes('aria-hidden')).toBe('true')
+  const parts = wrapper.get('.product-card-seller').findAll(':scope > *')
+  expect(parts.map((node) => node.text())).toEqual(['4,8 (12)', 'Tiệm Cũ'])
+  expect(parts[0].attributes('aria-label')).toBe('4,8 trên 5, 12 đánh giá')
+  expect(parts[0].get('svg').attributes('aria-hidden')).toBe('true')
 
   for (const extra of [{ has_video: false }, { review_count: 0, average_rating: null }, {}]) {
     const plain = await setup(ProductCard, { props: { product: product(extra) } })
@@ -211,4 +218,29 @@ it('product detail seller card shows the shop rating and join month only when th
   const bare = await mountDetail(detail.shop)
   expect(bare.find('.product-seller-stats').exists()).toBe(false)
   expect(bare.get('.buyer-shop-panel a').attributes('href')).toBe('/shops/tiem-cu')
+})
+
+it('listing card shows a sold or out-of-stock state, a low-stock chip and the cover fit on the photo', async () => {
+  const sold = await setup(ProductCard, { props: { product: product({ status: 'SOLD' }) } })
+  expect(sold.wrapper.get('.product-card-sold').text()).toBe('Đã bán')
+  expect(sold.wrapper.get('h2 a').attributes('href')).toBe('/products/may-anh-phim')
+  const out = await setup(ProductCard, { props: { product: product({ stock_quantity: 0 }) } })
+  expect(out.wrapper.get('.product-card-sold').text()).toBe('Hết hàng')
+  const low = await setup(ProductCard, { props: { product: product({ stock_quantity: 2 }) } })
+  expect(low.wrapper.get('.product-card-stock').text()).toBe('Còn 2')
+  expect(low.wrapper.find('.product-card-sold').exists()).toBe(false)
+  const many = await setup(ProductCard, { props: { product: product({ stock_quantity: 9 }) } })
+  expect(many.wrapper.find('.product-card-stock').exists()).toBe(false)
+  const photo = low.wrapper.get('.product-card-image img')
+  expect(photo.classes()).toContain('product-photo-cover')
+  expect(photo.classes()).not.toContain('rounded')
+})
+
+it('listing card condition chip keeps the words and a tone class for each level', async () => {
+  const tones = { LIKE_NEW: ['Như mới', 'is-like-new'], GOOD: ['Tốt', 'is-good'], FAIR: ['Đã sử dụng nhiều', 'is-fair'], POOR: ['Cần sửa chữa', 'is-poor'] }
+  for (const [condition, [text, tone]] of Object.entries(tones)) {
+    const { wrapper } = await setup(ProductCard, { props: { product: product({ condition }) } })
+    expect(wrapper.get('.product-card-condition').text()).toBe(text)
+    expect(wrapper.get('.product-card-condition').classes()).toContain(tone)
+  }
 })

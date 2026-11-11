@@ -1,4 +1,5 @@
 <script setup>
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import { onMounted, ref } from 'vue'
 import { listShops } from '../api/shop.api'
 import { useFeedback } from '../composables/useFeedback'
@@ -43,11 +44,14 @@ onMounted(() => load())
     <div class="row g-3">
       <article v-for="shop in rows" :key="shop.id" class="col-md-6 col-lg-4">
         <div class="card h-100 public-shop-card">
-          <div class="card-body">
-            <h2 class="h5">
-              <RouterLink :to="`/shops/${shop.slug}`">{{ shop.name }}</RouterLink>
-            </h2>
-            <p class="text-break">{{ shop.description }}</p>
+          <div class="card-body shop-card-body">
+            <UserAvatar class="shop-card-picture" :name="shop.name" :url="shop.logo_url || ''" />
+            <div class="shop-card-text">
+              <h2 class="h5">
+                <RouterLink :to="`/shops/${shop.slug}`">{{ shop.name }}</RouterLink>
+              </h2>
+              <p class="text-break">{{ shop.description }}</p>
+            </div>
           </div>
         </div>
       </article>
@@ -55,3 +59,25 @@ onMounted(() => load())
     <CollectionPager :meta="meta" :busy="busy" @page="load" />
   </section>
 </template>
+<style scoped>
+.shop-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.shop-card-picture {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+.shop-card-text {
+  flex: 1;
+  min-width: 0;
+}
+</style>

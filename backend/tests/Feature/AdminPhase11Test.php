@@ -121,6 +121,31 @@ class AdminPhase11Test extends TestCase
         $this->getJson('/api/v1/admin/dashboard')->assertJsonPath('data.total_revenue', '20000000000000.08');
     }
 
+    public function test_dashboard_revenue_by_month_uses_vietnam_months_and_keeps_empty_ones(): void
+    {
+        $this->admin();
+        // 00:30 on 1 December in Vietnam, still November in UTC.
+        $this->travelTo('2026-11-30 17:30:00');
+        foreach ([
+            ['2026-06-30 16:59:59', '999.00'],
+            ['2026-06-30 17:00:00', '10.10'],
+            ['2026-11-30 16:59:59', '100000.05'],
+            ['2026-11-30 16:00:00', '99999.95'],
+            ['2026-11-30 17:00:00', '0.20'],
+        ] as [$completedAt, $subtotal]) {
+            ShopOrder::factory()->completed()->create(['completed_at' => $completedAt, 'subtotal' => $subtotal]);
+        }
+        ShopOrder::factory()->create(['status' => 'SHIPPING', 'completed_at' => '2026-11-10 00:00:00', 'subtotal' => '777.00']);
+        $this->getJson('/api/v1/admin/dashboard')->assertOk()->assertJsonPath('data.revenue_by_month', [
+            ['period' => '2026-07', 'revenue' => '10.10', 'completed_orders' => 1],
+            ['period' => '2026-08', 'revenue' => '0.00', 'completed_orders' => 0],
+            ['period' => '2026-09', 'revenue' => '0.00', 'completed_orders' => 0],
+            ['period' => '2026-10', 'revenue' => '0.00', 'completed_orders' => 0],
+            ['period' => '2026-11', 'revenue' => '200000.00', 'completed_orders' => 2],
+            ['period' => '2026-12', 'revenue' => '0.20', 'completed_orders' => 1],
+        ]);
+    }
+
     public function test_recent_records_are_limited_sorted_and_redacted(): void
     {
         $this->admin();

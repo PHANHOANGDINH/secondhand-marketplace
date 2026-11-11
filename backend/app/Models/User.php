@@ -10,16 +10,24 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    protected $hidden = ['password', 'remember_token', 'temporary_password'];
+    protected $hidden = ['password', 'remember_token', 'temporary_password', 'email_verification_code'];
 
     protected $fillable = ['name', 'email', 'password', 'phone', 'avatar_path'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
+
+    /** New accounts must confirm their address before signing in; older ones are exempt (config/auth.php). */
+    public function requiresEmailVerification(): bool
+    {
+        return ! $this->hasVerifiedEmail()
+            && $this->created_at?->greaterThanOrEqualTo(Carbon::parse(config('auth.email_verification.required_from'))) === true;
+    }
 
     protected function casts(): array
     {
@@ -27,6 +35,8 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'status' => UserStatus::class,
             'email_verified_at' => 'datetime',
+            'email_verification_code_expires_at' => 'datetime',
+            'email_verification_code_attempts' => 'integer',
             'temporary_password_expires_at' => 'datetime',
             'must_change_password' => 'boolean',
             'password' => 'hashed',

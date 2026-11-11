@@ -137,7 +137,7 @@ class MarketplaceSeeder extends Seeder
         $user = User::withTrashed()->where('email', $email)->first();
         if (! $user) {
             $user = new User;
-            $user->forceFill(['name' => $name, 'email' => $email, 'password' => $password, 'role' => $role, 'status' => UserStatus::ACTIVE])->save();
+            $user->forceFill(['name' => $name, 'email' => $email, 'password' => $password, 'email_verified_at' => now(), 'role' => $role, 'status' => UserStatus::ACTIVE])->save();
         }
 
         return $user;

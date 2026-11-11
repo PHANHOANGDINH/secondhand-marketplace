@@ -6,9 +6,10 @@ import { useArea } from '../../composables/useArea'
 import { listRecommendations } from '../../api/recommendation.api'
 import { listProducts } from '../../api/product.api'
 import ProductCard from '../ProductCard.vue'
-import SkeletonState from '../ui/SkeletonState.vue'
+import ProductGridSkeleton from '../ui/ProductGridSkeleton.vue'
 import EmptyState from '../ui/EmptyState.vue'
 import HomeDiscovery from './HomeDiscovery.vue'
+import HomeAuctions from './HomeAuctions.vue'
 // Home feed: four tabs over the existing sources. The two product tabs follow the chosen area;
 // video and auction reuse the discovery component (theater, pager and deep links included).
 const auth = useAuthStore(),
@@ -71,7 +72,10 @@ watch(
 </script>
 <template>
   <section class="home-tabs" aria-labelledby="home-tabs-title">
-    <h2 id="home-tabs-title" class="visually-hidden">Tin đăng</h2>
+    <header class="home-section-head">
+      <h2 id="home-tabs-title">Tin mới đăng</h2>
+      <span v-if="code && products" class="home-tabs-area">Khu vực: {{ label }}</span>
+    </header>
     <div class="home-tabs-bar" role="group" aria-label="Loại tin đăng">
       <button
         v-for="[key, text] in tabs"
@@ -85,21 +89,20 @@ watch(
       >
         {{ text }}
       </button>
-      <span v-if="code && products" class="home-tabs-area">Khu vực: {{ label }}</span>
     </div>
     <template v-if="products">
-      <SkeletonState v-if="busy" :count="6" label="Đang tải tin đăng…" />
-      <p v-else-if="failed" role="alert" class="alert alert-danger">
+      <ProductGridSkeleton v-if="busy" :count="8" label="Đang tải tin đăng…" />
+      <div v-else-if="failed" role="alert" class="alert alert-danger home-failed">
         Không tải được tin đăng.
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" @click="load">Tải lại</button>
-      </p>
+        <button type="button" class="btn btn-outline-secondary ms-2" @click="load">Tải lại</button>
+      </div>
       <EmptyState
         v-else-if="!rows.length"
         :title="code ? `Chưa có tin đăng ở ${label}` : 'Chưa có tin đăng'"
         description="Thử chọn khu vực khác hoặc xem tin toàn quốc."
       />
       <template v-else>
-        <div class="home-grid">
+        <div class="product-grid home-grid">
           <ProductCard v-for="product in rows" :key="product.id" :product="product" />
         </div>
         <p class="home-more">
@@ -109,19 +112,36 @@ watch(
     </template>
     <HomeDiscovery v-else :key="tab" :default-mode="tab" hide-switch />
   </section>
+  <HomeAuctions />
 </template>
 <style scoped>
 .home-tabs {
-  margin-bottom: var(--space-10);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
+  margin-bottom: var(--space-8);
 }
+.home-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.home-section-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.home-tabs-area {
+  color: var(--muted);
+  font-size: var(--font-size-small);
+  text-align: right;
+}
+/* Tabs are filter chips; the row scrolls sideways on a narrow phone. */
 .home-tabs-bar {
   display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  margin-bottom: var(--space-4);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -130,59 +150,66 @@ watch(
 }
 .home-tab {
   flex: none;
-  min-height: 48px;
-  padding: 0 var(--space-1);
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 1.3rem;
-  font-weight: 700;
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--font-size-body);
+  font-weight: 600;
   white-space: nowrap;
-  transition: color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 .home-tab:hover {
-  color: var(--text);
+  background: var(--surface-2);
 }
 .home-tab.is-active {
-  color: var(--text);
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 .home-tab:focus-visible {
   outline: var(--focus-ring);
-  outline-offset: -3px;
-}
-.home-tabs-area {
-  margin-left: auto;
-  padding-right: var(--space-2);
-  color: var(--muted);
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-.home-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-5);
+  outline-offset: 2px;
 }
 .home-more {
-  margin: var(--space-5) 0 var(--space-2);
+  margin: var(--space-5) 0 0;
   text-align: center;
+}
+.home-more .btn {
+  min-width: 12rem;
+  min-height: var(--control-height);
+  border-radius: var(--radius-pill);
+}
+.home-failed .btn {
+  min-height: var(--control-height);
 }
 .home-tabs :deep(.home-discovery) {
   margin: 0;
   padding: 0;
   border: 0;
+  background: transparent;
 }
-@media (max-width: 1199px) {
-  .home-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (min-width: 768px) {
+  .home-section-head h2 {
+    font-size: 1.5rem;
   }
-}
-@media (max-width: 767px) {
   .home-tabs {
-    padding: var(--space-3);
+    margin-bottom: var(--space-10);
   }
-  .home-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
+}
+/* On phones the feed is eight cards (four rows) and "Xem thêm" leads to the rest. */
+@media (max-width: 767px) {
+  .home-grid > :nth-child(n + 9) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-tab {
+    transition: none;
   }
 }
 </style>

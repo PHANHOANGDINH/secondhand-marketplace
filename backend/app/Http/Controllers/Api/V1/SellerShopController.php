@@ -38,6 +38,23 @@ class SellerShopController extends Controller
         return new ManagedShopResource($this->service->update($request->user(), $shop, $request->validated()));
     }
 
+    public function uploadLogo(Domain\UploadAvatarRequest $request): ManagedShopResource
+    {
+        $shop = $request->user()->shop()->firstOrFail();
+        // Before the file is written: a suspended shop must leave nothing behind.
+        Gate::authorize('update', $shop);
+
+        return new ManagedShopResource($this->service->replaceLogo($request->user(), $shop, $request->file('avatar')));
+    }
+
+    public function removeLogo(Request $request): ManagedShopResource
+    {
+        $shop = $request->user()->shop()->firstOrFail();
+        Gate::authorize('update', $shop);
+
+        return new ManagedShopResource($this->service->removeLogo($request->user(), $shop));
+    }
+
     public function submit(Domain\DomainRequest $request): ManagedShopResource
     {
         $shop = $request->user()->shop()->firstOrFail();

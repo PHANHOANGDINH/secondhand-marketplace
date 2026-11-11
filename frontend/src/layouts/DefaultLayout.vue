@@ -15,6 +15,7 @@ import BrandLogo from '../components/ui/BrandLogo.vue'
 import ThemeChoices from '../components/ui/ThemeChoices.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import AdminShell from '../components/admin/AdminShell.vue'
 import SellerShell from '../components/seller/SellerShell.vue'
 import AccountNav from '../components/account/AccountNav.vue'
@@ -78,15 +79,6 @@ const drawerOpen = ref(false),
   menuToggle = ref(null),
   accountMenu = ref(null)
 const quickOpen = computed(() => auth.isAuthenticated && route.query['quick-listing'] === '1')
-const initials = computed(() =>
-  (auth.user?.name || 'Tài khoản')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toLocaleUpperCase('vi-VN'),
-)
 function closeNavigation() {
   accountMenu.value?.removeAttribute('open')
 }
@@ -139,7 +131,7 @@ const adminPage = computed(() => /^\/admin(\/|$)/.test(route?.path || ''))
 const accountPage = computed(() => /^\/account(\/|$)/.test(route?.path || ''))
 // Sign-in, sign-up and the password pages stand on their own: no pinned menu, a way home inside the page.
 const authPage = computed(() =>
-  ['/login', '/register', '/forgot-password', '/reset-password'].includes(route?.path),
+  ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes(route?.path),
 )
 // The home page has its own large search box; every other page gets the compact one in the header.
 const homePage = computed(() => (route?.path || '/') === '/')
@@ -228,10 +220,6 @@ function closeAccountMenu(event) {
           <NotificationBell />
           <ChatLauncher compact />
           <CartLink icon-only />
-          <RouterLink to="/my-ads" class="marketplace-manage">Quản lý tin</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/admin/dashboard" class="marketplace-admin-entry"
-            >Quản trị</RouterLink
-          >
         </template>
         <button
           type="button"
@@ -248,19 +236,21 @@ function closeAccountMenu(event) {
             @keydown.esc.stop="closeAccountMenu"
           >
             <summary>
-              <span class="marketplace-avatar" aria-hidden="true">{{ initials }}</span
-              ><span class="visually-hidden">Tài khoản</span
+              <UserAvatar class="marketplace-avatar" :name="auth.user?.name" :url="auth.user?.avatar_url || ''" /><span
+                class="visually-hidden"
+                >Tài khoản</span
               ><span class="marketplace-account-name">{{ auth.user?.name || 'Tài khoản' }}</span
               ><AppIcon name="chevronDown" :size="16" />
             </summary>
             <div class="marketplace-account-menu" @click="closeAccountMenu">
-              <div class="marketplace-account-head">
-                <span class="marketplace-avatar" aria-hidden="true">{{ initials }}</span>
+              <RouterLink to="/account/profile" class="marketplace-account-head" data-account-head>
+                <UserAvatar class="marketplace-avatar" :name="auth.user?.name" :url="auth.user?.avatar_url || ''" />
                 <div>
                   <strong>{{ auth.user?.name || 'Tài khoản' }}</strong>
                   <small>{{ auth.user?.email }}</small>
                 </div>
-              </div>
+                <AppIcon name="chevronRight" :size="16" />
+              </RouterLink>
               <ModeSwitcher inline class="marketplace-account-section" />
               <nav class="marketplace-account-links" aria-label="Tài khoản">
                 <RouterLink v-for="[path, label, icon] in accountLinks" :key="path" :to="path"
@@ -577,6 +567,24 @@ function closeAccountMenu(event) {
   padding: 0.25rem 0.25rem 0.6rem;
   border-bottom: 1px solid var(--border);
 }
+.marketplace-account-menu a.marketplace-account-head {
+  min-height: var(--control-height);
+  padding: 0.25rem 0.25rem 0.6rem;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-size: 1rem;
+}
+.marketplace-account-head > div {
+  flex: 1;
+  min-width: 0;
+}
+.marketplace-account-head > svg {
+  flex: none;
+  color: var(--muted);
+}
+.marketplace-account-head:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
 .marketplace-account-head strong,
 .marketplace-account-head small {
   display: block;
@@ -692,13 +700,7 @@ function closeAccountMenu(event) {
     display: inline;
   }
 }
-@media (max-width: 1499px) {
-  .marketplace-links > a.marketplace-manage {
-    display: none;
-  }
-}
 @media (max-width: 1199px) {
-  .marketplace-links > a.marketplace-admin-entry,
   .marketplace-icon-link {
     display: none;
   }

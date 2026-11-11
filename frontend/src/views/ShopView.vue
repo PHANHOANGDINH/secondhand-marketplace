@@ -1,4 +1,5 @@
 <script setup>
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getShop } from '../api/shop.api'
@@ -42,9 +43,7 @@ watch(() => route.params.slug, load, { immediate: true })
     </button>
     <template v-if="shop"
       ><div class="shop-hero">
-        <span class="shop-hero-avatar" aria-hidden="true">{{
-          shop.name.trim().charAt(0).toLocaleUpperCase('vi-VN')
-        }}</span>
+        <UserAvatar class="shop-hero-avatar" :name="shop.name" :url="shop.logo_url || ''" />
         <div class="shop-hero-body">
           <PageHeader :title="shop.name" eyebrow="Gian hàng trên sàn mua bán" />
           <a v-if="rating" href="#shop-reviews" class="shop-hero-rating" data-shop-rating>

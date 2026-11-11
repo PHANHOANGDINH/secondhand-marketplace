@@ -10,6 +10,7 @@ import DomainField from '../components/DomainField.vue'
 import DomainFeedback from '../components/DomainFeedback.vue'
 import { useArea } from '../composables/useArea'
 import DetailSheet from '../components/ui/DetailSheet.vue'
+import PicturePicker from '../components/account/PicturePicker.vue'
 const shop = ref(null),
   loaded = ref(false),
   // An existing shop is shown as details; "Sửa thông tin" opens the form beside them.
@@ -77,6 +78,18 @@ useSellerIdentity(() => shop.value)
           { title: 'Sản phẩm:', text: 'soạn tin ở mục Sản phẩm của tôi hoặc bằng Đăng bán nhanh.' },
           { title: 'Đơn bán:', text: 'đơn mới xuất hiện ở mục Đơn bán và trên trang Thống kê.' },
         ]"
+      />
+      <PicturePicker
+        v-if="shop && !suspended"
+        class="mb-3"
+        :name="shop.name"
+        :url="shop.logo_url || ''"
+        title="Ảnh gian hàng"
+        hint="Người mua thấy ảnh này ở gian hàng và tin đăng của bạn."
+        noun="ảnh gian hàng"
+        :upload="(picture) => shopsApi.uploadShopLogo(picture)"
+        :remove="() => shopsApi.removeShopLogo()"
+        @changed="shop = $event"
       />
       <div v-if="shop" class="workspace-panel" data-shop-view>
         <div class="workspace-panel-heading">

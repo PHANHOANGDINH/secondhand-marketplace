@@ -1,4 +1,5 @@
 <script setup>
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProduct } from '../api/product.api'
@@ -125,9 +126,7 @@ const joined = computed(() => {
         </div>
         <div class="product-seller">
           <p v-if="product.shop" class="buyer-shop-panel">
-            <span class="product-seller-avatar" aria-hidden="true">{{
-              product.shop.name.trim().charAt(0).toLocaleUpperCase('vi-VN')
-            }}</span>
+            <UserAvatar class="product-seller-avatar" :name="product.shop.name" :url="product.shop.logo_url || ''" />
             <span
               >Gian hàng:
               <RouterLink :to="`/shops/${product.shop.slug}`">{{

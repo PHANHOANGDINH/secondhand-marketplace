@@ -7,10 +7,13 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 class AdminDashboardService
 {
+    private const REVENUE_MONTHS = 6;
+
     public function summary(): array
     {
         return DB::transaction(function (): array {
@@ -20,9 +23,27 @@ class AdminDashboardService
             $revenue = ShopOrder::where('status', 'COMPLETED')->sum('subtotal');
 
             return ['total_users' => (int) $users->total, 'active_users' => (int) $users->active, 'total_shops' => (int) $shops->total, 'active_shops' => (int) $shops->active, 'pending_shops' => (int) $shops->pending, 'total_products' => (int) $products->total, 'active_products' => (int) $products->active, 'pending_products' => (int) $products->pending,
-                'total_orders' => Order::count(), 'completed_orders' => OrderSummary::filter(Order::query(), 'COMPLETED')->count(), 'cancelled_orders' => OrderSummary::filter(Order::query(), 'CANCELLED')->count(), 'total_revenue' => bcadd((string) $revenue, '0', 2),
+                'total_orders' => Order::count(), 'completed_orders' => OrderSummary::filter(Order::query(), 'COMPLETED')->count(), 'cancelled_orders' => OrderSummary::filter(Order::query(), 'CANCELLED')->count(), 'total_revenue' => bcadd((string) $revenue, '0', 2), 'revenue_by_month' => $this->revenueByMonth(),
                 'recent_orders' => Order::with(AdminOrderQuery::RELATIONS)->latest('id')->limit(5)->get(),
                 'recent_users' => User::select(['id', 'name', 'role', 'status', 'created_at'])->latest('id')->limit(5)->get()->map(fn (User $u): array => ['id' => (string) $u->id, 'name' => $u->name, 'role' => $u->role->value, 'status' => $u->status->value, 'created_at' => $u->created_at->toISOString()])->all()];
         });
+    }
+
+    /** Completed merchandise of the current Vietnam month and the five before it; empty months stay in the series. */
+    private function revenueByMonth(): array
+    {
+        $first = CarbonImmutable::now('Asia/Ho_Chi_Minh')->startOfMonth()->subMonths(self::REVENUE_MONTHS - 1);
+        // Reporting dates >=2000 use Vietnam's UTC+07; no MySQL timezone-table dependency.
+        $rows = ShopOrder::where('status', 'COMPLETED')->where('completed_at', '>=', $first->utc())->toBase()
+            ->selectRaw('DATE_FORMAT(DATE_ADD(completed_at, INTERVAL 7 HOUR), ?) AS period', ['%Y-%m'])
+            ->selectRaw('SUM(subtotal) AS revenue, COUNT(*) AS completed_orders')->groupBy('period')->get()->keyBy('period');
+        $series = [];
+        for ($offset = 0; $offset < self::REVENUE_MONTHS; $offset++) {
+            $period = $first->addMonths($offset)->format('Y-m');
+            $row = $rows->get($period);
+            $series[] = ['period' => $period, 'revenue' => bcadd((string) ($row?->revenue ?? '0'), '0', 2), 'completed_orders' => (int) ($row?->completed_orders ?? 0)];
+        }
+
+        return $series;
     }
 }

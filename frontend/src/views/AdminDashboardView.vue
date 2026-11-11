@@ -4,13 +4,14 @@ import PageHeader from '../components/ui/PageHeader.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import LoadingState from '../components/ui/LoadingState.vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getAdminDashboard } from '../api/admin.api'
 import { useAuthStore } from '../stores/auth'
 import { useFeedback } from '../composables/useFeedback'
 import { formatPrice } from '../composables/productPresentation'
 import { orderStatuses } from '../composables/orderPresentation'
 import DomainFeedback from '../components/DomainFeedback.vue'
+import RevenueChart from '../components/RevenueChart.vue'
 const auth = useAuthStore(),
   data = ref(null)
 const { busy, error, run } = useFeedback()
@@ -27,6 +28,13 @@ const metrics = [
   ['completed_orders', 'Đơn hoàn tất toàn bộ'],
   ['cancelled_orders', 'Đơn hủy toàn bộ'],
 ]
+const revenueSeries = computed(() =>
+  (data.value?.revenue_by_month ?? []).map((row) => {
+    const [year, month] = row.period.split('-')
+    return { ...row, period: `T${Number(month)}/${year}` }
+  }),
+)
+const hasRecentRevenue = computed(() => revenueSeries.value.some((row) => row.completed_orders > 0))
 const load = () =>
   run(async () => {
     data.value = null
@@ -72,6 +80,11 @@ onMounted(load)
           toán. Đây không phải doanh thu hoa hồng của nền tảng. Đơn hoàn tất một phần vẫn đóng góp
           tiền hàng của phần đã hoàn thành.
         </p>
+        <h3 class="h6 mt-4 mb-3">Theo tháng hoàn tất, 6 tháng gần nhất (giờ Việt Nam)</h3>
+        <p v-if="!hasRecentRevenue" class="alert alert-info" data-no-recent-revenue>
+          Chưa có đơn hoàn tất trong 6 tháng gần nhất.
+        </p>
+        <RevenueChart :series="revenueSeries" />
       </section>
       <div class="row g-4">
         <div class="col-xl-7">

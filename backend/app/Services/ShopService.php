@@ -8,12 +8,14 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Throwable;
 
 class ShopService
 {
-    public function __construct(private SlugGenerator $slugs, private AuditService $audit) {}
+    public function __construct(private SlugGenerator $slugs, private AuditService $audit, private SquarePicture $pictures) {}
 
     public function publicQuery(): Builder
     {
@@ -56,6 +58,45 @@ class ShopService
             }
 
             return $locked;
+        }, 3);
+    }
+
+    public function replaceLogo(User $user, Shop $shop, UploadedFile $file): Shop
+    {
+        $path = $this->pictures->store($file, 'shop-logos/'.$shop->id);
+        try {
+            [$locked, $previous] = $this->swapLogo($user, $shop, $path);
+        } catch (Throwable $exception) {
+            $this->pictures->discard($path);
+            throw $exception;
+        }
+        $this->pictures->discard($previous);
+
+        return $locked;
+    }
+
+    public function removeLogo(User $user, Shop $shop): Shop
+    {
+        [$locked, $previous] = $this->swapLogo($user, $shop, null);
+        $this->pictures->discard($previous);
+
+        return $locked;
+    }
+
+    /** @return array{0: Shop, 1: ?string} the saved shop and the path it no longer uses */
+    private function swapLogo(User $user, Shop $shop, ?string $path): array
+    {
+        return DB::transaction(function () use ($user, $shop, $path): array {
+            $owner = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $locked = Shop::whereKey($shop->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($owner)->authorize('update', $locked);
+            $previous = $locked->logo_path;
+            if ($previous !== $path) {
+                $locked->forceFill(['logo_path' => $path])->save();
+                $this->audit->record($owner, 'shops', $locked->id, 'shop.updated', $locked->status->value, $locked->status->value, 'fields: logo_path');
+            }
+
+            return [$locked, $previous];
         }, 3);
     }
 

@@ -36,23 +36,29 @@ async function submit() {
         password: form.password,
         password_confirmation: form.password_confirmation,
       })
+      form.password = ''
+      form.password_confirmation = ''
+      await router.push({ name: 'verify-email', state: { email: form.email } })
+      return
     } else {
       await auth.login({ email: form.email, password: form.password, remember: form.remember })
     }
     form.password = ''
     form.password_confirmation = ''
     const target = route.query.redirect
-    const defaultDestination = props.registration
-      ? 'account'
-      : auth.isAdmin
-        ? 'admin-dashboard'
-        : 'home'
+    const defaultDestination = auth.isAdmin ? 'admin-dashboard' : 'home'
     await router.replace(
       typeof target === 'string' && /^\/(?!\/)/.test(target) && !target.includes('\\')
         ? target
         : { name: defaultDestination },
     )
   } catch (error) {
+    // The right password, but the address is not confirmed yet: that page offers a new link.
+    if (error.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+      form.password = ''
+      await router.push({ name: 'verify-email', state: { email: form.email } })
+      return
+    }
     errors.value = localizeValidationErrors(error.response?.data?.errors)
     message.value = authError(error)
     form.password = ''

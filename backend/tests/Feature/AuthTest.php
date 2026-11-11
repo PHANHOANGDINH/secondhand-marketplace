@@ -29,20 +29,18 @@ class AuthTest extends TestCase
             'password' => $password, 'password_confirmation' => $password], $overrides);
     }
 
-    public function test_registration_creates_safe_hashed_user_and_authenticated_session(): void
+    public function test_registration_creates_safe_hashed_user_without_a_session(): void
     {
         $payload = $this->registration(['email' => ' NEW-USER@EXAMPLE.TEST ']);
         $this->get('/sanctum/csrf-cookie')->assertNoContent();
-        $oldSession = session()->getId();
         $response = $this->postJson('/api/v1/auth/register', $payload)->assertCreated()
             ->assertJsonPath('data.email', 'new-user@example.test')->assertJsonPath('data.role', 'USER')
             ->assertJsonPath('data.status', 'ACTIVE');
         $user = User::where('email', 'new-user@example.test')->firstOrFail();
         $this->assertTrue(Hash::check($payload['password'], $user->password));
         $this->assertNotSame($payload['password'], $user->password);
-        $this->assertAuthenticatedAs($user, 'web');
-        $this->assertNotSame($oldSession, session()->getId());
-        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('data.id', (string) $user->id);
+        $this->assertGuest('web');
+        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
         foreach (['password', 'remember_token', 'deleted_at'] as $field) {
             $response->assertJsonMissingPath('data.'.$field);
         }

@@ -9,8 +9,10 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\AuthUserResource;
 use App\Models\User;
+use App\Services\EmailVerificationService;
 use App\Services\TemporaryPasswordService;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(RegisterRequest $request, EmailVerificationService $verification): JsonResponse
     {
         abort_if(Auth::guard('web')->check(), 409, 'Already authenticated.');
         $user = new User($request->safe()->only(['name', 'email', 'password']));
@@ -30,10 +32,10 @@ class AuthController extends Controller
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['email' => ['The email has already been taken.']]);
         }
-        Auth::guard('web')->login($user);
-        $request->session()->regenerate();
+        // No session yet: signing in waits for the link in the mail.
+        $verification->send($user);
 
-        return (new AuthUserResource($user))->additional(['message' => 'Registration successful.'])->response()->setStatusCode(201);
+        return (new AuthUserResource($user))->additional(['message' => 'Registration successful. Please verify your email.'])->response()->setStatusCode(201);
     }
 
     public function login(LoginRequest $request, TemporaryPasswordService $temporary): AuthUserResource
@@ -41,8 +43,17 @@ class AuthController extends Controller
         abort_if(Auth::guard('web')->check(), 409, 'Already authenticated.');
         $credentials = $request->safe()->only(['email', 'password']);
         $credentials['status'] = UserStatus::ACTIVE->value;
-        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        $unverified = false;
+        $allowed = function (User $user) use (&$unverified): bool {
+            $unverified = $user->requiresEmailVerification();
+
+            return ! $unverified;
+        };
+        if (Auth::guard('web')->attemptWhen($credentials, $allowed, $request->boolean('remember'))) {
             $temporary->discard(Auth::guard('web')->user());
+        } elseif ($unverified) {
+            // Only reached with the right password, so this does not reveal who has an account.
+            throw new HttpResponseException(response()->json(['message' => 'Please verify your email before signing in.', 'code' => 'EMAIL_NOT_VERIFIED'], 403));
         } else {
             // A temporary password from "forgot password" signs in once and forces a new password.
             $user = $temporary->consume($credentials['email'], $credentials['password']);

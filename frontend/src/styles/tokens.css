@@ -5,7 +5,7 @@
  * to --surface; the page itself is painted with --bg.
  */
 :root {
-  /* Passdi palette "Đời thứ hai", light theme: forest ink and mint on a cool off-white; the logo keeps its orange.
+  /* Passdi palette "Đời thứ hai", light theme: forest ink and mint on a cool off-white; the logo is green too.
      Contrast is checked by scripts/contrast.mjs. */
   --bg: #f3f6f4;
   --surface: #fff;
@@ -13,11 +13,11 @@
   --border: #d5e0db;
   --text: #12302a;
   --muted: #4a615b;
-  /* The logo orange: large areas and icons only. Small text on it is never white. */
-  --brand: #f26b3a;
+  /* The logo green: large areas and icons only. */
+  --brand: #3a8a5c;
   --brand-soft: #d7efe6;
-  /* Orange text in the logo ("ss"): a shade that keeps 3:1 on the page. */
-  --brand-text: #e25a26;
+  /* "di" in the wordmark: a shade that keeps 3:1 on the page. */
+  --brand-text: #2f7f52;
   /* Buttons and links. */
   --primary: #1f6f5c;
   --primary-rgb: 31, 111, 92;
@@ -50,6 +50,10 @@
   --success-rgb: 21, 128, 61;
   --success-ink: #166534;
   --warning: var(--bs-warning, #ffc107);
+  /* Soft status fills with their ink (condition chips, notices); pairs are checked by scripts/contrast.mjs. */
+  --success-soft: #e6f4ea;
+  --warning-soft: #fef3c7;
+  --warning-ink: #7a4306;
   --rating: #b45309;
   /* Forest field: the one large block of colour (home hero, sign-in panel); text on it uses --on-field. */
   --field: #12302a;
@@ -101,6 +105,8 @@
   --shadow-card: none;
   --shadow-hover: 0 1px 0 var(--border);
   --shadow-dialog: 0 24px 64px rgb(var(--shadow-rgb) / 18%);
+  /* Bars fixed to the bottom edge (tab bar). */
+  --shadow-bar: 0 -4px 16px rgb(var(--shadow-rgb) / 6%);
   --control-height: 44px;
   --focus-ring: 3px solid rgba(var(--primary-rgb), 0.45);
   --layer-header: 1020;
@@ -168,7 +174,7 @@
   --text: #e3f1ec;
   --muted: #9cb9af;
   --brand-soft: #17362e;
-  --brand-text: #f26b3a;
+  --brand-text: #6fbf8b;
   --primary: #5cc4a5;
   --primary-rgb: 92, 196, 165;
   --primary-hover: #7dd3b9;
@@ -197,6 +203,9 @@
   --success-rgb: 74, 222, 128;
   --success-ink: #86efac;
   --on-success: #18181b;
+  --success-soft: #16301f;
+  --warning-soft: #3a2a0e;
+  --warning-ink: #f5b544;
   --rating: #f5b544;
   --field: #163a31;
   --on-field: #e3f1ec;
@@ -234,7 +243,7 @@
   --primary-soft: #3a2418;
   --on-primary: #17130f;
   --price: #ff8a5c;
-  --brand-text: #f26b3a;
+  --brand-text: #6fbf8b;
   --accent: #3a2418;
   --accent-ink: #ffb38f;
   --inverse: #f4efe7;
@@ -248,6 +257,9 @@
   --success-rgb: 74, 222, 128;
   --success-ink: #86efac;
   --on-success: #17130f;
+  --success-soft: #16301f;
+  --warning-soft: #3a2a0e;
+  --warning-ink: #f5b544;
   --rating: #f5b544;
   --shadow-rgb: 0 0 0;
   --surface-skeleton: #332d5c;

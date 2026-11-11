@@ -515,3 +515,68 @@
     background: transparent;
   }
 }
+
+/* Compact auction rail (home page): phones scroll sideways through small cards instead of one card per screen;
+   from 768 px it is a plain grid. The doubled class beats the .auction-grid column rules above. */
+.auction-grid.auction-rail {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.auction-grid.auction-rail::-webkit-scrollbar {
+  display: none;
+}
+.auction-rail > * {
+  flex: 0 0 min(68vw, 15rem);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.auction-rail .auction-card .card-body {
+  padding: var(--space-3);
+}
+.auction-rail .auction-card h2 {
+  margin-top: var(--space-2);
+  font-size: 1rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.auction-rail .auction-card-price {
+  margin-bottom: var(--space-2);
+  font-size: 1.2rem;
+}
+.auction-rail .auction-timer {
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+.auction-rail .auction-timer strong {
+  font-size: 1rem;
+}
+@media (min-width: 768px) {
+  .auction-grid.auction-rail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  .auction-rail > * {
+    flex: none;
+  }
+}
+@media (min-width: 992px) {
+  .auction-grid.auction-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.theme-auction .auction-rail .auction-card-image img {
+  aspect-ratio: 4 / 3;
+}
+.auction-rail .buyer-status {
+  font-size: 0.75rem;
+}

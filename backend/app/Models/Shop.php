@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Shop extends Model
 {
@@ -16,6 +17,11 @@ class Shop extends Model
     protected $fillable = ['owner_id', 'name', 'slug', 'description', 'province_code', 'logo_path', 'status', 'moderation_reason'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+    }
 
     protected function casts(): array
     {

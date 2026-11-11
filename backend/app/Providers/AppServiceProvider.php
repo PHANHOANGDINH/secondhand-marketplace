@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         ResetPassword::createUrlUsing(fn (User $user, string $token): string => config('auth.password_reset_url').'?'.http_build_query([
             'token' => $token, 'email' => $user->getEmailForPasswordReset(),
         ], '', '&', PHP_QUERY_RFC3986));
-        foreach (['forgot-password' => 3, 'reset-password' => 5] as $name => $attempts) {
+        foreach (['forgot-password' => 3, 'reset-password' => 5, 'email-verification' => 3] as $name => $attempts) {
             RateLimiter::for($name, function (Request $request) use ($name, $attempts): array {
                 $email = $request->input('email');
                 $normalized = is_string($email) ? Str::lower(trim($email)) : '';
@@ -58,5 +58,17 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('public-read', fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()));
         RateLimiter::for('domain', fn (Request $request): Limit => $request->isMethodSafe() ? Limit::none() : Limit::perMinute(60)->by((string) $request->user()->id));
         RateLimiter::for('register', fn (Request $request): Limit => Limit::perHour(5)->by($request->ip()));
+        RateLimiter::for('email-verify', fn (Request $request): Limit => Limit::perMinute(10)->by($request->ip()));
+        // A six-digit code must not be guessable: the caps per address hold across IPs and across new codes.
+        RateLimiter::for('email-code', function (Request $request): array {
+            $email = $request->input('email');
+            $normalized = hash('sha256', is_string($email) ? Str::lower(trim($email)) : '');
+
+            return [
+                Limit::perMinute(5)->by('email-code:minute:'.$normalized),
+                Limit::perHour(20)->by('email-code:hour:'.$normalized),
+                Limit::perMinute(20)->by('email-code:ip:'.$request->ip()),
+            ];
+        });
     }
 }

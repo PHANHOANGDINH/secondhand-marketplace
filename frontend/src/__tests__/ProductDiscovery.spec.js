@@ -202,3 +202,19 @@ it('shows the real auction lifecycle label while keeping its arena link', async 
   expect(link.text()).toContain('Xem phiên')
   expect(wrapper.text()).not.toContain('Đang đấu giá')
 })
+
+it('active filters are chips that remove one filter at a time and drop the page', async () => {
+  const { wrapper, router } = await setup(ProductsView, '/products?q=phone&condition=GOOD&category=3&page=2')
+  const chips = wrapper.findAll('.buyer-filter-active .products-chip')
+  expect(chips.map((chip) => chip.text()).sort()).toEqual([
+    'Danh mục: Điện thoại cũ',
+    'Tìm kiếm: phone',
+    'Tình trạng: Tốt',
+  ])
+  const condition = chips.find((chip) => chip.text() === 'Tình trạng: Tốt')
+  expect(condition.attributes('aria-label')).toBe('Bỏ bộ lọc Tình trạng: Tốt')
+  await condition.trigger('click')
+  await flushPromises()
+  expect(router.currentRoute.value.query).toEqual({ q: 'phone', category: '3' })
+  expect(wrapper.find('.products-count').text()).toContain('sản phẩm phù hợp')
+})

@@ -1,7 +1,7 @@
 <script setup>
 // Passdi logo: the round "pass it on" badge plus the hand-lettered wordmark "pass·di".
-// The badge is a picture. The wordmark is two alpha masks painted with theme colours ("pass" in the
-// --text colour, "di" in --brand-text), so it stays readable in light, dark and auction themes.
+// The badge is a picture on its own paper disc. The wordmark is two alpha masks painted with theme colours
+// ("pass" in the --text colour, "di" in --brand-text), so it stays readable in light, dark and auction themes.
 // variant="mark" shows the badge alone.
 import { computed } from 'vue'
 import { brand } from '../../config/brand'
@@ -18,7 +18,7 @@ const props = defineProps({
   // Older call sites: a smaller full logo for shells and the footer.
   compact: Boolean,
 })
-const markSize = computed(() => props.size || (props.compact ? 34 : 40))
+const markSize = computed(() => props.size || (props.compact ? 44 : 52))
 const masks = { '--brand-logo-ink': `url(${inkUrl})`, '--brand-logo-accent': `url(${accentUrl})` }
 </script>
 <template>
@@ -55,18 +55,18 @@ const masks = { '--brand-logo-ink': `url(${inkUrl})`, '--brand-logo-accent': `ur
 .brand-logo span {
   margin: 0;
 }
+/* Not clipped to a circle: the paper plane flies out of the ring. */
 .brand-logo-mark {
   flex: none;
   display: block;
-  border-radius: 50%;
 }
-/* Wordmark artwork is 463 x 175. */
+/* Wordmark artwork is 1006 x 412. */
 .brand-logo-word {
   position: relative;
   flex: none;
   display: block;
-  height: calc(var(--brand-logo-size) * 0.8);
-  aspect-ratio: 463 / 175;
+  height: calc(var(--brand-logo-size) * 0.86);
+  aspect-ratio: 1006 / 412;
 }
 .brand-logo-ink,
 .brand-logo-accent {

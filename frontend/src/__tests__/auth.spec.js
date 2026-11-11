@@ -35,7 +35,7 @@ it('gets CSRF before login and sets current user without persisted storage', asy
   expect(localStorage.length).toBe(0)
   expect(sessionStorage.length).toBe(0)
 })
-it('gets CSRF before registration and sets current user', async () => {
+it('gets CSRF before registration and stays signed out until the address is verified', async () => {
   api.get.mockResolvedValue({})
   api.post.mockResolvedValue({ data: { data: user } })
   const store = useAuthStore()
@@ -45,7 +45,8 @@ it('gets CSRF before registration and sets current user', async () => {
     name: user.name,
     email: user.email,
   })
-  expect(store.user).toEqual(user)
+  expect(store.user).toBeNull()
+  expect(store.isAuthenticated).toBe(false)
 })
 it('failed login remains guest and resets loading', async () => {
   api.get.mockResolvedValue({})

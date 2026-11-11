@@ -19,6 +19,14 @@ return [
     // "Forgot password" mails a one-time temporary password valid for this many minutes.
     'temporary_password_minutes' => (int) env('TEMPORARY_PASSWORD_MINUTES', 60),
     'frontend_login_url' => env('FRONTEND_LOGIN_URL', 'http://localhost:5173/login'),
+    'email_verification' => [
+        // The frontend page that receives the signed link from the mail.
+        'url' => env('EMAIL_VERIFICATION_URL', 'http://localhost:5173/verify-email'),
+        'minutes' => (int) env('EMAIL_VERIFICATION_MINUTES', 60),
+        'code_minutes' => (int) env('EMAIL_VERIFICATION_CODE_MINUTES', 15),
+        // Accounts created before this moment (UTC) are exempt; their rows are not touched.
+        'required_from' => env('EMAIL_VERIFICATION_REQUIRED_FROM', '2026-11-02 00:00:00'),
+    ],
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),

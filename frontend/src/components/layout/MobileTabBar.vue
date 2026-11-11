@@ -70,7 +70,7 @@ const current = (path) => (path === '/' ? route.path === '/' : route.path.starts
     padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);
     background: var(--surface);
-    box-shadow: 0 -4px 16px rgb(var(--shadow-rgb) / 6%);
+    box-shadow: var(--shadow-bar);
   }
 }
 .mobile-tab {

@@ -69,6 +69,7 @@ const auth = useAuthStore()
   text-transform: none;
 }
 .site-footer a {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   min-height: 36px;

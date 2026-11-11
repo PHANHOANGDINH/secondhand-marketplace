@@ -42,6 +42,9 @@ class CategoryManagementTest extends TestCase
         $leaf = Category::factory()->create(['parent_id' => $child->id]);
         Category::factory()->create(['status' => CategoryStatus::INACTIVE]);
         $this->getJson('/api/v1/categories')->assertOk()->assertJsonCount(1, 'data');
+        $all = $this->getJson('/api/v1/categories?all=1')->assertOk()->json('data');
+        $this->assertContains((string) $root->id, array_column($all, 'id'));
+        $this->assertContains((string) $child->id, array_column($all, 'id'));
         $this->getJson('/api/v1/categories?parent_id='.$root->id)->assertOk()->assertJsonPath('data.0.id', (string) $child->id);
         $this->getJson('/api/v1/categories/'.$leaf->slug)->assertOk();
         $root->update(['status' => CategoryStatus::INACTIVE]);

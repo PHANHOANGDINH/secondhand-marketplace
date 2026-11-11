@@ -82,7 +82,7 @@ class FinalDemoSeeder extends Seeder
                     }
                     if (! $user) {
                         $user = new User;
-                        $user->forceFill(['name' => $name, 'email' => 'c1-'.$key.'@example.test', 'password' => $password, 'role' => $role, 'status' => UserStatus::ACTIVE])->save();
+                        $user->forceFill(['name' => $name, 'email' => 'c1-'.$key.'@example.test', 'password' => $password, 'email_verified_at' => now(), 'role' => $role, 'status' => UserStatus::ACTIVE])->save();
                     }
                     $this->users[$key] = $user;
                     if (str_starts_with($key, 'buyer')) {

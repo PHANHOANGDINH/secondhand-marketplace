@@ -6,16 +6,21 @@ import { categoryOptions } from '../../api/catalogOptions'
 // Side drawer behind the menu button: every category plus the main destinations.
 defineEmits(['dismiss'])
 const categories = ref([]),
-  busy = ref(true)
-onMounted(async () => {
+  busy = ref(true),
+  failed = ref(false)
+async function load() {
+  busy.value = true
+  failed.value = false
   try {
     categories.value = await categoryOptions()
   } catch {
     categories.value = []
+    failed.value = true
   } finally {
     busy.value = false
   }
-})
+}
+onMounted(load)
 </script>
 <template>
   <AccessibleDialog
@@ -36,7 +41,13 @@ onMounted(async () => {
     </nav>
     <h3 class="nav-drawer-title">Tất cả danh mục</h3>
     <p v-if="busy" role="status" class="text-muted">Đang tải danh mục…</p>
-    <p v-else-if="!categories.length" class="text-muted">Chưa tải được danh mục.</p>
+    <template v-else-if="failed">
+      <p class="text-muted">Chưa tải được danh mục.</p>
+      <button type="button" class="btn btn-outline-secondary" data-retry @click="load">
+        <AppIcon name="refresh" :size="18" />Tải lại
+      </button>
+    </template>
+    <p v-else-if="!categories.length" class="text-muted">Chưa có danh mục.</p>
     <nav v-else class="nav-drawer-section" aria-label="Tất cả danh mục" @click="$emit('dismiss')">
       <RouterLink
         v-for="category in categories"

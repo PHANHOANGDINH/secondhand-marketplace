@@ -1,6 +1,6 @@
 # Passdi — design system
 
-Passdi ("Không dùng nữa? Passdi!") is a Vietnamese second-hand marketplace for buyers, sellers and admins. Direction **"Đời thứ hai"** (second life, chosen 2026-10-20): calm and trustworthy, forest green and mint on a cool off-white, a soft serif for titles, and the idea that every listing is an object starting a new life with someone. The logo keeps its orange; everything you can do is forest green. Short pages, the main action always in reach. Every new screen follows this file; do not pull palettes or fonts from outside it.
+Passdi ("Không dùng nữa? Passdi!") is a Vietnamese second-hand marketplace for buyers, sellers and admins. Direction **"Đời thứ hai"** (second life, chosen 2026-10-20): calm and trustworthy, forest green and mint on a cool off-white, a soft serif for titles, and the idea that every listing is an object starting a new life with someone. The logo is green too: an open box in a round badge, with the hand-lettered "passdi"; everything you can do is forest green. Short pages, the main action always in reach. Every new screen follows this file; do not pull palettes or fonts from outside it.
 
 Source of truth for values: `frontend/src/styles/tokens.css` (token names never change; only values per theme). Contrast of every text/background pair is checked by `node frontend/scripts/contrast.mjs` (must stay all "ok"). The three directions compared before choosing are in `docs/design-directions/index.html`.
 
@@ -17,7 +17,7 @@ Use tokens, never hex in components. Light and dark are set on `<html data-theme
 | `--primary` (+ `--on-primary`) | #1F6F5C (white) | #5CC4A5 (#0B1714) | buttons, links, active nav, focus ring |
 | `--primary-soft` / `--accent` | #D7EFE6 | #17362E | mint: soft highlights, chips, tags, selection |
 | `--field` (+ `--on-field`, `--on-field-muted`, `--field-edge`) | #12302A | #163A31 | the one large block of colour: home hero, sign-in showcase |
-| `--brand` / `--brand-text` | #F26B3A / #E25A26 | #F26B3A | the logo tile and the "ss" of the wordmark only |
+| `--brand` / `--brand-text` | #3A8A5C / #2F7F52 | #3A8A5C / #6FBF8B | logo green: decoration and the "di" of the wordmark |
 | `--price` | #12302A | #E3F1EC | amounts: forest ink, semibold, tabular figures |
 | `--danger` / `--success` (+ `--on-*`) | #DC2626 / #15803D | #F87171 / #4ADE80 | errors, discounts / paid, success |
 | `--inverse` (+ `--on-inverse`) | #12302A | #5CC4A5 | strong pills (banner CTA) |
@@ -31,7 +31,7 @@ Use tokens, never hex in components. Light and dark are set on `<html data-theme
 - UI and body: **Lexend** 400–700 (`--font-ui`), very legible with Vietnamese marks; body 0.9–1.05 rem, line-height 1.5–1.65.
 - Titles, the home headline and big figures: **Fraunces** 500–600 (`--font-display`), tracking about -0.012em, line-height 1.05–1.2. One serif voice, never mixed into body text.
 - Money and voucher codes: tabular figures; **JetBrains Mono** only for codes.
-- Wordmark only: **Baloo 2 800**, "pa**ss**di" with "ss" in `--brand-text`.
+- Wordmark: the hand-lettered artwork in `BrandLogo`, "pass" in `--text` and "di" in `--brand-text`; never retyped. The ribbon "Tiếp nối hành trình" of the full logo is not used in small sizes, where it cannot be read.
 - No eyebrows above headings and no tracked capitals for labels: captions are sentence case at 0.8 rem.
 
 ## 3. Space, shape, motion

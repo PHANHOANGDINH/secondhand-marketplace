@@ -13,6 +13,7 @@ async function setup(registration = false, redirect) {
     routes: [
       { path: '/', name: 'home', component: { template: '<div />' } },
       { path: '/account', name: 'account', component: { template: '<div />' } },
+      { path: '/verify-email', name: 'verify-email', component: { template: '<div />' } },
       { path: '/admin/dashboard', name: 'admin-dashboard', component: { template: '<div />' } },
       { path: '/admin/orders', component: { template: '<div />' } },
       { path: '/payment/result', component: { template: '<div />' } },
@@ -63,7 +64,7 @@ it('renders backend field errors and releases the loading button', async () => {
   expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeUndefined()
   wrapper.unmount()
 })
-it('registers through the server then navigates to account and clears password fields', async () => {
+it('registers through the server then asks to check the mail, stays signed out and clears password fields', async () => {
   api.post.mockResolvedValue({ data: { data: { id: '9', name: 'Form Test', role: 'USER' } } })
   const { wrapper, router, store } = await setup(true)
   await wrapper.get('input[name=name]').setValue('Form Test')
@@ -72,8 +73,8 @@ it('registers through the server then navigates to account and clears password f
   await wrapper.get('input[name=password_confirmation]').setValue('test-only-form-input')
   await wrapper.get('form').trigger('submit')
   await flushPromises()
-  expect(router.currentRoute.value.name).toBe('account')
-  expect(store.user.id).toBe('9')
+  expect(router.currentRoute.value.name).toBe('verify-email')
+  expect(store.user).toBeNull()
   expect(wrapper.get('input[name=password]').element.value).toBe('')
   expect(wrapper.get('input[name=password_confirmation]').element.value).toBe('')
   wrapper.unmount()
@@ -114,12 +115,11 @@ it.each([
     const wrapper = mount(DefaultLayout, {
       global: { plugins: [pinia, router], stubs: { CartLink: true, LogoutButton: true } },
     })
-    const entry = wrapper.find('.marketplace-links > a[href="/admin/dashboard"]')
-    expect(entry.exists()).toBe(allowed)
-    expect(
-      wrapper.findAll('.marketplace-links > a[href="/admin/dashboard"]').map((link) => link.text()),
-    ).toEqual(allowed ? ['Quản trị'] : [])
-    expect(wrapper.find('a[href^="/admin"]').exists()).toBe(allowed)
+    // The entry lives only in the account menu's mode switcher, not as a duplicate header link.
+    const entry = wrapper.find('.marketplace-account [data-mode-option="admin"]')
+    expect(entry.exists() && entry.text()).toBe(allowed && 'Quản trị')
+    expect(wrapper.find('.marketplace-links > a[href^="/admin"]').exists()).toBe(false)
+    expect(wrapper.find('.marketplace-links > a[href="/my-ads"]').exists()).toBe(false)
     wrapper.unmount()
   },
 )

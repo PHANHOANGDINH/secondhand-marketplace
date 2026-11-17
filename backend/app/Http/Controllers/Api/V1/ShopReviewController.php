@@ -26,25 +26,37 @@ class ShopReviewController extends Controller
             ->additional(['summary' => ShopReviewService::summary($shop->id)]);
     }
 
-    /** Signed in: may I rate this shop, and what did I give it? */
+    /** Signed in: how many completed orders here can I still rate, and which ratings did I give (any status)? */
     public function mine(Request $request, string $slug): JsonResponse
     {
         $shop = $this->shops->publicQuery()->where('slug', $slug)->firstOrFail();
-        $review = ShopReview::where('shop_id', $shop->id)->where('user_id', $request->user()->id)->first();
+        $user = $request->user();
+        $own = $shop->owner_id === $user->id;
+        $pending = $own ? 0 : $this->service->unrated($user, $shop)->count();
+        $reviews = ShopReview::where('shop_id', $shop->id)->where('user_id', $user->id)->latest('id')->get();
 
         return response()->json(['data' => [
-            'can_review' => $this->service->eligible($request->user(), $shop),
-            'own_shop' => $shop->owner_id === $request->user()->id,
-            'review' => $review ? (new ShopReviewResource($review))->resolve() : null,
+            'can_review' => $pending > 0,
+            'own_shop' => $own,
+            'pending_count' => $pending,
+            'reviews' => ShopReviewResource::collection($reviews)->resolve(),
         ]]);
     }
 
-    public function save(SaveShopReviewRequest $request, string $slug): JsonResponse
+    public function store(SaveShopReviewRequest $request, string $slug): JsonResponse
     {
         $shop = $this->shops->publicQuery()->where('slug', $slug)->firstOrFail();
-        $existing = ShopReview::where('shop_id', $shop->id)->where('user_id', $request->user()->id)->exists();
-        $review = $this->service->save($request->user(), $shop, $request->validated());
+        $review = $this->service->create($request->user(), $shop, $request->validated());
 
-        return (new ShopReviewResource($review))->additional(['summary' => ShopReviewService::summary($shop->id)])->response()->setStatusCode($existing ? 200 : 201);
+        return (new ShopReviewResource($review))->additional(['summary' => ShopReviewService::summary($shop->id)])->response()->setStatusCode(201);
+    }
+
+    public function update(SaveShopReviewRequest $request, ShopReview $shopReview): ShopReviewResource
+    {
+        // Only while the shop is public, as when rating it.
+        $shop = $this->shops->publicQuery()->whereKey($shopReview->shop_id)->firstOrFail();
+        $review = $this->service->update($request->user(), $shopReview, $request->validated());
+
+        return (new ShopReviewResource($review))->additional(['summary' => ShopReviewService::summary($shop->id)]);
     }
 }

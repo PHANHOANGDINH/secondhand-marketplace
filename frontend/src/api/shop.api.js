@@ -13,8 +13,10 @@ export const moderateShop = async (id, data) =>
 export const listShopReviews = (slug, params) => read(`shops/${encodeURIComponent(slug)}/reviews`, params)
 export const getMyShopReview = async (slug) =>
   (await read(`shops/${encodeURIComponent(slug)}/reviews/mine`)).data
-export const saveShopReview = (slug, data) =>
-  mutate('put', `shops/${encodeURIComponent(slug)}/reviews`, data)
+// One rating per completed order: POST rates the newest completed order not yet rated; PATCH edits one of mine.
+export const createShopReview = (slug, data) =>
+  mutate('post', `shops/${encodeURIComponent(slug)}/reviews`, data)
+export const updateShopReview = (id, data) => mutate('patch', `shop-reviews/${id}`, data)
 export async function uploadShopLogo(picture) {
   const data = new FormData()
   data.append('avatar', picture, 'logo.jpg')

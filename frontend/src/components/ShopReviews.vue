@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMyShopReview, listShopReviews, saveShopReview } from '../api/shop.api'
+import { createShopReview, getMyShopReview, listShopReviews, updateShopReview } from '../api/shop.api'
 import { domainError } from '../api/domain.api'
 import { localizeValidationErrors } from '../utils/validationLabels'
 import { useAuthStore } from '../stores/auth'
@@ -9,8 +9,9 @@ import AccessibleDialog from './ui/AccessibleDialog.vue'
 import StarPicker from './ui/StarPicker.vue'
 import StarRating from './ui/StarRating.vue'
 import IconButton from './ui/IconButton.vue'
-// Star ratings of a shop: summary with a 5→1 breakdown, the newest ratings, and "Đánh giá gian hàng"
-// for buyers who completed an order here (the server decides; the button only reflects its answer).
+// Star ratings of a shop: summary with a 5→1 breakdown, the newest ratings, and "Đánh giá gian hàng".
+// A buyer rates once per completed order here and can edit each of their ratings (the server decides;
+// the buttons only reflect its answer).
 const props = defineProps({ shop: { type: Object, required: true } })
 const emit = defineEmits(['summary'])
 const auth = useAuthStore(),
@@ -24,6 +25,7 @@ const rows = ref([]),
   error = ref('')
 const open = ref(false),
   saving = ref(false),
+  editing = ref(null),
   formError = ref(''),
   formErrors = ref({}),
   form = ref({ rating: 0, comment: '' })
@@ -32,6 +34,7 @@ const dateLabel = (value) => (value ? new Date(value).toLocaleDateString('vi-VN'
 const percent = (count) =>
   summary.value?.count ? Math.round((count / summary.value.count) * 100) : 0
 const hasMore = computed(() => meta.value && meta.value.current_page < meta.value.last_page)
+const mineIds = computed(() => new Set((mine.value?.reviews || []).map((review) => review.id)))
 async function load(page = 1) {
   const current = ++requestId
   loading.value = true
@@ -53,15 +56,15 @@ async function load(page = 1) {
     if (current === requestId) loading.value = false
   }
 }
-function start() {
+function start(review = null) {
   if (!auth.isAuthenticated) {
     router.push({ name: 'login', query: { redirect: route.fullPath } })
     return
   }
-  form.value = {
-    rating: mine.value?.review?.rating || 0,
-    comment: mine.value?.review?.comment || '',
-  }
+  // My own copy is the freshest (the public page may be older or not show a hidden rating).
+  if (review) review = mine.value?.reviews?.find((own) => own.id === review.id) || review
+  editing.value = review
+  form.value = { rating: review?.rating || 0, comment: review?.comment || '' }
   formError.value = ''
   formErrors.value = {}
   open.value = true
@@ -76,10 +79,9 @@ async function submit() {
   formError.value = ''
   formErrors.value = {}
   try {
-    await saveShopReview(props.shop.slug, {
-      rating: form.value.rating,
-      comment: form.value.comment.trim() || null,
-    })
+    const data = { rating: form.value.rating, comment: form.value.comment.trim() || null }
+    if (editing.value) await updateShopReview(editing.value.id, data)
+    else await createShopReview(props.shop.slug, data)
     open.value = false
     await load()
   } catch (failure) {
@@ -111,17 +113,22 @@ watch(
         v-if="!mine?.own_shop && (!auth.isAuthenticated || mine?.can_review)"
         class="btn btn-primary"
         icon="star"
-        :label="mine?.review ? 'Sửa đánh giá của bạn' : 'Đánh giá gian hàng'"
+        label="Đánh giá gian hàng"
         show-label
         data-review-shop
-        @click="start"
+        @click="start()"
       />
     </div>
-    <p
-      v-if="auth.isAuthenticated && mine && !mine.can_review && !mine.own_shop"
-      class="shop-reviews-note"
-    >
-      Bạn có thể đánh giá sau khi có đơn hàng hoàn tất ở gian hàng này.
+    <p v-if="auth.isAuthenticated && mine && !mine.own_shop" class="shop-reviews-note" data-review-note>
+      {{
+        mine.can_review
+          ? mine.pending_count > 1
+            ? `Bạn còn ${mine.pending_count} đơn hoàn tất chưa đánh giá.`
+            : 'Bạn có 1 đơn hoàn tất chưa đánh giá.'
+          : mine.reviews?.length
+            ? 'Bạn đã đánh giá mọi đơn hoàn tất. Mỗi đơn mới hoàn tất được đánh giá thêm một lần.'
+            : 'Bạn có thể đánh giá sau khi có đơn hàng hoàn tất ở gian hàng này.'
+      }}
     </p>
     <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
 
@@ -151,6 +158,15 @@ watch(
           <strong>{{ review.author?.name || 'Người mua' }}</strong>
           <StarRating :value="review.rating" :size="15" />
           <time :datetime="review.updated_at">{{ dateLabel(review.updated_at) }}</time>
+          <button
+            v-if="mineIds.has(review.id)"
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-edit-shop-review
+            @click="start(review)"
+          >
+            Sửa
+          </button>
         </div>
         <p v-if="review.comment" class="shop-review-comment">{{ review.comment }}</p>
       </li>
@@ -168,7 +184,7 @@ watch(
     <AccessibleDialog
       v-if="open"
       id="shop-review-dialog"
-      :title="mine?.review ? 'Sửa đánh giá gian hàng' : 'Đánh giá gian hàng'"
+      :title="editing ? 'Sửa đánh giá gian hàng' : 'Đánh giá gian hàng'"
       :description="shop.name"
       :busy="saving"
       @dismiss="open = false"
@@ -210,7 +226,7 @@ watch(
             :disabled="saving"
             data-review-submit
           >
-            {{ saving ? 'Đang gửi…' : 'Gửi đánh giá' }}
+            {{ saving ? 'Đang gửi…' : editing ? 'Lưu đánh giá' : 'Gửi đánh giá' }}
           </button>
         </div>
       </template>

@@ -108,6 +108,16 @@ onBeforeUnmount(() => {
       <strong>{{ review.author?.name || 'Người mua' }}</strong
       ><span class="ms-2">{{ review.rating }} / 5</span>
       <p class="text-break mb-1" style="white-space: pre-wrap">{{ review.comment }}</p>
+      <video
+        v-if="review.video"
+        class="review-video"
+        :src="review.video.url"
+        controls
+        preload="metadata"
+        playsinline
+        :aria-label="`Video đánh giá của ${review.author?.name || 'người mua'}`"
+        data-review-video
+      ></video>
     </article>
     <CollectionPager :meta="result?.meta" :busy="busy" @page="loadReviews" />
     <template v-if="auth.isAuthenticated"

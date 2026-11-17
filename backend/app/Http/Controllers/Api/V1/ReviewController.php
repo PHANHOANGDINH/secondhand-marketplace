@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Domain\DomainRequest;
 use App\Http\Requests\Domain\ReviewListRequest;
 use App\Http\Requests\Domain\StoreReviewRequest;
 use App\Http\Requests\Domain\UpdateReviewRequest;
+use App\Http\Requests\Domain\UploadReviewVideoRequest;
 use App\Http\Resources\OrderItemResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\OrderItem;
@@ -45,5 +47,15 @@ class ReviewController extends Controller
     public function update(UpdateReviewRequest $request, Review $review): ReviewResource
     {
         return new ReviewResource($this->service->update($request->user(), $review, $request->validated()));
+    }
+
+    public function attachVideo(UploadReviewVideoRequest $request, Review $review): ReviewResource
+    {
+        return new ReviewResource($this->service->attachVideo($request->user(), $review, $request->file('video')));
+    }
+
+    public function removeVideo(DomainRequest $request, Review $review): ReviewResource
+    {
+        return new ReviewResource($this->service->removeVideo($request->user(), $review));
     }
 }

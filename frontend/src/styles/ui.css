@@ -254,3 +254,13 @@ html {
     gap: var(--space-6);
   }
 }
+/* Buyer review video: never wider than the column, capped so a portrait clip does not take the screen. */
+.review-video {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  max-height: 24rem;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: #000;
+}

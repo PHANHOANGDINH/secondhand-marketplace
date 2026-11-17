@@ -10,7 +10,7 @@ use App\Models\ShopReview;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-/** Shop star ratings: only buyers with a completed order at the shop, one rating each, editable. */
+/** Shop star ratings: one per completed order at the shop, by its buyer; each rating stays editable. */
 class ShopReviewService
 {
     public function __construct(private OrderLocks $locks) {}
@@ -20,33 +20,66 @@ class ShopReviewService
         return $query->where('status', ReviewStatus::PUBLISHED);
     }
 
-    public function eligible(User $user, Shop $shop): bool
+    /** The buyer's completed orders at this shop, newest first. */
+    private function completed(User $user, Shop $shop): Builder
     {
-        return $user->id !== $shop->owner_id && ShopOrder::where('shop_id', $shop->id)->where('status', ShopOrderStatus::COMPLETED)
-            ->whereHas('order', fn (Builder $orders) => $orders->where('buyer_id', $user->id))->exists();
+        return ShopOrder::where('shop_id', $shop->id)->where('status', ShopOrderStatus::COMPLETED)
+            ->whereHas('order', fn (Builder $orders) => $orders->where('buyer_id', $user->id));
     }
 
-    public function save(User $user, Shop $shop, array $data): ShopReview
+    /** Completed orders not rated yet, newest first. */
+    public function unrated(User $user, Shop $shop): Builder
+    {
+        return $this->completed($user, $shop)->whereNotIn('id', ShopReview::whereNotNull('shop_order_id')->select('shop_order_id'))
+            ->orderByDesc('completed_at')->orderByDesc('id');
+    }
+
+    public function eligible(User $user, Shop $shop): bool
+    {
+        return $user->id !== $shop->owner_id && $this->unrated($user, $shop)->exists();
+    }
+
+    /** Rates the buyer's newest completed order here that has no rating yet. */
+    public function create(User $user, Shop $shop, array $data): ShopReview
     {
         return $this->locks->transaction(function () use ($user, $shop, $data): ShopReview {
-            // Same order as product reviews: accounts, then the shop, then the review row.
+            // Same order as product reviews: accounts, then the shop, then the order and the review rows.
             $actor = $this->locks->accounts([$user->id, $shop->owner_id])[$user->id];
             $this->locks->active($actor);
             $locked = Shop::whereKey($shop->id)->lockForUpdate()->firstOrFail();
             abort_if($locked->owner_id === $actor->id, 403, 'Bạn không thể tự đánh giá gian hàng của mình.');
-            abort_unless($this->eligible($actor, $locked), 403, 'Chỉ người đã mua và nhận hàng hoàn tất từ gian hàng mới đánh giá được.');
-            $comment = isset($data['comment']) ? trim((string) $data['comment']) : '';
-            $values = ['rating' => (int) $data['rating'], 'comment' => $comment === '' ? null : $comment];
-            $review = ShopReview::where('shop_id', $locked->id)->where('user_id', $actor->id)->lockForUpdate()->first();
-            if ($review) {
-                // Editing keeps a moderation decision: a hidden rating stays hidden.
-                $review->update($values);
-            } else {
-                $review = ShopReview::create([...$values, 'shop_id' => $locked->id, 'user_id' => $actor->id, 'status' => ReviewStatus::PUBLISHED]);
+            $part = $this->unrated($actor, $locked)->lockForUpdate()->first();
+            if (! $part) {
+                abort_if($this->completed($actor, $locked)->exists(), 409, 'Bạn đã đánh giá mọi đơn hoàn tất ở gian hàng này.');
+                abort(403, 'Chỉ người đã mua và nhận hàng hoàn tất từ gian hàng mới đánh giá được.');
             }
 
-            return $review->load('user');
+            return ShopReview::create([...$this->values($data), 'shop_id' => $locked->id, 'user_id' => $actor->id, 'shop_order_id' => $part->id, 'status' => ReviewStatus::PUBLISHED])->load('user');
         });
+    }
+
+    /** Editing keeps a moderation decision: a hidden rating stays hidden. */
+    public function update(User $user, ShopReview $review, array $data): ShopReview
+    {
+        $shop = Shop::withTrashed()->findOrFail($review->shop_id);
+
+        return $this->locks->transaction(function () use ($user, $shop, $review, $data): ShopReview {
+            $actor = $this->locks->accounts([$user->id, $shop->owner_id])[$user->id];
+            $this->locks->active($actor);
+            Shop::withTrashed()->whereKey($shop->id)->lockForUpdate()->firstOrFail();
+            $locked = ShopReview::whereKey($review->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->user_id === $actor->id, 403, 'Bạn chỉ sửa được đánh giá của chính mình.');
+            $locked->update($this->values($data));
+
+            return $locked->load('user');
+        });
+    }
+
+    private function values(array $data): array
+    {
+        $comment = isset($data['comment']) ? trim((string) $data['comment']) : '';
+
+        return ['rating' => (int) $data['rating'], 'comment' => $comment === '' ? null : $comment];
     }
 
     /** @return array{average: float|null, count: int, distribution: array<string, int>} */

@@ -12,8 +12,14 @@ use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ReviewService
 {
@@ -67,6 +73,58 @@ class ReviewService
         return $this->save($user, $review->orderItem, $data, $review);
     }
 
+    /** Attaches or replaces the review's one video. The file is checked and stored first, then linked under the review locks. */
+    public function attachVideo(User $user, Review $review, UploadedFile $file): Review
+    {
+        Gate::forUser($user)->authorize('update', $review);
+        $mime = $file->getMimeType();
+        $extension = $mime === 'video/mp4' ? 'mp4' : 'webm';
+        $stream = fopen($file->getRealPath(), 'rb');
+        try {
+            $head = (string) fread($stream, 4096);
+        } finally {
+            fclose($stream);
+        }
+        $container = $extension === 'mp4' ? (strlen($head) >= 12 && substr($head, 4, 4) === 'ftyp') : (str_starts_with($head, "\x1A\x45\xDF\xA3") && str_contains($head, 'webm'));
+        if (strtolower($file->getClientOriginalExtension()) !== $extension || ! $container) {
+            throw ValidationException::withMessages(['video' => ['The file must be a supported MP4 or WebM container matching its extension.']]);
+        }
+        $path = Storage::disk('public')->putFileAs('review-videos/'.$review->id, $file, Str::uuid().'.'.$extension);
+        if (! $path) {
+            throw new \RuntimeException('Video storage failed.');
+        }
+        try {
+            return $this->save($user, $review->orderItem, ['video_path' => $path, 'video_mime_type' => $mime, 'video_size' => $file->getSize()], $review);
+        } catch (Throwable $error) {
+            $this->cleanupVideo($path, $review->id);
+            throw $error;
+        }
+    }
+
+    public function removeVideo(User $user, Review $review): Review
+    {
+        Gate::forUser($user)->authorize('update', $review);
+
+        return $this->save($user, $review->orderItem, ['video_path' => null, 'video_mime_type' => null, 'video_size' => null], $review);
+    }
+
+    private function cleanupVideo(string $path, int $reviewId): void
+    {
+        if (! preg_match('#^review-videos/'.preg_quote((string) $reviewId, '#').'/[a-f0-9-]{36}\.(mp4|webm)$#D', $path)) {
+            return;
+        }
+        try {
+            if (Review::where('video_path', $path)->exists()) {
+                return;
+            }
+            if (! Storage::disk('public')->delete($path)) {
+                Log::warning('Review video cleanup pending.');
+            }
+        } catch (Throwable) {
+            Log::warning('Review video cleanup deferred.');
+        }
+    }
+
     private function save(User $user, OrderItem $item, array $data, ?Review $existing = null): Review
     {
         $part = $item->shopOrder;
@@ -92,7 +150,12 @@ class ReviewService
                 abort_unless($review && $review->id === $existing->id, 404);
                 Gate::forUser($actor)->authorize('update', $review);
                 abort_unless($review->product_id === $product->id, 409, 'Review product reference is inconsistent.');
+                $replaced = array_key_exists('video_path', $data) ? $review->video_path : null;
                 $review->update($data);
+                // The old file goes only once the new link is committed.
+                if ($replaced !== null && $replaced !== $review->video_path) {
+                    DB::afterCommit(fn () => $this->cleanupVideo($replaced, $review->id));
+                }
             } else {
                 abort_if($review !== null, 409, 'This order item already has a review.');
                 $review = Review::create([...$data, 'user_id' => $actor->id, 'product_id' => $product->id, 'order_item_id' => $lockedItem->id, 'status' => ReviewStatus::PUBLISHED]);

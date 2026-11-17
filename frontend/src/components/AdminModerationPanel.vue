@@ -266,6 +266,16 @@ const activeFilters = computed(() => [
           <template v-else
             ><AdminRating :rating="selected.rating" />
             <p class="admin-review-content mt-3">{{ selected.comment || 'Không có nhận xét.' }}</p>
+            <video
+              v-if="selected.video"
+              class="review-video"
+              :src="selected.video.url"
+              controls
+              preload="metadata"
+              playsinline
+              aria-label="Video người mua gửi kèm đánh giá"
+              data-admin-review-video
+            ></video>
             <p v-if="selected.moderation_reason" class="text-secondary">
               Lý do gần nhất: {{ selected.moderation_reason }}
             </p></template

@@ -163,10 +163,13 @@ Route::get('/products/{slug}/reviews', [ReviewController::class, 'index'])->midd
 Route::get('/shops/{slug}/reviews', [ShopReviewController::class, 'index'])->middleware('throttle:public-read');
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {
     Route::get('/shops/{slug}/reviews/mine', [ShopReviewController::class, 'mine']);
-    Route::put('/shops/{slug}/reviews', [ShopReviewController::class, 'save']);
+    Route::post('/shops/{slug}/reviews', [ShopReviewController::class, 'store']);
+    Route::patch('/shop-reviews/{shopReview}', [ShopReviewController::class, 'update']);
     Route::get('/products/{slug}/review-eligibility', [ReviewController::class, 'eligibility']);
     Route::post('/order-items/{orderItem}/review', [ReviewController::class, 'store']);
     Route::patch('/reviews/{review}', [ReviewController::class, 'update']);
+    Route::post('/reviews/{review}/video', [ReviewController::class, 'attachVideo'])->middleware('throttle:upload');
+    Route::delete('/reviews/{review}/video', [ReviewController::class, 'removeVideo']);
 });
 
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class, EnsureSpaSession::class, 'throttle:domain'])->group(function (): void {

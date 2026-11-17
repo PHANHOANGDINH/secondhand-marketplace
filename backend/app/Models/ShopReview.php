@@ -11,7 +11,7 @@ class ShopReview extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['shop_id', 'user_id', 'rating', 'comment', 'status', 'moderation_reason'];
+    protected $fillable = ['shop_id', 'user_id', 'shop_order_id', 'rating', 'comment', 'status', 'moderation_reason'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

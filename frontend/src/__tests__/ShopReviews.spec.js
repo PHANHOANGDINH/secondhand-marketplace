@@ -53,9 +53,11 @@ beforeEach(() => {
   vi.spyOn(shopApi, 'getMyShopReview').mockResolvedValue({
     can_review: true,
     own_shop: false,
-    review: null,
+    pending_count: 1,
+    reviews: [],
   })
-  vi.spyOn(shopApi, 'saveShopReview').mockResolvedValue({ data: review })
+  vi.spyOn(shopApi, 'createShopReview').mockResolvedValue({ data: review })
+  vi.spyOn(shopApi, 'updateShopReview').mockResolvedValue({ data: review })
 })
 afterEach(() => {
   wrappers.splice(0).forEach((w) => w.unmount())
@@ -84,7 +86,7 @@ it('an eligible buyer picks stars and sends the rating with a trimmed comment', 
   // Sending without stars asks for them first.
   document.querySelector('#shop-review-form').dispatchEvent(new Event('submit'))
   await flushPromises()
-  expect(shopApi.saveShopReview).not.toHaveBeenCalled()
+  expect(shopApi.createShopReview).not.toHaveBeenCalled()
   expect(document.body.textContent).toContain('Hãy chọn số sao.')
   document.querySelector('[data-star="4"]').click()
   const comment = document.querySelector('#shop-review-comment')
@@ -92,7 +94,7 @@ it('an eligible buyer picks stars and sends the rating with a trimmed comment', 
   comment.dispatchEvent(new Event('input'))
   document.querySelector('#shop-review-form').dispatchEvent(new Event('submit'))
   await flushPromises()
-  expect(shopApi.saveShopReview).toHaveBeenCalledWith('goc-tao-cu', {
+  expect(shopApi.createShopReview).toHaveBeenCalledWith('goc-tao-cu', {
     rating: 4,
     comment: 'Đóng gói kỹ',
   })
@@ -100,31 +102,52 @@ it('an eligible buyer picks stars and sends the rating with a trimmed comment', 
   expect(shopApi.listShopReviews).toHaveBeenCalledTimes(2)
 })
 
-it('offers to edit an existing rating, explains ineligibility and hides the button from the owner', async () => {
+it('a buyer edits one of their ratings and is told how many completed orders are left to rate', async () => {
   shopApi.getMyShopReview.mockResolvedValue({
     can_review: true,
     own_shop: false,
-    review: { rating: 3, comment: 'Ổn' },
+    pending_count: 2,
+    reviews: [{ ...review, rating: 3, comment: 'Ổn' }],
   })
-  const editing = (await setup()).wrapper
-  expect(editing.get('[data-review-shop]').text()).toBe('Sửa đánh giá của bạn')
-  await editing.get('[data-review-shop]').trigger('click')
+  const { wrapper } = await setup()
+  expect(wrapper.get('[data-review-shop]').text()).toBe('Đánh giá gian hàng')
+  expect(wrapper.get('[data-review-note]').text()).toBe('Bạn còn 2 đơn hoàn tất chưa đánh giá.')
+  await wrapper.get('[data-edit-shop-review]').trigger('click')
+  expect(document.querySelector('#shop-review-dialog').textContent).toContain('Sửa đánh giá gian hàng')
   expect(document.querySelector('[data-star="3"]').getAttribute('aria-checked')).toBe('true')
   expect(document.querySelector('#shop-review-comment').value).toBe('Ổn')
-  editing.unmount()
+  document.querySelector('[data-star="5"]').click()
+  document.querySelector('#shop-review-form').dispatchEvent(new Event('submit'))
+  await flushPromises()
+  expect(shopApi.updateShopReview).toHaveBeenCalledWith('1', { rating: 5, comment: 'Ổn' })
+  expect(shopApi.createShopReview).not.toHaveBeenCalled()
+})
+
+it('explains when every order is rated, when none is completed, and hides the button from the owner', async () => {
+  shopApi.getMyShopReview.mockResolvedValue({
+    can_review: false,
+    own_shop: false,
+    pending_count: 0,
+    reviews: [review],
+  })
+  const done = (await setup()).wrapper
+  expect(done.find('[data-review-shop]').exists()).toBe(false)
+  expect(done.get('[data-review-note]').text()).toContain('Bạn đã đánh giá mọi đơn hoàn tất')
+  expect(done.get('[data-edit-shop-review]').exists()).toBe(true)
+  done.unmount()
   wrappers.splice(0)
 
-  shopApi.getMyShopReview.mockResolvedValue({ can_review: false, own_shop: false, review: null })
+  shopApi.getMyShopReview.mockResolvedValue({ can_review: false, own_shop: false, pending_count: 0, reviews: [] })
   const notYet = (await setup()).wrapper
   expect(notYet.find('[data-review-shop]').exists()).toBe(false)
   expect(notYet.text()).toContain('sau khi có đơn hàng hoàn tất')
+  expect(notYet.find('[data-edit-shop-review]').exists()).toBe(false)
 
-  shopApi.getMyShopReview.mockResolvedValue({ can_review: false, own_shop: true, review: null })
+  shopApi.getMyShopReview.mockResolvedValue({ can_review: false, own_shop: true, pending_count: 0, reviews: [] })
   const owner = (await setup()).wrapper
   expect(owner.find('[data-review-shop]').exists()).toBe(false)
   expect(owner.text()).not.toContain('sau khi có đơn hàng hoàn tất')
 })
-
 it('a guest sees the ratings and is sent to sign in to rate', async () => {
   const { wrapper, router } = await setup(null)
   expect(shopApi.getMyShopReview).not.toHaveBeenCalled()
@@ -135,7 +158,7 @@ it('a guest sees the ratings and is sent to sign in to rate', async () => {
 })
 
 it('shows the server refusal when the purchase is not completed', async () => {
-  shopApi.saveShopReview.mockRejectedValue({
+  shopApi.createShopReview.mockRejectedValue({
     response: {
       status: 403,
       data: { message: 'Chỉ người đã mua và nhận hàng hoàn tất từ gian hàng mới đánh giá được.' },

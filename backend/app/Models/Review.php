@@ -11,7 +11,7 @@ class Review extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'product_id', 'order_item_id', 'rating', 'comment', 'status', 'moderation_reason'];
+    protected $fillable = ['user_id', 'product_id', 'order_item_id', 'rating', 'comment', 'video_path', 'video_mime_type', 'video_size', 'status', 'moderation_reason'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

@@ -28,7 +28,16 @@ function onSaved(review) {
       </p>
       <p v-if="item.review.comment" class="text-break" style="white-space: pre-wrap">
         {{ item.review.comment }}
-      </p></template
+      </p>
+      <video
+        v-if="item.review.video"
+        class="review-video"
+        :src="item.review.video.url"
+        controls
+        preload="metadata"
+        playsinline
+        aria-label="Video đánh giá của bạn"
+      ></video></template
     >
     <button
       v-if="!editing && (item.can_review || item.can_edit_review)"

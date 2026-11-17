@@ -495,12 +495,12 @@ const summary = computed(() =>
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
+  /* One line: "Sắp xếp" + select, then the refresh button beside it (the filter button is hidden here). */
   .products-tools-row {
-    grid-template-columns: auto auto;
+    display: flex;
     align-items: center;
   }
   .products-tools-row :deep(.mb-3) {
-    grid-column: 2;
     display: flex;
     align-items: center;
     gap: var(--space-2);

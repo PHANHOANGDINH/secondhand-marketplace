@@ -83,7 +83,7 @@ class OrderSummary
     public static function shipping(Order $order): array
     {
         $result = [];
-        foreach (['recipient_name', 'phone', 'address_line', 'ward', 'district', 'province', 'country_code'] as $field) {
+        foreach (['recipient_name', 'phone', 'address_line', 'address_detail', 'ward', 'district', 'province', 'country_code'] as $field) {
             $result[$field] = $order->{'shipping_'.$field};
         }
 

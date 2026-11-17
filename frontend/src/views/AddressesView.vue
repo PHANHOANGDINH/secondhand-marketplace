@@ -20,6 +20,7 @@ const blank = () => ({
   recipient_name: '',
   phone: '',
   address_line: '',
+  address_detail: '',
   ward: '',
   district: '',
   province: '',
@@ -29,11 +30,16 @@ const form = reactive(blank())
 const fields = [
   ['recipient_name', 'Người nhận', 100],
   ['phone', 'Số điện thoại', 20],
-  ['address_line', 'Địa chỉ', 255],
+  ['address_line', 'Địa chỉ', 255, 'Số nhà, tên đường'],
+  ['address_detail', 'Chi tiết địa chỉ (không bắt buộc)', 255, 'Tòa nhà, số tầng, số phòng, mốc gần đó…'],
   ['ward', 'Phường / xã', 100],
   ['district', 'Quận / huyện (không bắt buộc)', 100],
   ['province', 'Tỉnh / thành phố', 100],
 ]
+const optional = new Set(['address_detail', 'district'])
+// Detail first, as on a Vietnamese envelope: "Phòng 502, tòa A, 12 Trần Phú, Phường …".
+const addressText = (row) =>
+  [row.address_detail, row.address_line, row.ward, row.district, row.province].filter(Boolean).join(', ')
 const { busy, error, errors, success, clear, run } = useFeedback()
 async function refresh() {
   let result = await addressesApi.listAddresses({ page: page.value })
@@ -74,7 +80,12 @@ function edit(row) {
 
 const save = () =>
   run(async () => {
-    const data = { ...form, district: form.district || null, country_code: 'VN' }
+    const data = {
+      ...form,
+      address_detail: form.address_detail.trim() || null,
+      district: form.district || null,
+      country_code: 'VN',
+    }
     if (editing.value) await addressesApi.updateAddress(editing.value, data)
     else await addressesApi.createAddress(data)
     reset()
@@ -132,9 +143,7 @@ onMounted(() => load())
               <span v-if="row.is_default" class="badge text-bg-success">Mặc định</span>
             </h2>
             <p>
-              {{ row.phone }}<br />{{
-                [row.address_line, row.ward, row.district, row.province].filter(Boolean).join(', ')
-              }}
+              {{ row.phone }}<br />{{ addressText(row) }}
             </p>
             <div class="d-flex gap-2 flex-wrap">
               <button class="btn btn-outline-primary btn-sm" :disabled="busy" @click="edit(row)">
@@ -164,14 +173,15 @@ onMounted(() => load())
     >
         <form class="account-address-form" @submit.prevent="save">
           <DomainField
-            v-for="[key, label, max] in fields"
+            v-for="[key, label, max, hint] in fields"
             :key="key"
             v-model="form[key]"
             :name="key"
             :label="label"
             :maxlength="max"
+            :placeholder="hint"
             :type="key === 'phone' ? 'tel' : 'text'"
-            :required="key !== 'district'"
+            :required="!optional.has(key)"
             :errors="errors[key]"
             :disabled="busy"
           />

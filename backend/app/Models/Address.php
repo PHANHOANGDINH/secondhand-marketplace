@@ -10,7 +10,7 @@ class Address extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'recipient_name', 'phone', 'address_line', 'ward', 'district', 'province', 'country_code', 'is_default'];
+    protected $fillable = ['user_id', 'recipient_name', 'phone', 'address_line', 'address_detail', 'ward', 'district', 'province', 'country_code', 'is_default'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 

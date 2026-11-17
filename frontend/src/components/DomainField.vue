@@ -12,6 +12,7 @@ const props = defineProps({
   required: Boolean,
   disabled: Boolean,
   maxlength: { type: Number, default: undefined },
+  placeholder: { type: String, default: undefined },
 })
 const fieldId = computed(() => `${props.idPrefix}${props.name}`)
 defineEmits(['update:modelValue'])
@@ -74,6 +75,7 @@ defineEmits(['update:modelValue'])
       :type="type"
       :value="modelValue"
       :maxlength="maxlength"
+      :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
       :aria-invalid="errors.length ? 'true' : undefined"

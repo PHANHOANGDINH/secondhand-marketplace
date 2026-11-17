@@ -8,7 +8,7 @@ const fields = {
   status: 'Trạng thái', expected_status: 'Trạng thái', role: 'Vai trò',
   product_id: 'Sản phẩm', category_id: 'Danh mục', parent_id: 'Danh mục cha',
   address_id: 'Địa chỉ giao hàng', recipient_name: 'Tên người nhận',
-  address_line: 'Địa chỉ', province: 'Tỉnh/thành phố', district: 'Quận/huyện',
+  address_line: 'Địa chỉ', address_detail: 'Chi tiết địa chỉ',province: 'Tỉnh/thành phố', district: 'Quận/huyện',
   ward: 'Phường/xã', description: 'Mô tả', title: 'Tiêu đề', reason: 'Lý do',
   comment: 'Nhận xét', rating: 'Số sao', start_price: 'Giá khởi điểm',
   bid_increment: 'Bước giá', starts_at: 'Thời gian bắt đầu', ends_at: 'Thời gian kết thúc',

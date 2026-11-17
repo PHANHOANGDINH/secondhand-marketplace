@@ -34,6 +34,18 @@ class ProfileAddressTest extends TestCase
         return array_replace(['recipient_name' => 'Test User', 'phone' => '0901234567', 'address_line' => '10 Test Street', 'ward' => 'Test Ward', 'province' => 'Test Province', 'country_code' => 'VN'], $extra);
     }
 
+    public function test_address_detail_is_optional_editable_and_length_limited(): void
+    {
+        $this->loginAs(User::factory()->create());
+        $plain = $this->postJson('/api/v1/addresses', $this->addressData())->assertCreated()->assertJsonPath('data.address_detail', null)->json('data.id');
+        $id = $this->postJson('/api/v1/addresses', $this->addressData(['address_detail' => 'Tầng 5, tòa A, cạnh cổng chợ']))->assertCreated()->assertJsonPath('data.address_detail', 'Tầng 5, tòa A, cạnh cổng chợ')->json('data.id');
+        $this->patchJson('/api/v1/addresses/'.$id, ['ward' => 'Other Ward'])->assertOk()->assertJsonPath('data.address_detail', 'Tầng 5, tòa A, cạnh cổng chợ');
+        $this->patchJson('/api/v1/addresses/'.$id, ['address_detail' => ''])->assertOk()->assertJsonPath('data.address_detail', null);
+        $this->postJson('/api/v1/addresses', $this->addressData(['address_detail' => str_repeat('a', 256)]))->assertUnprocessable()->assertJsonValidationErrors('address_detail');
+        $this->patchJson('/api/v1/addresses/'.$plain, ['address_detail' => ['array']])->assertUnprocessable()->assertJsonValidationErrors('address_detail');
+        $this->assertDatabaseCount('addresses', 2);
+    }
+
     public function test_guest_and_suspended_accounts_cannot_use_profile_or_addresses(): void
     {
         foreach (['/profile', '/addresses'] as $url) {

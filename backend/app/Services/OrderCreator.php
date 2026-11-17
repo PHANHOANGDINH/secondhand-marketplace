@@ -20,7 +20,7 @@ class OrderCreator
     public function create(User $buyer, Address $address, string $key, string $hash, PaymentMethod $method, array $channels, array $groups, Collection $products, string $total, ?array $plan = null): Order
     {
         $shipping = [];
-        foreach (['recipient_name', 'phone', 'address_line', 'ward', 'district', 'province', 'country_code'] as $field) {
+        foreach (['recipient_name', 'phone', 'address_line', 'address_detail', 'ward', 'district', 'province', 'country_code'] as $field) {
             $shipping['shipping_'.$field] = $address->$field;
         }
         // With vouchers the order and each shop order store their own discount and code: later voucher edits change nothing here.

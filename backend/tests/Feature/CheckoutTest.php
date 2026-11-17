@@ -79,7 +79,8 @@ class CheckoutTest extends TestCase
     {
         [$buyer,$address,$cart,$products] = $this->fixture(2);
         $products[1]->update(['price' => '999999.99']);
-        $result = $this->checkout($address)->assertCreated()->assertJsonPath('data.total_amount', '2000000.18')->assertJsonPath('data.overall_status', 'PENDING')->assertJsonPath('data.payment_status', 'PENDING')->assertJsonCount(2, 'data.shop_orders')->assertJsonCount(1, 'data.payments')->assertJsonPath('data.payments.0.amount', '2000000.18')->assertJsonPath('data.payments.0.method', 'COD')->assertJsonMissingPath('data.checkout_key')->assertJsonMissingPath('data.request_hash');
+        $address->update(['address_detail' => 'Tầng 5, tòa A']);
+        $result = $this->checkout($address)->assertJsonPath('data.shipping_address.address_detail', 'Tầng 5, tòa A')->assertCreated()->assertJsonPath('data.total_amount', '2000000.18')->assertJsonPath('data.overall_status', 'PENDING')->assertJsonPath('data.payment_status', 'PENDING')->assertJsonCount(2, 'data.shop_orders')->assertJsonCount(1, 'data.payments')->assertJsonPath('data.payments.0.amount', '2000000.18')->assertJsonPath('data.payments.0.method', 'COD')->assertJsonMissingPath('data.checkout_key')->assertJsonMissingPath('data.request_hash');
         $order = Order::findOrFail($result->json('data.id'));
         $snapshot = $result->json('data');
         foreach ($products as $p) {
@@ -89,7 +90,7 @@ class CheckoutTest extends TestCase
             $p->images()->update(['image_path' => 'changed.webp']);
             $p->delete();
         }
-        $address->update(['recipient_name' => 'Changed address']);
+        $address->update(['recipient_name' => 'Changed address', 'address_detail' => 'Changed detail']);
         $address->delete();
         $this->getJson('/api/v1/orders/'.$order->id)->assertOk()->assertJsonPath('data.shipping_address', $snapshot['shipping_address'])->assertJsonPath('data.shop_orders', $snapshot['shop_orders']);
         $this->assertSame(0, $cart->items()->count());

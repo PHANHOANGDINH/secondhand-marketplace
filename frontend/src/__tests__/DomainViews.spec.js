@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { createAuthGuard } from '../router/authGuard'
 import ProfileView from '../views/ProfileView.vue'
 import AddressesView from '../views/AddressesView.vue'
+import OrderShipping from '../components/OrderShipping.vue'
 import SellerShopView from '../views/SellerShopView.vue'
 import AdminCategoriesView from '../views/AdminCategoriesView.vue'
 import AdminShopsView from '../views/AdminShopsView.vue'
@@ -138,6 +139,7 @@ it('loads addresses and creates a new address without an owner field', async () 
     recipient_name: address.recipient_name,
     phone: address.phone,
     address_line: address.address_line,
+    address_detail: null,
     ward: address.ward,
     district: null,
     province: address.province,
@@ -146,6 +148,27 @@ it('loads addresses and creates a new address without an owner field', async () 
   })
   expect(addressApi.listAddresses).toHaveBeenCalledTimes(2)
   expect(wrapper.find('form').exists()).toBe(false)
+})
+it('address detail is optional, saved trimmed and shown before the street', async () => {
+  const detailed = { ...address, address_detail: 'Tầng 5, tòa A' }
+  vi.spyOn(addressApi, 'listAddresses').mockResolvedValue(collection([detailed]))
+  vi.spyOn(addressApi, 'updateAddress').mockResolvedValue(detailed)
+  const { wrapper } = await setup(AddressesView)
+  expect(wrapper.get(`[data-address="${address.id}"]`).text()).toContain(
+    'Tầng 5, tòa A, 12 Example, Ward, City',
+  )
+  await button(wrapper, 'Sửa').trigger('click')
+  const input = wrapper.get('input[name=address_detail]')
+  expect(input.element.value).toBe('Tầng 5, tòa A')
+  expect(input.attributes('required')).toBeUndefined()
+  expect(wrapper.get('label[for=address_detail]').text()).toBe('Chi tiết địa chỉ (không bắt buộc)')
+  await input.setValue('  Phòng 502  ')
+  await wrapper.get('form').trigger('submit')
+  await flushPromises()
+  expect(addressApi.updateAddress).toHaveBeenCalledWith(
+    address.id,
+    expect.objectContaining({ address_detail: 'Phòng 502' }),
+  )
 })
 it('edits an address and uses its own resource id', async () => {
   vi.spyOn(addressApi, 'listAddresses').mockResolvedValue(collection([address]))
@@ -339,4 +362,13 @@ it('profile cancel restores saved fields without an API write', async () => {
   expect(wrapper.get('input[name=name]').element.value).toBe(user.name)
   expect(wrapper.get('input[name=phone]').element.value).toBe('')
   expect(profileApi.updateProfile).not.toHaveBeenCalled()
+})
+it('order shipping shows the snapshot detail before the street and skips it when empty', () => {
+  const shipping = { ...address, address_detail: 'Phòng 502' }
+  const withDetail = mount(OrderShipping, { props: { address: shipping } })
+  expect(withDetail.text()).toContain('Phòng 502, 12 Example, Ward, City, VN')
+  const without = mount(OrderShipping, { props: { address: { ...address, address_detail: null } } })
+  expect(without.text()).toContain('— 0901234567')
+  expect(without.text()).toContain('12 Example, Ward, City, VN')
+  wrappers.push(withDetail, without)
 })

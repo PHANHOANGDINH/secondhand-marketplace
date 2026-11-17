@@ -187,6 +187,7 @@ class ZaloPayService
                 $locked->order_url = null;
                 $locked->save();
                 $this->audit->record($order->buyer, 'payments', $locked->id, 'payment.paid', 'PENDING', 'PAID', 'Verified ZaloPay result.');
+                app(OrderNotificationService::class)->paid($order);
 
                 return 1;
             });

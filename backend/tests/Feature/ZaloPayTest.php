@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\ZaloPayGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -220,6 +221,23 @@ class ZaloPayTest extends TestCase
         }
         $this->assertSame(PaymentStatus::PENDING, $p->refresh()->status);
         $this->assertNull($p->gateway_transaction_id);
+    }
+
+    public function test_seller_is_reminded_only_once_online_payment_is_verified(): void
+    {
+        [$buyer,$order,$product] = $this->placed();
+        $seller = $product->shop->owner;
+        $code = $order->order_code;
+        $types = fn (User $user): array => DatabaseNotification::query()->where('notifiable_id', $user->id)->pluck('type')->sort()->values()->all();
+        $this->assertSame(['ORDER_PLACED'], $types($buyer));
+        $this->assertSame('Đơn hàng '.$code.' đã được tạo. Hãy hoàn tất thanh toán ZaloPay để người bán xử lý đơn.', DatabaseNotification::where('notifiable_id', $buyer->id)->sole()->data['message']);
+        $this->assertSame([], $types($seller));
+        $callback = $this->signed($order->payments()->first());
+        $this->sendCallback($callback);
+        $this->sendCallback($callback, 2);
+        $this->assertSame(['ORDER_PAID', 'ORDER_PLACED'], $types($buyer));
+        $paid = DatabaseNotification::where('notifiable_id', $seller->id)->sole();
+        $this->assertSame(['ORDER_PAID', 'Đơn hàng '.$code.' đã được thanh toán qua ZaloPay. Hãy xác nhận đơn sớm nhé.', '/seller/orders/'.$order->shopOrders()->sole()->id], [$paid->type, $paid->data['message'], $paid->data['target_route']]);
     }
 
     public function test_replaying_transaction_for_a_different_order_cannot_pay_twice(): void

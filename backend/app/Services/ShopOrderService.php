@@ -88,6 +88,7 @@ class ShopOrderService
             $locked->$timestamp = now();
             $locked->save();
             $this->audit->record($actor, 'shop_orders', $locked->id, 'shop_order.status_changed', $expected->value, $target->value, $locked->cancellation_reason);
+            app(OrderNotificationService::class)->statusChanged($locked, $target, $buyer);
             if ($target === Status::CANCELLED) {
                 app(VoucherService::class)->release($actor, $order, $locked, $parts);
             }

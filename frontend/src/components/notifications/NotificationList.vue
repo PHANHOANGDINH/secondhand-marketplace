@@ -13,7 +13,7 @@ const actionLabel = (type) =>
         ? 'Ra giá lại'
         : ['AUCTION_WON', 'WINNER_CHECKOUT_EXPIRING'].includes(type)
           ? 'Hoàn tất mua hàng'
-          : type === 'AUCTION_ORDER_CREATED'
+          : ['AUCTION_ORDER_CREATED', 'ORDER_PLACED', 'ORDER_PAID', 'ORDER_STATUS_CHANGED'].includes(type)
             ? 'Xem đơn hàng'
             : type === 'AUCTION_CHECKOUT_UNAVAILABLE'
               ? 'Xem các phiên khác'

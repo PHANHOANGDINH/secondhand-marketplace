@@ -114,6 +114,7 @@ class CheckoutService
                     }
                     $order = app(OrderCreator::class)->create($buyer, $address, $key, $hash, $method, $channels, $groups, $products, $total, $plan);
                     $this->vouchers->commit($plan, $order, $buyer);
+                    app(OrderNotificationService::class)->placed($order);
                     $cart->items()->whereIn('id', $items->pluck('id'))->delete();
                     $cart->touch();
 

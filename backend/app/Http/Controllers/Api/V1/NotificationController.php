@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Domain\DomainRequest;
 use App\Http\Requests\Domain\NotificationListRequest;
 use App\Http\Resources\NotificationResource;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -20,10 +21,10 @@ class NotificationController extends Controller
             $query->whereNull('read_at');
         }
         if ($filter === 'orders') {
-            $query->where('type', 'AUCTION_ORDER_CREATED');
+            $query->whereIn('type', OrderNotificationService::TYPES);
         }
         if ($filter === 'auction') {
-            $query->where('type', '!=', 'AUCTION_ORDER_CREATED');
+            $query->whereNotIn('type', OrderNotificationService::TYPES);
         }
 
         return NotificationResource::collection($query->orderByDesc('id')->paginate($request->integer('per_page', 20))->withQueryString())->additional(['unread_count' => $request->user()->unreadNotifications()->count()]);

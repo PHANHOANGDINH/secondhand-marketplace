@@ -1,0 +1,67 @@
+# Local development in one command: `docker compose up -d` (stop the host processes on 8000/8080/5173 first).
+# MySQL stays on the host (XAMPP or another local server on 3306); backend/.env and frontend/.env are reused,
+# and the few values that differ inside containers are overridden below (real env vars win over .env).
+name: passdi
+
+x-php: &php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: passdi-php:8.4
+  working_dir: /var/www/backend
+  volumes:
+    - ./backend:/var/www/backend
+    # public/storage is a Windows junction that Linux cannot follow; mount its target in its place.
+    - ./backend/storage/app/public:/var/www/backend/public/storage
+  environment:
+    DB_HOST: host.docker.internal
+    # Laravel pushes broadcasts to the Reverb container; browsers still connect to 127.0.0.1:8080.
+    REVERB_HOST: reverb
+    REVERB_PORT: "8080"
+    REVERB_SCHEME: http
+    PHP_CLI_SERVER_WORKERS: "4"
+  extra_hosts:
+    - host.docker.internal:host-gateway
+  restart: unless-stopped
+
+services:
+  backend:
+    <<: *php
+    command: php artisan serve --host=0.0.0.0 --port=8000 --no-reload
+    ports:
+      - 127.0.0.1:8000:8000
+
+  reverb:
+    <<: *php
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - 127.0.0.1:8080:8080
+
+  scheduler:
+    <<: *php
+    command: php artisan schedule:work
+
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      # Linux packages (esbuild, rollup, oxlint) must not mix with the Windows node_modules on the host.
+      - frontend_node_modules:/app/node_modules
+    environment:
+      VITE_BACKEND_PROXY_TARGET: http://backend:8000
+      VITE_DEV_HOST: 0.0.0.0
+      VITE_USE_POLLING: "true"
+    # Reinstall only when package-lock.json changed since the last install in the volume.
+    command: >
+      sh -c 'lock=$$(sha1sum package-lock.json | cut -d" " -f1);
+      [ "$$(cat node_modules/.lock-sha 2>/dev/null)" = "$$lock" ] || { npm ci --no-audit --no-fund && echo "$$lock" > node_modules/.lock-sha; };
+      exec npm run dev'
+    ports:
+      - 127.0.0.1:5173:5173
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  frontend_node_modules:

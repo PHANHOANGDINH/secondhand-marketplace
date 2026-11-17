@@ -51,6 +51,23 @@ A working local system needs MySQL plus these four long-running processes, each 
 powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
 ```
 
+### Docker (alternative to the four windows)
+
+`docker-compose.yml` runs the same four processes in containers (PHP 8.4 image with the 50 MiB upload limits, Node 24 for Vite). MySQL **stays on the host** (XAMPP on `127.0.0.1:3306`); `backend/.env` and `frontend/.env` are reused unchanged and only the in-container addresses are overridden (`DB_HOST=host.docker.internal`, `REVERB_HOST=reverb`, Vite proxy `http://backend:8000`).
+
+1. Start Docker Desktop and MySQL. Stop `start-dev.ps1` windows first: ports 8000, 8080 and 5173 are published on `127.0.0.1`.
+2. From the repository root:
+
+```powershell
+docker compose up -d --build   # first run builds passdi-php:8.4 and installs Linux node_modules (~1 min)
+docker compose logs -f         # follow all four; Ctrl+C stops following, not the stack
+docker compose down            # stop
+```
+
+3. Open **http://localhost:5173**. Run one-off commands in the image, e.g. `docker compose exec backend php artisan migrate:status`.
+
+Notes: `backend/vendor` is shared with the host (run `composer install` on the host); the frontend uses its own `node_modules` volume, reinstalled automatically when `package-lock.json` changes. Vite watches files by polling inside Docker. Run tests on the host as before (they only use `secondhand_marketplace_test`). Do not run the Docker scheduler and a host `schedule:work` at the same time.
+
 ### First-time setup
 
 Start XAMPP MySQL. Create `secondhand_marketplace` only if it does not exist. Configure a local database user with access to this database; keep its username/password in private `backend/.env`. Do not replace an existing database or existing env/key.

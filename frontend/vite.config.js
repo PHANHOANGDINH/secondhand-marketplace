@@ -32,9 +32,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: 'localhost',
+      // Docker sets VITE_DEV_HOST=0.0.0.0 (reachable through the published port) and polling, because
+      // file events from a Windows bind mount do not reach the container.
+      host: env.VITE_DEV_HOST || 'localhost',
       port: 5173,
       strictPort: true,
+      watch: env.VITE_USE_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
       proxy,
     },
   }

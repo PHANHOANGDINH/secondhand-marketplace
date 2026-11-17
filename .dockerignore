@@ -1,0 +1,3 @@
+# The PHP image only needs the upload limits; code is bind-mounted at run time.
+*
+!backend/dev/uploads.ini
